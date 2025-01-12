@@ -1,4 +1,4 @@
-#include "Vtop.h"
+#include "Vexample.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "stdio.h"
@@ -12,13 +12,13 @@ int main (int argc, char** argv)
     
     VerilatedContext* contextp = new VerilatedContext;
     contextp->commandArgs(argc, argv);
-    Vtop* top = new Vtop{contextp};
+    Vexample* top = new Vexample{contextp};
     
     // 添加波形跟踪,不添加会导致无法生成.cvd波形文件
     Verilated::traceEverOn(true);
     VerilatedVcdC* tfp = new VerilatedVcdC;
     top->trace(tfp, 99);  // 波形跟踪深度
-    tfp->open("top.vcd");
+    tfp->open("example.vcd");
     
     int step = 0;
     while (!contextp->gotFinish())
