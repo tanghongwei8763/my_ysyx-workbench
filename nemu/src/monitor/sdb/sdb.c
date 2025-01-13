@@ -45,7 +45,7 @@ static char* rl_gets() {
 static int cmd_info(char *args) {
   char sign;
   sscanf(args, "%c", &sign);
-  if (sign == 'r')
+  if (args[0] == 'r')
     isa_reg_display();
   //else if (args == 'w')
   return 0;
