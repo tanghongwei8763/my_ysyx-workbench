@@ -42,6 +42,16 @@ static char* rl_gets() {
   return line_read;
 }
 
+static int cmd_si(char *args) {
+  int step;
+  if (args == NULL)
+    step = 1;
+  else
+    sscanf(args, "%d", &step);
+  cpu_exec(step);
+  return 0;
+}
+
 static int cmd_c(char *args) {
   cpu_exec(-1);
   return 0;
@@ -62,8 +72,8 @@ static struct {
   { "help", "显示有关所有支持的命令的信息。", cmd_help },
   { "c", "继续执行程序", cmd_c },
   { "q", "退出 NEMU", cmd_q },
-  /*
   { "si", "让程序单步执行[N]条指令后暂停执行,N缺省为1",cmd_si },
+  /*
   { "info", "打印寄存器状态[r]打印监视点信息[w]", cmd_info },
   { "x", "求出表达式EXPR的值, 将结果作为起始内存地址, 以十六进制形式输出连续的N个4字节", cmd_x },
   { "p", "求出表达式EXPR的值", cmd_p },
