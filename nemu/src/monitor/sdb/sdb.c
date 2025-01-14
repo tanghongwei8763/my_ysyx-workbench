@@ -42,16 +42,14 @@ static char* rl_gets() {
   return line_read;
 }
 
-static int cmd_info(char *args) {
-  char sign;
-  sscanf(args, "%c", &sign);
+static int cmd_info(char *args) {		//打印寄存器，监视点
   if (args[0] == 'r')
     isa_reg_display();
   //else if (args == 'w')
   return 0;
 }
 
-static int cmd_si(char *args) {
+static int cmd_si(char *args) {			//单步执行
   int step;
   if (args == NULL)
     step = 1;
