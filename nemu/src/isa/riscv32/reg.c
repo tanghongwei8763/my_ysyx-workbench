@@ -24,40 +24,8 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-/*
-  printf("%S\t\t0x%08x\t%d\n", reg[0]);
-  printf("%S\t\t0x%08x\t%d\n", reg[1]);
-  printf("%S\t\t0x%08x\t%d\n", reg[2]);
-  printf("%S\t\t0x%08x\t%d\n", reg[3]);
-  printf("%S\t\t0x%08x\t%d\n", reg[4]);
-  printf("%S\t\t0x%08x\t%d\n", reg[5]);
-  printf("%S\t\t0x%08x\t%d\n", reg[6]);
-  printf("%S\t\t0x%08x\t%d\n", reg[7]);
-  printf("%S\t\t0x%08x\t%d\n", reg[8]);
-  printf("%S\t\t0x%08x\t%d\n", reg[9]);
-  printf("%S\t\t0x%08x\t%d\n", reg[10]);
-  printf("%S\t\t0x%08x\t%d\n", reg[11]);
-  printf("%S\t\t0x%08x\t%d\n", reg[12]);
-  printf("%S\t\t0x%08x\t%d\n", reg[13]);
-  printf("%S\t\t0x%08x\t%d\n", reg[14]);
-  printf("%S\t\t0x%08x\t%d\n", reg[15]);
-  printf("%S\t\t0x%08x\t%d\n", reg[16]);
-  printf("%S\t\t0x%08x\t%d\n", reg[17]);
-  printf("%S\t\t0x%08x\t%d\n", reg[18]);
-  printf("%S\t\t0x%08x\t%d\n", reg[19]);
-  printf("%S\t\t0x%08x\t%d\n", reg[20]);
-  printf("%S\t\t0x%08x\t%d\n", reg[21]);
-  printf("%S\t\t0x%08x\t%d\n", reg[22]);
-  printf("%S\t\t0x%08x\t%d\n", reg[23]);
-  printf("%S\t\t0x%08x\t%d\n", reg[24]);
-  printf("%S\t\t0x%08x\t%d\n", reg[25]);
-  printf("%S\t\t0x%08x\t%d\n", reg[26]);
-  printf("%S\t\t0x%08x\t%d\n", reg[27]);
-  printf("%S\t\t0x%08x\t%d\n", reg[28]);
-  printf("%S\t\t0x%08x\t%d\n", reg[29]);
-  printf("%S\t\t0x%08x\t%d\n", reg[30]);
-  printf("%S\t\t0x%08x\t%d\n", reg[31]);
-*/
+  for (int i = 0; i < sizeof(regs)/sizeof(regs[0]); i++)
+    printf("%s\t\t0x%08x\t%d\n", regs[i], *regs[i], *regs[i]);
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
