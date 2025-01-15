@@ -85,11 +85,12 @@ static bool make_token(char *e) {
 
   while (e[position] != '\0') {
     /* Try all rules one by one. */
+    
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
-
+	//strncpy(tokens[nr_token++].str, substr_start, substr_len);
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
@@ -99,7 +100,7 @@ static bool make_token(char *e) {
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
-
+    
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
             continue;
@@ -123,11 +124,41 @@ static bool make_token(char *e) {
 	  case TK_EQ: tokens[nr_token++].type = TK_EQ;
           default: TODO();
         }
-
         break;
       }
     }
-
+    
+    /*
+    if (e[position] == ' ') {
+      position++;
+      continue;
+    }
+    else if (e[position] >= '0' && e[position] <= '9') {
+      tokens[nr_token].type = TK_NUM;
+      int j = 0, i = position;
+      while (e[i] >= '0' && e[i] <= '9') {
+        tokens[nr_token].str[j++] = e[i++];
+      }
+      tokens[nr_token].str[j] = '\0';
+      nr_token++;
+    }
+    else if (e[position] == '+' || e[position] == '-' || e[position] == '*' || e[position] == '/') {
+      tokens[nr_token++].type = (e[position] == '+') ? '+' : (e[position] == '-') ? '-' : (e[position] == '*') ? '*' : '/';
+      position++;
+    }
+    else if (e[position] == '(') {
+      tokens[nr_token].type = TK_LPAREN;
+      position++;
+    }
+    else if (e[position] == ')') {
+      tokens[nr_token].type = TK_RPAREN;
+      position++;
+    }
+    else {
+      printf("illegal character: %c\n", e[position]);
+      exit(1);
+    }
+    */
     if (i == NR_REGEX) {
       printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
       return false;
