@@ -136,6 +136,7 @@ static bool make_token(char *e) {
 
   return true;
 }
+
 int check_parentheses(int p, int q, const Token tokens[])
 {
   int temp = 0;		//用于判断括号是否匹配
@@ -165,7 +166,6 @@ int eval(int p, int q, const Token tokens[])
     int min_priority = 10;
     int split = -1;
     for (int i = p; i <= q; i++) {
-      //printf("for里面的i%d\n", i);
       int priority = 0;
       switch (tokens[i].type) {
         case '+':
