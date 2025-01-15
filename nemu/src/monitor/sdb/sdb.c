@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include "memory/vaddr.h"
 
 static int is_batch_mode = false;
 
@@ -42,10 +43,25 @@ static char* rl_gets() {
   return line_read;
 }
 
+static int cmd_x(char *args) {			//扫描内存
+  int arg1, arg2;
+  sscanf(args, "%d", &arg1);
+  sscanf(args, "%x", &arg2);
+  for (int i = 0; i < arg1; i++){
+    printf("0x%08x\t", arg2+4*i);
+    for(int j = 0; j < 4; j++){
+      printf("0x%02x ", vaddr_read(arg2+i*4,4) >> 8*i);
+    }
+  }
+  return 0;
+}
+
 static int cmd_info(char *args) {		//打印寄存器，监视点
   if (args[0] == 'r')
     isa_reg_display();
   //else if (args == 'w')
+  else
+    printf("输入有误，需要帮助可以键入‘help’");
   return 0;
 }
 
@@ -81,8 +97,8 @@ static struct {
   { "q", "退出 NEMU", cmd_q },
   { "si", "让程序单步执行[N]条指令后暂停执行,N缺省为1",cmd_si },
   { "info", "打印寄存器状态[r]打印监视点信息[w]", cmd_info },
-  /*
   { "x", "求出表达式EXPR的值, 将结果作为起始内存地址, 以十六进制形式输出连续的N个4字节", cmd_x },
+  /*
   { "p", "求出表达式EXPR的值", cmd_p },
   { "w", "当表达式EXPR的值发生变化时, 暂停程序执行", cmd_w },
   { "d", "删除序号为[N]的监视点", cmd_d }
