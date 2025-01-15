@@ -103,29 +103,30 @@ static bool make_token(char *e) {
     
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
+            pos++;
             break;
           }
           case TK_NUM: {		//数字
             tokens[nr_token].type = TK_NUM;
-            int j = 0, x = pos;
+            int j = 0;
             while (e[pos] >= '0' && e[pos] <= '9') 
             {
-              tokens[nr_token].str[j++] = e[x++];
+              tokens[nr_token].str[j++] = e[pos++];
             }
             tokens[nr_token].str[j] = '\0';
             nr_token++;
             break;
           }
-          case '+': tokens[nr_token++].type = '+';break;
-          case '-': tokens[nr_token++].type = '-';break;
-          case '*': tokens[nr_token++].type = '*';break;
-          case '/': tokens[nr_token++].type = '/';break;
-          case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;break;
-	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;break;
-	  case TK_EQ: tokens[nr_token++].type = TK_EQ;break;
+          case '+': tokens[nr_token++].type = '+';pos++;break;
+          case '-': tokens[nr_token++].type = '-';pos++;break;
+          case '*': tokens[nr_token++].type = '*';pos++;break;
+          case '/': tokens[nr_token++].type = '/';pos++;break;
+          case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;pos++;break;
+	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;pos++;break;
+	  case TK_EQ: tokens[nr_token++].type = TK_EQ;pos++;break;
           default: TODO();break;
         }
-        pos++;
+        
         break;
       }
     }
