@@ -37,11 +37,11 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
-  {"[0-9]+", TK_NUM},	//number
+  {"[0-9]+", TK_NUM},	// number
   {"\\+", '+'},         // plus
-  {"\\-", '-'},		//sub
-  {"\\*", '*'},		//mul
-  {"\\/", '/'},		//div
+  {"\\-", '-'},		// sub
+  {"\\*", '*'},		// mul
+  {"\\/", '/'},		// div
   {"\\(", TK_LPAREN},	// left parenthesis
   {"\\)", TK_RPAREN},	// right parenthesis
   {"==", TK_EQ}        	// equal
@@ -85,7 +85,6 @@ static bool make_token(char *e) {
 
   while (e[position] != '\0') {
     /* Try all rules one by one. */
-    
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
         char *substr_start = e + position;
@@ -103,7 +102,7 @@ static bool make_token(char *e) {
     
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
-            continue;
+            break;
           }
           case TK_NUM: {		//数字
             tokens[nr_token].type = TK_NUM;
@@ -114,51 +113,21 @@ static bool make_token(char *e) {
             }
             tokens[nr_token].str[j] = '\0';
             nr_token++;
+            break;
           }
-          case '+': tokens[nr_token++].type = '+';
-          case '-': tokens[nr_token++].type = '-';
-          case '*': tokens[nr_token++].type = '*';
-          case '/': tokens[nr_token++].type = '/';
-          case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;
-	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;
-	  case TK_EQ: tokens[nr_token++].type = TK_EQ;
-          default: TODO();
+          case '+': tokens[nr_token++].type = '+';break;
+          case '-': tokens[nr_token++].type = '-';break;
+          case '*': tokens[nr_token++].type = '*';break;
+          case '/': tokens[nr_token++].type = '/';break;
+          case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;break;
+	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;break;
+	  case TK_EQ: tokens[nr_token++].type = TK_EQ;break;
+          default: TODO();break;
         }
         break;
       }
     }
-    
-    /*
-    if (e[position] == ' ') {
-      position++;
-      continue;
-    }
-    else if (e[position] >= '0' && e[position] <= '9') {
-      tokens[nr_token].type = TK_NUM;
-      int j = 0, i = position;
-      while (e[i] >= '0' && e[i] <= '9') {
-        tokens[nr_token].str[j++] = e[i++];
-      }
-      tokens[nr_token].str[j] = '\0';
-      nr_token++;
-    }
-    else if (e[position] == '+' || e[position] == '-' || e[position] == '*' || e[position] == '/') {
-      tokens[nr_token++].type = (e[position] == '+') ? '+' : (e[position] == '-') ? '-' : (e[position] == '*') ? '*' : '/';
-      position++;
-    }
-    else if (e[position] == '(') {
-      tokens[nr_token].type = TK_LPAREN;
-      position++;
-    }
-    else if (e[position] == ')') {
-      tokens[nr_token].type = TK_RPAREN;
-      position++;
-    }
-    else {
-      printf("illegal character: %c\n", e[position]);
-      exit(1);
-    }
-    */
+   
     if (i == NR_REGEX) {
       printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
       return false;
