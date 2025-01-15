@@ -22,7 +22,7 @@
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
-
+  TK_NUM, TK_LPAREN, TK_RPAREN
   /* TODO: Add more token types */
 
 };
@@ -37,8 +37,14 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
+  {"[0-9]+", TK_NUM},	//number
   {"\\+", '+'},         // plus
-  {"==", TK_EQ},        // equal
+  {"\\-", '-'},		//sub
+  {"\\*", '*'},		//mul
+  {"\\/", '/'},		//div
+  {"\\(", TK_LPAREN},	// left parenthesis
+  {"\\)", TK_RPAREN},	// right parenthesis
+  {"==", TK_EQ}        	// equal
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -95,6 +101,26 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
+          case TK_NOTYPE: {		//空格
+            continue;
+          }
+          case TK_NUM: {		//数字
+            tokens[nr_token].type = TK_NUM;
+            int j = 0, pos = position;
+            while (e[pos] >= '0' && e[pos] <= '9') 
+            {
+              tokens[nr_token].str[j++] = e[pos++];
+            }
+            tokens[nr_token].str[j] = '\0';
+            nr_token++;
+          }
+          case '+': tokens[nr_token++].type = '+';
+          case '-': tokens[nr_token++].type = '-';
+          case '*': tokens[nr_token++].type = '*';
+          case '/': tokens[nr_token++].type = '/';
+          case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;
+	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;
+	  case TK_EQ: tokens[nr_token++].type = TK_EQ;
           default: TODO();
         }
 
@@ -110,6 +136,84 @@ static bool make_token(char *e) {
 
   return true;
 }
+int check_parentheses(int p, int q, const Token tokens[])
+{
+  int temp = 0;		//用于判断括号是否匹配
+  if (tokens[p].type != TK_LPAREN || tokens[q].type != TK_RPAREN) 
+    return 0;
+
+  for (int i = p; i <= q; i++) {
+    if (tokens[i].type == TK_LPAREN) temp++;
+    else if (tokens[i].type == TK_RPAREN) temp--;
+    if (temp < 0) 
+      return 0;
+  }
+  return temp == 0;
+}
+
+int eval(int p, int q, const Token tokens[])
+{
+  if (p > q) {
+    printf("Bad expression\n");
+    return -1;
+  }
+  else if (p == q) 
+    return atoi(tokens[p].str);
+  else if (check_parentheses(p, q, tokens))
+    return eval(p + 1, q - 1, tokens);
+  else {
+    int min_priority = 10;
+    int split = -1;
+    for (int i = p; i <= q; i++) {
+      //printf("for里面的i%d\n", i);
+      int priority = 0;
+      switch (tokens[i].type) {
+        case '+':
+        case '-':
+          priority = 1;
+          break;
+        case '*':
+        case '/':
+          priority = 2;
+          break;
+        case TK_LPAREN:
+          if (split != -1)
+            goto next;
+          continue;
+        default:
+            continue;
+      }
+      if (priority <= min_priority) {
+        min_priority = priority;
+        split = i;
+      }
+    }
+next:
+    if (split == -1) {
+      printf("Bad expression\n");
+      return -1;
+    }
+    int left = eval(p, split - 1, tokens);
+    int right = eval(split + 1, q, tokens);
+    switch (tokens[split].type) {
+      case '+':
+        return left + right;
+      case '-':
+        return left - right;
+      case '*':
+        return left * right;
+      case '/':
+        if (right == 0) {
+          printf("The divisor cannot be zero\n");
+          return -1;
+        }
+        return left / right;
+      default:
+        printf("Bad expression\n");
+        return -1;
+    }        
+  }
+}
 
 
 word_t expr(char *e, bool *success) {
@@ -117,9 +221,11 @@ word_t expr(char *e, bool *success) {
     *success = false;
     return 0;
   }
+  *success = true;
+  return eval(0, nr_token-1, tokens);
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  //TODO();
 
-  return 0;
+  //return 0;
 }

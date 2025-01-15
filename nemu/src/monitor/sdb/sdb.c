@@ -43,6 +43,23 @@ static char* rl_gets() {
   return line_read;
 }
 
+static int cmd_p(char *args) {			//表达式求值
+  char *e = (char *)malloc(100); 
+    if (e == NULL) {
+      perror("malloc failed");
+      return 1;
+    }
+  bool success = true;
+  word_t result;
+  sscanf(args, "%s", e);
+  result = expr(e, &success);
+  if (success)
+    printf("%d\n", result);
+  else
+    printf("Bad expression\n");
+  return 0;
+}
+
 static int cmd_x(char *args) {			//扫描内存
   char *arg1 = strtok(NULL, " ");
   char *arg2 = strtok(NULL, " ");
@@ -102,8 +119,8 @@ static struct {
   { "si", "让程序单步执行[N]条指令后暂停执行,N缺省为1",cmd_si },
   { "info", "打印寄存器状态[r]打印监视点信息[w]", cmd_info },
   { "x", "求出表达式EXPR的值, 将结果作为起始内存地址, 以十六进制形式输出连续的N个4字节", cmd_x },
-  /*
   { "p", "求出表达式EXPR的值", cmd_p },
+  /*
   { "w", "当表达式EXPR的值发生变化时, 暂停程序执行", cmd_w },
   { "d", "删除序号为[N]的监视点", cmd_d }
   */
