@@ -158,7 +158,7 @@ int check_parentheses(int p, int q, const Token tokens[])
 int eval(int p, int q, const Token tokens[])
 {
   if (p > q) {
-    printf("Bad expression\n");
+    printf("Bad expression1\n");
     return -1;
   }
   else if (p == q) 
@@ -193,7 +193,7 @@ int eval(int p, int q, const Token tokens[])
     }
 next:
     if (split == -1) {
-      printf("Bad expression\n");
+      printf("Bad expression2\n");
       return -1;
     }
     int left = eval(p, split - 1, tokens);
@@ -212,7 +212,7 @@ next:
         }
         return left / right;
       default:
-        printf("Bad expression\n");
+        printf("Bad expression3\n");
         return -1;
     }        
   }
