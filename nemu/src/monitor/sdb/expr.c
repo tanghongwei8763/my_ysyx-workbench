@@ -167,18 +167,18 @@ int eval(int p, int q, const Token tokens[])
     int min_priority = 10;
     int split = -1;
     for (int i = p; i <= q; i++) {
-      int priority = 0;
+      int priority = 0;		//优先级
       switch (tokens[i].type) {
         case '+':
         case '-':
-          priority = 1;
+          priority = 1;	
           break;
         case '*':
         case '/':
           priority = 2;
           break;
         case TK_LPAREN:
-          if (split != -1)
+          if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
             goto next;
           continue;
         default:
