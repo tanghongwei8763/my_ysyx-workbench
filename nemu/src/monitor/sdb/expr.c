@@ -216,7 +216,7 @@ next:
   }
 }
 
-
+/*
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
@@ -225,8 +225,17 @@ word_t expr(char *e, bool *success) {
   *success = true;
   return eval(0, nr_token-1, tokens);
 
-  /* TODO: Insert codes to evaluate the expression. */
+  // TODO: Insert codes to evaluate the expression.
   //TODO();
 
   //return 0;
+}
+*/
+int expr(char *e, bool *success) {
+  if (!make_token(e)) {
+    *success = false;
+    return 0;
+  }
+  *success = true;
+  return eval(0, nr_token-1, tokens);
 }
