@@ -55,6 +55,7 @@ static int cmd_x(char *args) {			//扫描内存
     for(int j = 0; j < 4; j++){
       printf("0x%02x ", vaddr_read(data+i*4,4) >> 8*i);
     }
+    printf("\n");
   }
   return 0;
 }
