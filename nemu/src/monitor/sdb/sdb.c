@@ -50,7 +50,7 @@ static int cmd_p(char *args) {			//表达式求值
       return 1;
     }
   bool success = true;
-  word_t result;
+  int result;
   sscanf(args, "%s", e);
   result = expr(e, &success);
   if (success)
