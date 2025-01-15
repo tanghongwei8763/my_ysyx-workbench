@@ -77,7 +77,7 @@ static Token tokens[32] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
-  int position = 0;
+  int position = 0, pos = 0;
   int i;
   regmatch_t pmatch;
 
@@ -107,7 +107,7 @@ static bool make_token(char *e) {
           }
           case TK_NUM: {		//数字
             tokens[nr_token].type = TK_NUM;
-            int j = 0, pos = position;
+            int j = 0;
             while (e[pos] >= '0' && e[pos] <= '9') 
             {
               tokens[nr_token].str[j++] = e[pos++];
@@ -125,6 +125,7 @@ static bool make_token(char *e) {
 	  case TK_EQ: tokens[nr_token++].type = TK_EQ;break;
           default: TODO();break;
         }
+        pos++;
         break;
       }
     }
