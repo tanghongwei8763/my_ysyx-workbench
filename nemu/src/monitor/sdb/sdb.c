@@ -44,13 +44,16 @@ static char* rl_gets() {
 }
 
 static int cmd_x(char *args) {			//扫描内存
-  int arg1, arg2;
-  sscanf(args, "%d", &arg1);
-  sscanf(args, "%x", &arg2);
-  for (int i = 0; i < arg1; i++){
-    printf("0x%08x\t", arg2+4*i);
+  char *arg1 = strtok(NULL, " ");
+  char *arg2 = strtok(NULL, " ");
+  int k;
+  vaddr_t data;		//使用 vaddr中对传入参数的定义
+  sscanf(arg1, "%d", &k);
+  sscanf(arg2, "%x", &data);
+  for (int i = 0; i < k; i++){
+    printf("0x%08x\t", data+4*i);
     for(int j = 0; j < 4; j++){
-      printf("0x%02x ", vaddr_read(arg2+i*4,4) >> 8*i);
+      printf("0x%02x ", vaddr_read(data+i*4,4) >> 8*i);
     }
   }
   return 0;
