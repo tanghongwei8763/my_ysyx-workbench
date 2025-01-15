@@ -107,10 +107,10 @@ static bool make_token(char *e) {
           }
           case TK_NUM: {		//数字
             tokens[nr_token].type = TK_NUM;
-            int j = 0;
+            int j = 0, x = pos;
             while (e[pos] >= '0' && e[pos] <= '9') 
             {
-              tokens[nr_token].str[j++] = e[pos++];
+              tokens[nr_token].str[j++] = e[x++];
             }
             tokens[nr_token].str[j] = '\0';
             nr_token++;
