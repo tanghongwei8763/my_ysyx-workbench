@@ -158,7 +158,7 @@ int check_parentheses(int p, int q)
   return temp == 0;
 }
 
-int eval(int p, int q, const Token tokens[])
+int eval(int p, int q)
 {
   if (p > q) {
     printf("Bad expression p>q\n");
@@ -167,7 +167,7 @@ int eval(int p, int q, const Token tokens[])
   else if (p == q) 
     return atoi(tokens[p].str);
   else if (check_parentheses(p, q))
-    return eval(p + 1, q - 1, tokens);
+    return eval(p + 1, q - 1);
   else {
     int min_priority = 10;
     int split = -1;
@@ -199,8 +199,8 @@ next:
       printf("Bad expression split\n");
       return -1;
     }
-    int left = eval(p, split - 1, tokens);
-    int right = eval(split + 1, q, tokens);
+    int left = eval(p, split - 1);
+    int right = eval(split + 1, q);
     switch (tokens[split].type) {
       case '+': return left + right;
       case '-': return left - right;
@@ -225,7 +225,7 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
   *success = true;
-  return eval(0, nr_token-1, tokens);
+  return eval(0, nr_token-1);
 
   // TODO: Insert codes to evaluate the expression.
   //TODO();
