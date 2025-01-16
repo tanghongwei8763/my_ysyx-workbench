@@ -21,7 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ,
+  TK_NOTYPE = 256, TK_NOTYPE1, TK_EQ,
   TK_NUM, TK_LPAREN, TK_RPAREN
   /* TODO: Add more token types */
 
@@ -37,6 +37,7 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
+  {" +", TK_NOTYPE1},    // spaces
   {"[0-9]+", TK_NUM},	// number
   {"\\+", '+'},         // plus
   {"\\-", '-'},		// sub
@@ -103,6 +104,11 @@ static bool make_token(char *e) {
     	printf("当前判断rule[%d]\n", i);
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
+            printf("检测到空格\n");
+            pos++;
+            break;
+          }
+          case TK_NOTYPE1: {		//空格
             printf("检测到空格\n");
             pos++;
             break;
