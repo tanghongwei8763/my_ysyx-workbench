@@ -130,6 +130,13 @@ static bool make_token(char *e) {
         
       break;
       }
+      /*
+      else if (e[position] == ' ') {
+        printf("检测到空格\n");
+        pos += substr_len;
+        break;
+      }
+      */
     }
    
     if (i == NR_REGEX) {
