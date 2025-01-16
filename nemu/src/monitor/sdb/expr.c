@@ -164,10 +164,11 @@ int eval(int p, int q)
     return atoi(tokens[p].str);
   else if (check_parentheses(p, q)) {
     int min_priority = 10;
-    int split = -1;
+    int split = -1, first = 0, num = 0;
     for (int i = p; i <= q; i++) {
       int priority = 0;		//优先级
       switch (tokens[i].type) {
+        case TK_NUM: num=i;first++;break;
         case '+':
         case '-':
           priority = 1;	
@@ -190,8 +191,12 @@ int eval(int p, int q)
     }
 next:
     if (split == -1) {
-      printf("Bad expression split\n");
-      return -1;
+      if(first == 1)
+        return  atoi(tokens[num].str);
+      else {
+        printf("Bad expression split\n");
+        return -1;
+      }
     }
     int left = eval(p, split - 1);
     int right = eval(split + 1, q);
