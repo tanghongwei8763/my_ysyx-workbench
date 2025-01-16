@@ -168,7 +168,7 @@ int eval(int p, int q)
     for (int i = p; i <= q; i++) {
       int priority = 0;		//优先级
       switch (tokens[i].type) {
-        case TK_NUM: num=i;first++;break;
+        case TK_NUM: num=i;first++;continue;
         case '+':
         case '-':
           priority = 1;	
