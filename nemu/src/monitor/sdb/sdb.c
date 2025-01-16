@@ -52,6 +52,7 @@ static int cmd_p(char *args) {			//表达式求值
   bool success = true;
   int result;
   sscanf(args, "%s", e);
+  printf("%s", e);
   result = expr(e, &success);
   if (success)
     printf("%d\n", result);
