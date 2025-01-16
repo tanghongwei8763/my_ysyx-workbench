@@ -163,6 +163,8 @@ int eval(int p, int q)
   else if (p == q) 
     return atoi(tokens[p].str);
   else if (check_parentheses(p, q)) {
+    int stack[320];
+    int top = -1, judge = 0, inner_result = 0;
     int min_priority = 10;
     int split = -1, first = 0, num = 0;
     for (int i = p; i <= q; i++) {
@@ -178,9 +180,15 @@ int eval(int p, int q)
           priority = 2;
           break;
         case TK_LPAREN:
-          if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
-            goto next;
+          //if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
+            //goto next;
+          stack[++top] = i;  	//左括号入栈
           continue;
+        case TK_RPAREN:		//右括号计算括号内的值
+          if (top >=0 ) {
+            inner_result = eval(stack[top--]+1, i-1);
+            judge = 1;
+            }
         default:
             continue;
       }
@@ -190,7 +198,7 @@ int eval(int p, int q)
         split = i;
       }
     }
-next:
+//next:
     if (split == -1) {
       if(first == 1)
         return  atoi(tokens[num].str);
@@ -199,7 +207,7 @@ next:
         return -1;
       }
     }
-    int left = eval(p, split - 1);
+    int left = judge? inner_result:eval(p, split - 1);
     int right = eval(split + 1, q);
     switch (tokens[split].type) {
       case '+': return left + right;
