@@ -103,6 +103,7 @@ static bool make_token(char *e) {
     
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
+            printf("检测到空格");
             pos++;
             break;
           }
