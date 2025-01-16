@@ -72,7 +72,7 @@ static int cmd_x(char *args) {			//扫描内存
     printf("0x%08x\t", data+4*i);
     uint32_t temp = vaddr_read(data+i*4,4);
     for(int j = 0; j < 4; j++){
-      printf("0x%02x ", temp >> (8*i) & 0xff);
+      printf("0x%02x ", temp >> (8*j) & 0xff);
     }
     printf("\n");
   }
