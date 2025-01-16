@@ -143,7 +143,7 @@ static bool make_token(char *e) {
   return true;
 }
 
-int check_parentheses(int p, int q, const Token tokens[])
+int check_parentheses(int p, int q)
 {
   int temp = 0;		//用于判断括号是否匹配
   if (tokens[p].type != TK_LPAREN || tokens[q].type != TK_RPAREN) 
@@ -166,7 +166,7 @@ int eval(int p, int q, const Token tokens[])
   }
   else if (p == q) 
     return atoi(tokens[p].str);
-  else if (check_parentheses(p, q, tokens))
+  else if (check_parentheses(p, q))
     return eval(p + 1, q - 1, tokens);
   else {
     int min_priority = 10;
