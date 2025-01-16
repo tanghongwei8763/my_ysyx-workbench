@@ -127,19 +127,8 @@ static bool make_token(char *e) {
 	  case TK_EQ: tokens[nr_token++].type = TK_EQ;pos++;break;
           default: TODO();break;
         }
-        
       break;
       }
-      
-      else if (e[position] == ' ') {
-        int substr_len = pmatch.rm_eo;
-        printf("position增加%d\n", substr_len);
-        position += substr_len;
-        printf("检测到空格\n");
-        pos += substr_len;
-        break;
-      }
-      
     }
    
     if (i == NR_REGEX) {
