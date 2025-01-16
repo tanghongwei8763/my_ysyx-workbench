@@ -104,7 +104,7 @@ static bool make_token(char *e) {
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
             printf("检测到空格\n");
-            pos++;
+            pos += substr_len;
             break;
           }
           case TK_NUM: {		//数字
@@ -137,9 +137,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
+  /*
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\n", tokens[ert].type, tokens[ert].str);
   }
+  */
   return true;
 }
 
