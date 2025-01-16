@@ -100,10 +100,10 @@ static bool make_token(char *e) {
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
-    
+    	printf("当前判断rule[%d]\n", i);
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
-            printf("检测到空格");
+            printf("检测到空格\n");
             pos++;
             break;
           }
