@@ -128,7 +128,7 @@ static bool make_token(char *e) {
           default: TODO();break;
         }
         
-        break;
+        //break;
       }
     }
    
@@ -137,7 +137,7 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  for(int ert = 0; ert < nr_token; ert++) {
+  for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\n", tokens[ert].type, tokens[ert].str);
   }
   return true;
