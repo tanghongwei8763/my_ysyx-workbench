@@ -140,19 +140,19 @@ static bool make_token(char *e) {
   return true;
 }
 
-int check_parentheses(int p, int q, const Token tokens[])
+bool check_parentheses(int p, int q, const Token tokens[])
 {
   int temp = 0;		//用于判断括号是否匹配
   if (tokens[p].type != TK_LPAREN || tokens[q].type != TK_RPAREN) 
-    return 0;
+    return false;
 
   for (int i = p; i <= q; i++) {
     if (tokens[i].type == TK_LPAREN) temp++;
     else if (tokens[i].type == TK_RPAREN) temp--;
     if (temp < 0) 
-      return 0;
+      return false;
   }
-  return temp == 0;
+  return (temp == 0)? true:false;
 }
 
 int eval(int p, int q, const Token tokens[])
@@ -163,7 +163,7 @@ int eval(int p, int q, const Token tokens[])
   }
   else if (p == q) 
     return atoi(tokens[p].str);
-  else if (check_parentheses(p, q, tokens))
+  else if (check_parentheses(p, q, tokens) == true)
     return eval(p + 1, q - 1, tokens);
   else {
     int min_priority = 10;
@@ -199,12 +199,9 @@ next:
     int left = eval(p, split - 1, tokens);
     int right = eval(split + 1, q, tokens);
     switch (tokens[split].type) {
-      case '+':
-        return left + right;
-      case '-':
-        return left - right;
-      case '*':
-        return left * right;
+      case '+': return left + right;
+      case '-': return left - right;
+      case '*': return left * right;
       case '/':
         if (right == 0) {
           printf("The divisor cannot be zero\n");
