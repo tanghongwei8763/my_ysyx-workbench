@@ -186,7 +186,7 @@ int eval(int p, int q)
       }
       if (priority <= min_priority) {
         min_priority = priority;
-        printf("split at here %d", i);
+        printf("split at here %d\n", i);
         split = i;
       }
     }
