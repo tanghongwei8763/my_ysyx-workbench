@@ -104,7 +104,7 @@ static bool make_token(char *e) {
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
             pos++;
-            continue;
+            break;
           }
           case TK_NUM: {		//数字
             tokens[nr_token].type = TK_NUM;
