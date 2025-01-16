@@ -137,7 +137,7 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  for(int ert = 0; ert < sizeof(tokens)/sizeof(tokens[0]); ert++) {
+  for(int ert = 0; ert < nr_token; ert++) {
     printf("%c\t%s\n", tokens[ert].type, tokens[ert].str);
   }
   return true;
