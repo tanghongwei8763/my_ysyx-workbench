@@ -22,6 +22,7 @@
 
 // this should be enough
 static char buf[65536] = {};
+static int position;
 static char code_buf[65536 + 128] = {}; // a little larger than `buf`
 static char *code_format =
 "#include <stdio.h>\n"
@@ -31,8 +32,42 @@ static char *code_format =
 "  return 0; "
 "}";
 
+int choose(int n) {		//三选一
+  return rand()%n;
+}
+
+void gen_num() {		//生成数字
+  unsigned int a = (unsigned int)rand();
+  char num[10];
+  sprintf(num, "%u", a);
+  buf_add(num);
+}
+
+void gen(char n) {		//生成括号
+  buf_add(n);
+}
+
+void gen_rand_op() {		//生成运算符
+  int i = choose(4);
+  char pos[] = {'+', '-', '*', '/'};
+  buf_add(pos[i]);
+}
+
+void buf_add(char adder) {
+  if(position < 65535) {
+    if(choose(10) == 1)		//10%概率获得一个空格在任意位置
+      buf[position++] = ' ';
+    buf[position++] = adder;
+  }
+}
+
 static void gen_rand_expr() {
-  buf[0] = '\0';
+  switch (choose(3)) {
+    case 0: gen_num(); break;
+    case 1: gen('('); gen_rand_expr(); gen(')'); break;
+    default: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+  }
+  buf[position] = '\0';
 }
 
 int main(int argc, char *argv[]) {

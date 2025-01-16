@@ -52,7 +52,7 @@ static int cmd_p(char *args) {			//表达式求值
   bool success = true;
   int result;
   strncpy(e, args, 32);
-  printf("%s\n", e);
+  //printf("%s\n", e);
   result = expr(e, &success);
   if (success)
     printf("%d\n", result);
@@ -93,7 +93,10 @@ static int cmd_si(char *args) {			//单步执行
     step = 1;
   else
     sscanf(args, "%d", &step);
-  cpu_exec(step);
+  if (step < 10)
+    cpu_exec(step);
+  else
+    printf("每次单步执行最大步数不超过10");
   return 0;
 }
 
