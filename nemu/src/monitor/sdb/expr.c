@@ -238,11 +238,22 @@ int eval(int p, int q)
     for (int i = p; i <= q; i++) {
       int priority = 0;		//优先级
       switch (tokens[i].type) {
+        case TK_AND:
+          if (!LRPparen) {
+            priority = 1;
+            break;
+          }
+        case TK_EQ:
+        case TK_NEQ:
+          if (!LRPparen) {
+            priority = 2;
+            break;
+          }
         case TK_NUM: num=i;first++;continue;
         case '+':
         case '-':
           if (!LRPparen){
-            priority = 1;	
+            priority = 3;	
             break;
 	  }
 	  else
@@ -250,7 +261,7 @@ int eval(int p, int q)
         case '*':
         case '/':
           if (!LRPparen) {
-            priority = 2;
+            priority = 4;
             break;
           }
           else
@@ -291,6 +302,9 @@ int eval(int p, int q)
     int left = eval(p, split - 1);
     int right = eval(split + 1, q);
     switch (tokens[split].type) {
+      case TK_EQ: return left == right;
+      case TK_NEQ: return left != right;
+      case TK_AND: return left && right;
       case '+': return left + right;
       case '-': return left - right;
       case '*': return left * right;
