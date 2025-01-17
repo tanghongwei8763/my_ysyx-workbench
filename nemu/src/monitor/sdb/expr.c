@@ -174,11 +174,11 @@ int eval(int p, int q)
     return -1;
   }
   else if (p == q) {
-    printf("已经是最小的表达式了\n");
+    //printf("已经是最小的表达式了\n");
     return atoi(tokens[p].str);
   }
   else if (check_parentheses(p, q) == 1) {
-    printf("打开括号%d  %d\n", p+1, q-1);
+    //printf("打开括号%d  %d\n", p+1, q-1);
     return eval(p+1, q-1);
   }
   else  if(check_parentheses(p, q) == 2) {
@@ -205,7 +205,7 @@ int eval(int p, int q)
           else
             continue;
         case TK_LPAREN:
-          printf("(已记录%d\n", i);
+          //printf("(已记录%d\n", i);
           LRPparen++;
           /*
           if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
@@ -213,7 +213,7 @@ int eval(int p, int q)
           */
           continue;
         case TK_RPAREN:
-          printf(")已弹出%d\n", i);
+          //printf(")已弹出%d\n", i);
           LRPparen--;
           continue;
         default:
@@ -221,7 +221,7 @@ int eval(int p, int q)
       }
       if (priority <= min_priority) {
         min_priority = priority;
-        printf("split at here %d\n", i);
+        //printf("split at here %d\n", i);
         split = i;
       }
     }
