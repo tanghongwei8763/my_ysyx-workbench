@@ -124,7 +124,7 @@ static bool make_token(char *e) {
             {
               tokens[nr_token].str[j++] = e[pos++];
             }
-            printf("soore:%d", j-1);
+            printf("soore:%d\n", j-1);
             tokens[nr_token].str[j] = '\0';
             nr_token++;
             break;
