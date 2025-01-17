@@ -204,8 +204,10 @@ int eval(int p, int q)
         case TK_LPAREN:
           printf("(已记录%d\n", i);
           LRPparen++;
+          /*
           if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
             goto next;
+          */
           continue;
         case TK_RPAREN:
           printf(")已弹出%d\n", i);
@@ -220,7 +222,7 @@ int eval(int p, int q)
         split = i;
       }
     }
-next:
+//next:
     if (split == -1) {
       if(first == 1)
         return  atoi(tokens[num].str);
