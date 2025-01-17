@@ -176,7 +176,7 @@ int eval(int p, int q)
   }
   else if (check_parentheses(p, q) == 1) {
     printf("打开括号%d  %d\n", p+1, q-1);
-    return check_parentheses(p+1, q-1);
+    return eval(p+1, q-1);
   }
   else  if(check_parentheses(p, q) == 2) {
     int min_priority = 10;
