@@ -145,6 +145,7 @@ static bool make_token(char *e) {
 	    pos++;
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
+	      position++;
 	    }
 	    tokens[nr_token].str[j] = '\0';
 	    nr_token++;
@@ -156,6 +157,7 @@ static bool make_token(char *e) {
 	      int j = 0;
 	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
 	        tokens[nr_token-1].str[j++] = e[pos++];
+	        position++;
 	      }
 	      tokens[nr_token].str[j] = '\0';
 	      break;
