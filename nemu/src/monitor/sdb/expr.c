@@ -146,7 +146,7 @@ static bool make_token(char *e) {
 int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开最外层相匹配的括号
 {
   
-  if (tokens[p].type == TK_LPAREN || tokens[q].type == TK_RPAREN) {
+  if (tokens[p].type == TK_LPAREN && tokens[q].type == TK_RPAREN) {
     int stack = 0;
     for (int i = p+1; i < q; i++) {
       if (tokens[i].type == TK_LPAREN) 
