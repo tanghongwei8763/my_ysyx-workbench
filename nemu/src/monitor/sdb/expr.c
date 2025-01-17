@@ -22,7 +22,9 @@
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
+  TK_NEQ, TK_AND, TK_P,
   TK_NUM, TK_LPAREN, TK_RPAREN
+  
   /* TODO: Add more token types */
 
 };
@@ -30,21 +32,25 @@ enum {
 static struct rule {
   const char *regex;
   int token_type;
+  int priority;			//设立优先级
 } rules[] = {
 
   /* TODO: Add more rules.
    * Pay attention to the precedence level of different rules.
    */
 
-  {" +", TK_NOTYPE},    // spaces
-  {"[0-9]+", TK_NUM},	// number
-  {"\\+", '+'},         // plus
-  {"\\-", '-'},		// sub
-  {"\\*", '*'},		// mul
-  {"\\/", '/'},		// div
-  {"\\(", TK_LPAREN},	// left parenthesis
-  {"\\)", TK_RPAREN},	// right parenthesis
-  {"==", TK_EQ}        	// equal
+  {" +", TK_NOTYPE, 0},    	// spaces
+  {"[0-9]+", TK_NUM, 0},	// number
+  {"\\+", '+', 1},         	// plus
+  {"\\-", '-', 1},		// sub
+  {"\\*", '*', 2},		// mul
+  {"\\/", '/', 2},		// div
+  {"\\(", TK_LPAREN, 0},	// left parenthesis
+  {"\\)", TK_RPAREN, 0},	// right parenthesis
+  {"==", TK_EQ, 3},       	// equal
+  {"!=", TK_NEQ, 3},       	// nequal
+  {"&&", TK_AND, 3},       	// and
+  {"*", TK_P, 3},       	// point
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -226,7 +232,7 @@ int eval(int p, int q)
       }
     }
 //next:
-//(((342+123)*(89-12))-((567/(23+11)))*((456-321)+(78*(99/3))))-(((678/13)-34)*(456+(88-23))+(45(77-32)))
+//(((342+123)*(89-12))-((567/(23+11)))*((456-321)+(78*(99/3))))-(((678/13)-34)*(456+(88-23))+(45*(77-32)))
     if (split == -1) {
       if(first == 1)
         return  atoi(tokens[num].str);
