@@ -21,8 +21,8 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ,
-  TK_NEQ, TK_AND, TK_P,
+  TK_NOTYPE = 256, TK_DOLLAR, TK_HEX,
+  TK_EQ, TK_NEQ, TK_AND, TK_P,
   TK_NUM, TK_LPAREN, TK_RPAREN
   
   /* TODO: Add more token types */
@@ -49,6 +49,8 @@ static struct rule {
   {"==", TK_EQ},       	// equal
   {"!=", TK_NEQ},       // nequal
   {"&&", TK_AND},       // and
+  {"$", TK_DOLLAR},	// $
+  {"0x", TK_HEX},	// hex
   //{"*", TK_P},       	// point
 };
 
@@ -133,6 +135,8 @@ static bool make_token(char *e) {
 	  case TK_EQ: tokens[nr_token++].type = TK_EQ;tokens[nr_token].pri = 3;pos++;break;
 	  case TK_NEQ: tokens[nr_token++].type = TK_NEQ;tokens[nr_token].pri = 3;pos++;break;
 	  case TK_AND: tokens[nr_token++].type = TK_AND;tokens[nr_token].pri = 3;pos++;break;
+	  case TK_DOLLAR: tokens[nr_token++].type = TK_DOLLAR;tokens[nr_token].pri = 4;pos++;break;
+	  case TK_HEX: tokens[nr_token++].type = TK_HEX;tokens[nr_token].pri = 4;pos++;break;
           default: TODO();pos++;break;
         }
       break;
@@ -230,7 +234,7 @@ int eval(int p, int q)
       }
       if (priority <= min_priority) {
         min_priority = priority;
-        printf("split at here %d\n", i);
+        //printf("split at here %d\n", i);
         split = i;
       }
     }
