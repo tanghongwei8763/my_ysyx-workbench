@@ -172,8 +172,10 @@ int eval(int p, int q)
   }
   else if (p == q) 
     return atoi(tokens[p].str);
-  else if (check_parentheses(p, q) == 1)
+  else if (check_parentheses(p, q) == 1) {
+    printf("打开括号\n");
     return check_parentheses(p+1, q-1);
+  }
   else  if(check_parentheses(p, q) == 2) {
     int min_priority = 10;
     int split = -1, first = 0, num = 0, LRPparen = 0;
