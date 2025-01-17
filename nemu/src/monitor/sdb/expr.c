@@ -151,15 +151,12 @@ static bool make_token(char *e) {
 	  }
 	  case TK_HEX: {
 	    if(e[position-1] == '0') {
-	      tokens[nr_token].type = TK_NUM;
-	      tokens[nr_token].pri = 0;
 	      pos += 1;
 	      int j = 0;
 	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
-	        tokens[nr_token].str[j++] = e[pos++];
+	        tokens[nr_token-1].str[j++] = e[pos++];
 	      }
 	      tokens[nr_token].str[j] = '\0';
-	      nr_token++;
 	      break;
 	    }
 	    else {
