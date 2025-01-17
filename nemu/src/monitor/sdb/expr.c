@@ -50,7 +50,7 @@ static struct rule {
   {"==", TK_EQ, 3},       	// equal
   {"!=", TK_NEQ, 3},       	// nequal
   {"&&", TK_AND, 3},       	// and
-  {"*", TK_P, 3},       	// point
+  //{"*", TK_P, 3},       	// point
 };
 
 #define NR_REGEX ARRLEN(rules)
