@@ -135,11 +135,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  
+  /*
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\n", tokens[ert].type, tokens[ert].str);
   }
-  
+  */
   return true;
 }
 
@@ -187,14 +187,20 @@ int eval(int p, int q)
         case TK_NUM: num=i;first++;continue;
         case '+':
         case '-':
-          if (!LRPparen)
+          if (!LRPparen){
             priority = 1;	
-          break;
+            break;
+	  }
+	  else
+	    continue;
         case '*':
         case '/':
-          if (!LRPparen)
+          if (!LRPparen) {
             priority = 2;
-          break;
+            break;
+          }
+          else
+            continue;
         case TK_LPAREN:
           printf("(已记录\n");
           LRPparen++;
