@@ -159,7 +159,15 @@ static bool make_token(char *e) {
 	        tokens[nr_token-1].str[j++] = e[pos++];
 	        position++;
 	      }
-	      tokens[nr_token].str[j] = '\0';
+	      int dtemp = strtol(tokens[nr_token-1].str, NULL, 16);
+	      char stemp[32];
+	      snprintf(stemp, sizeof(stemp), "%d", dtemp);
+	      int k = 0;
+	      while(k < strlen(stemp)) {
+	        tokens[nr_token-1].str[k] = stemp[k];
+	        k++;
+	      }
+	      tokens[nr_token].str[k] = '\0';
 	      break;
 	    }
 	    else {
@@ -178,11 +186,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  
+  /*
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\n", tokens[ert].type, tokens[ert].str);
   }
-  
+  */
   return true;
 }
 
