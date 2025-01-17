@@ -143,16 +143,26 @@ static bool make_token(char *e) {
   return true;
 }
 
-int check_parentheses(int p, int q)
+int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开最外层相匹配的括号
 {
-  int temp = 0;		//用于判断括号是否匹配
-
-  for (int i = p; i <= q; i++) {
-    if (tokens[i].type == TK_LPAREN) temp++;
-    else if (tokens[i].type == TK_RPAREN) temp--;
+  
+  if (tokens[p].type == TK_LPAREN || tokens[q].type == TK_RPAREN) {
+    int stack = 0;
+    for (int i = p+1; i < q; i++) {
+      if (tokens[i].type == TK_LPAREN) 
+        stack++;
+      else if (tokens[i].type == TK_RPAREN) {
+        if(stack == 0)
+          return 2;
+        stack--;
+      }
+    }
+    if(stack == 0)
+      return 1;  //括号匹配并且最外层可以打开
   }
-  return temp == 0;
+  return 0;	//括号部匹配
 }
+  
 
 int eval(int p, int q)
 {
@@ -162,34 +172,35 @@ int eval(int p, int q)
   }
   else if (p == q) 
     return atoi(tokens[p].str);
-  else if (check_parentheses(p, q)) {
-    int stack[320];
-    int top = -1;
+  else if (check_parentheses(p, q) == 1)
+    return check_parentheses(p+1, q-1);
+  else  if(check_parentheses(p, q) == 2) {
     int min_priority = 10;
-    int split = -1, first = 0, num = 0;
+    int split = -1, first = 0, num = 0, LRPparen = 0;
     for (int i = p; i <= q; i++) {
       int priority = 0;		//优先级
       switch (tokens[i].type) {
         case TK_NUM: num=i;first++;continue;
         case '+':
         case '-':
-          priority = 1;	
+          if (!LRPparen)
+            priority = 1;	
           break;
         case '*':
         case '/':
-          priority = 2;
+          if (!LRPparen)
+            priority = 2;
           break;
         case TK_LPAREN:
-          //if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
-            //goto next;
-          stack[++top] = i;  	//左括号入栈
+          LRPparen++;
+          if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
+            goto next;
           continue;
-        case TK_RPAREN:		//右括号计算括号内的值
-          if (top >=0 ) {
-            return eval(stack[top--]+1, i-1);
-            }
+        case TK_RPAREN:
+          LRPparen--;
+          continue;
         default:
-            continue;
+          continue;
       }
       if (priority <= min_priority) {
         min_priority = priority;
@@ -197,7 +208,7 @@ int eval(int p, int q)
         split = i;
       }
     }
-//next:
+next:
     if (split == -1) {
       if(first == 1)
         return  atoi(tokens[num].str);
@@ -223,7 +234,7 @@ int eval(int p, int q)
         return -1;
     }        
   }
-  else {
+  else{
     printf("Bad expression ()\n");
     return -1;
   }
