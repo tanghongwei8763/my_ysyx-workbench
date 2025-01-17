@@ -32,26 +32,27 @@ enum {
 static struct rule {
   const char *regex;
   int token_type;
+  //int pre;
 } rules[] = {
 
   /* TODO: Add more rules.
    * Pay attention to the precedence level of different rules.
    */
 
-  {" +", TK_NOTYPE},    		// spaces
+  {" +", TK_NOTYPE},    			// spaces
   {"[0-9]+", TK_NUM},			// number
-  {"\\+", '+'},         		// plus
+  {"\\+", '+'},         			// plus
   {"\\-", '-'},				// sub
   {"\\*", '*'},				// mul
   {"\\/", '/'},				// div
   {"\\(", TK_LPAREN},			// left parenthesis
   {"\\)", TK_RPAREN},			// right parenthesis
   {"==", TK_EQ},       			// equal
-  {"!=", TK_NEQ},       		// nequal
-  {"&&", TK_AND},       		// and
-  {"^\\$[a-zA-Z0-9]+$", TK_DOLLAR},	// $
-  {"^\\0x[0-9a-fA-F]+$", TK_HEX},	// hex
-  //{"*", TK_P},       			// point
+  {"!=", TK_NEQ},       			// nequal
+  {"&&", TK_AND},       			// and
+  {"^\\$[a-zA-Z0-9]+$", TK_DOLLAR},		// $
+  {"^0x[0-9a-fA-F]+$", TK_HEX},		// hex
+  //{"*", TK_P},       				// point
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -140,9 +141,7 @@ static bool make_token(char *e) {
 	    tokens[nr_token].pri = 4;
 	    int j = 0;
 	    pos++;
-	    printf("$已存入\n");
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
-	      printf("$进了while循环\n");
 	      tokens[nr_token].str[j++] = e[pos++];
 	    }
 	    tokens[nr_token].str[j] = '\0';
@@ -152,6 +151,7 @@ static bool make_token(char *e) {
 	  case TK_HEX: {
 	    tokens[nr_token].type = TK_HEX;
 	    tokens[nr_token].pri = 4;
+	    pos += 2;
 	    int j = 0;
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
 	      tokens[nr_token].str[j++] = e[pos++];
