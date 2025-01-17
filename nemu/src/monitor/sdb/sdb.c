@@ -44,14 +44,14 @@ static char* rl_gets() {
 }
 
 static int cmd_p(char *args) {			//表达式求值
-  char *e = (char *)malloc(100); 
+  char *e = (char *)malloc(65532); 
     if (e == NULL) {
       perror("malloc failed");
       return 1;
     }
   bool success = true;
   int result;
-  strncpy(e, args, 99);
+  strncpy(e, args, 65531);
   //printf("%s\n", e);
   result = expr(e, &success);
   if (success)
