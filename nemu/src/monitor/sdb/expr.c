@@ -202,13 +202,13 @@ int eval(int p, int q)
           else
             continue;
         case TK_LPAREN:
-          printf("(已记录\n");
+          printf("(已记录%d\n", i);
           LRPparen++;
           if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
             goto next;
           continue;
         case TK_RPAREN:
-          printf(")已弹出\n");
+          printf(")已弹出%d\n", i);
           LRPparen--;
           continue;
         default:
