@@ -139,6 +139,7 @@ static bool make_token(char *e) {
 	    tokens[nr_token].type = TK_DOLLAR;
 	    tokens[nr_token].pri = 4;
 	    int j = 0;
+	    printf("$已存入");
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
 	    }
