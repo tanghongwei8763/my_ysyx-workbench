@@ -126,6 +126,7 @@ static bool make_token(char *e) {
             }
             tokens[nr_token].str[j] = '\0';
             nr_token++;
+            printf("+1\n");
             break;
           }
           case '+': tokens[nr_token++].type = '+';tokens[nr_token].pri = 1;pos++;break;
