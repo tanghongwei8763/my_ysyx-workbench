@@ -103,7 +103,7 @@ static bool make_token(char *e) {
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
         */
-        printf("%d\n", substr_len);
+        //printf("%d\n", substr_len);
         position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -124,7 +124,6 @@ static bool make_token(char *e) {
             {
               tokens[nr_token].str[j++] = e[pos++];
             }
-            printf("soore:%d\n", j-1);
             tokens[nr_token].str[j] = '\0';
             nr_token++;
             break;
@@ -151,14 +150,12 @@ static bool make_token(char *e) {
 	    break;
 	  }
 	  case TK_HEX: {
-	    printf("%c\n",e[position-1]);
-	    if(e[position-1] == '0') {
+	    if(e[position-2] == '0') {
 	      pos += 1;
 	      int j = 0;
 	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
 	        tokens[nr_token-1].str[j++] = e[pos++];
 	      }
-	      printf("%d\t%d\n", position, pos);
 	      tokens[nr_token].str[j] = '\0';
 	      break;
 	    }
