@@ -50,7 +50,7 @@ static struct rule {
   {"!=", TK_NEQ},       		// nequal
   {"&&", TK_AND},       		// and
   {"^\\$[a-zA-Z0-9]+$", TK_DOLLAR},	// $
-  {"^0x[0-9a-fA-F]+$", TK_HEX},		// hex
+  {"^\\0x[0-9a-fA-F]+$", TK_HEX},	// hex
   //{"*", TK_P},       			// point
 };
 
