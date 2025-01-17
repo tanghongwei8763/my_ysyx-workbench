@@ -160,6 +160,9 @@ int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开
     if(stack == 0)
       return 1;  //括号匹配并且最外层可以打开
   }
+  else if (tokens[p].type != TK_LPAREN || tokens[q].type != TK_RPAREN) {
+    return 2;
+  }
   return 0;	//括号部匹配
 }
   
