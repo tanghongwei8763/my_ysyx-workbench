@@ -38,20 +38,20 @@ static struct rule {
    * Pay attention to the precedence level of different rules.
    */
 
-  {" +", TK_NOTYPE},    // spaces
-  {"[0-9]+", TK_NUM},	// number
-  {"\\+", '+'},         // plus
-  {"\\-", '-'},		// sub
-  {"\\*", '*'},		// mul
-  {"\\/", '/'},		// div
-  {"\\(", TK_LPAREN},	// left parenthesis
-  {"\\)", TK_RPAREN},	// right parenthesis
-  {"==", TK_EQ},       	// equal
-  {"!=", TK_NEQ},       // nequal
-  {"&&", TK_AND},       // and
-  {"$", TK_DOLLAR},	// $
-  {"0x", TK_HEX},	// hex
-  //{"*", TK_P},       	// point
+  {" +", TK_NOTYPE},    		// spaces
+  {"[0-9]+", TK_NUM},			// number
+  {"\\+", '+'},         		// plus
+  {"\\-", '-'},				// sub
+  {"\\*", '*'},				// mul
+  {"\\/", '/'},				// div
+  {"\\(", TK_LPAREN},			// left parenthesis
+  {"\\)", TK_RPAREN},			// right parenthesis
+  {"==", TK_EQ},       			// equal
+  {"!=", TK_NEQ},       		// nequal
+  {"&&", TK_AND},       		// and
+  {"^\\$[a-zA-Z0-9]+$", TK_DOLLAR},	// $
+  {"^0x[0-9a-fA-F]+$", TK_HEX},		// hex
+  //{"*", TK_P},       			// point
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -229,6 +229,7 @@ int eval(int p, int q)
           //printf(")已弹出%d\n", i);
           LRPparen--;
           continue;
+        
         default:
           continue;
       }
@@ -282,6 +283,7 @@ word_t expr(char *e, bool *success) {
   for (int i = 0; i < nr_token; i ++) {
     if (tokens[i].type == '*' && (i == 0 || tokens[i - 1].pri >= 1) ) {
       tokens[i].type = TK_P;
+      tokens[i].pri = 4;		//成为指针后优先级变高
     }
   }
   
