@@ -196,11 +196,13 @@ int eval(int p, int q)
             priority = 2;
           break;
         case TK_LPAREN:
+          printf("(已记录\n");
           LRPparen++;
           if (split != -1)	//遇到括号前面已经有运算符，则优先以括号外的运算符划分
             goto next;
           continue;
         case TK_RPAREN:
+          printf(")已弹出\n");
           LRPparen--;
           continue;
         default:
