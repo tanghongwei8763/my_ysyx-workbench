@@ -151,6 +151,7 @@ static bool make_token(char *e) {
 	    break;
 	  }
 	  case TK_HEX: {
+	    printf("%c\n",e[position-1]);
 	    if(e[position-1] == '0') {
 	      pos += 1;
 	      int j = 0;
