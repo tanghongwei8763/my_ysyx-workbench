@@ -160,7 +160,6 @@ static bool make_token(char *e) {
 	      break;
 	    }
 	    else {
-	      printf("%d\t%d(1)\n", position, pos);
 	      printf("no match at position(1) %d\n%s\n%*.s^\n", position, e, position, "");
               return false;
 	    }
