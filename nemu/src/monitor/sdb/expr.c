@@ -32,25 +32,24 @@ enum {
 static struct rule {
   const char *regex;
   int token_type;
-  int priority;			//设立优先级
 } rules[] = {
 
   /* TODO: Add more rules.
    * Pay attention to the precedence level of different rules.
    */
 
-  {" +", TK_NOTYPE, 0},    	// spaces
-  {"[0-9]+", TK_NUM, 0},	// number
-  {"\\+", '+', 1},         	// plus
-  {"\\-", '-', 1},		// sub
-  {"\\*", '*', 2},		// mul
-  {"\\/", '/', 2},		// div
-  {"\\(", TK_LPAREN, 2},	// left parenthesis
-  {"\\)", TK_RPAREN, 2},	// right parenthesis
-  {"==", TK_EQ, 3},       	// equal
-  {"!=", TK_NEQ, 3},       	// nequal
-  {"&&", TK_AND, 3},       	// and
-  //{"*", TK_P, 3},       	// point
+  {" +", TK_NOTYPE},    // spaces
+  {"[0-9]+", TK_NUM},	// number
+  {"\\+", '+'},         // plus
+  {"\\-", '-'},		// sub
+  {"\\*", '*'},		// mul
+  {"\\/", '/'},		// div
+  {"\\(", TK_LPAREN},	// left parenthesis
+  {"\\)", TK_RPAREN},	// right parenthesis
+  {"==", TK_EQ},       	// equal
+  {"!=", TK_NEQ},       // nequal
+  {"&&", TK_AND},       // and
+  //{"*", TK_P},       	// point
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -130,7 +129,7 @@ static bool make_token(char *e) {
           case '*': tokens[nr_token++].type = '*';tokens[nr_token].pri = 2;pos++;break;
           case '/': tokens[nr_token++].type = '/';tokens[nr_token].pri = 2;pos++;break;
           case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;tokens[nr_token].pri = 2;pos++;break;
-	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;tokens[nr_token].pri = 2;pos++;break;
+	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;tokens[nr_token].pri = 0;pos++;break;
 	  case TK_EQ: tokens[nr_token++].type = TK_EQ;tokens[nr_token].pri = 3;pos++;break;
 	  case TK_NEQ: tokens[nr_token++].type = TK_NEQ;tokens[nr_token].pri = 3;pos++;break;
 	  case TK_AND: tokens[nr_token++].type = TK_AND;tokens[nr_token].pri = 3;pos++;break;
@@ -231,7 +230,7 @@ int eval(int p, int q)
       }
       if (priority <= min_priority) {
         min_priority = priority;
-        //printf("split at here %d\n", i);
+        printf("split at here %d\n", i);
         split = i;
       }
     }
