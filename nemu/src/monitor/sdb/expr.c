@@ -51,7 +51,8 @@ static struct rule {
   {"!=", TK_NEQ},       			// nequal
   {"&&", TK_AND},       			// and
   {"^\\$[a-zA-Z0-9]+$", TK_DOLLAR},		// $
-  {"^0x[0-9a-fA-F]+$", TK_HEX},		// hex
+  {"x", TK_HEX},                   	// hex
+  //{"^0x[0-9a-fA-F]+$", TK_HEX},		// hex
   //{"*", TK_P},       				// point
 };
 
@@ -149,16 +150,22 @@ static bool make_token(char *e) {
 	    break;
 	  }
 	  case TK_HEX: {
-	    tokens[nr_token].type = TK_HEX;
-	    tokens[nr_token].pri = 4;
-	    pos += 2;
-	    int j = 0;
-	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
-	      tokens[nr_token].str[j++] = e[pos++];
+	    if(e[position-1] == '0') {
+	      tokens[nr_token].type = TK_HEX;
+	      tokens[nr_token].pri = 4;
+	      pos += 2;
+	      int j = 0;
+	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
+	        tokens[nr_token].str[j++] = e[pos++];
+	      }
+	      tokens[nr_token].str[j] = '\0';
+	      nr_token++;
+	      break;
 	    }
-	    tokens[nr_token].str[j] = '\0';
-	    nr_token++;
-	    break;
+	    else {
+	      printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
+              return false;
+	    }
 	  }
           default: TODO();pos++;break;
         }
@@ -171,11 +178,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  
+  /*
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\n", tokens[ert].type, tokens[ert].str);
   }
-  
+  */
   return true;
 }
 
