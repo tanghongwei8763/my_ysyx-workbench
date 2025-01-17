@@ -45,8 +45,8 @@ static struct rule {
   {"\\-", '-', 1},		// sub
   {"\\*", '*', 2},		// mul
   {"\\/", '/', 2},		// div
-  {"\\(", TK_LPAREN, 0},	// left parenthesis
-  {"\\)", TK_RPAREN, 0},	// right parenthesis
+  {"\\(", TK_LPAREN, 2},	// left parenthesis
+  {"\\)", TK_RPAREN, 2},	// right parenthesis
   {"==", TK_EQ, 3},       	// equal
   {"!=", TK_NEQ, 3},       	// nequal
   {"&&", TK_AND, 3},       	// and
@@ -77,6 +77,7 @@ void init_regex() {
 typedef struct token {
   int type;
   char str[32];
+  int pri;
 } Token;
 
 static Token tokens[320] __attribute__((used)) = {};
@@ -114,6 +115,7 @@ static bool make_token(char *e) {
           }
           case TK_NUM: {		//数字
             tokens[nr_token].type = TK_NUM;
+            tokens[nr_token].pri = 0;
             int j = 0;
             while (e[pos] >= '0' && e[pos] <= '9') 
             {
@@ -123,13 +125,15 @@ static bool make_token(char *e) {
             nr_token++;
             break;
           }
-          case '+': tokens[nr_token++].type = '+';pos++;break;
-          case '-': tokens[nr_token++].type = '-';pos++;break;
-          case '*': tokens[nr_token++].type = '*';pos++;break;
-          case '/': tokens[nr_token++].type = '/';pos++;break;
-          case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;pos++;break;
-	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;pos++;break;
-	  case TK_EQ: tokens[nr_token++].type = TK_EQ;pos++;break;
+          case '+': tokens[nr_token++].type = '+';tokens[nr_token].pri = 1;pos++;break;
+          case '-': tokens[nr_token++].type = '-';tokens[nr_token].pri = 1;pos++;break;
+          case '*': tokens[nr_token++].type = '*';tokens[nr_token].pri = 2;pos++;break;
+          case '/': tokens[nr_token++].type = '/';tokens[nr_token].pri = 2;pos++;break;
+          case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;tokens[nr_token].pri = 2;pos++;break;
+	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;tokens[nr_token].pri = 2;pos++;break;
+	  case TK_EQ: tokens[nr_token++].type = TK_EQ;tokens[nr_token].pri = 3;pos++;break;
+	  case TK_NEQ: tokens[nr_token++].type = TK_NEQ;tokens[nr_token].pri = 3;pos++;break;
+	  case TK_AND: tokens[nr_token++].type = TK_AND;tokens[nr_token].pri = 3;pos++;break;
           default: TODO();pos++;break;
         }
       break;
@@ -271,6 +275,13 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
   *success = true;
+  
+  for (int i = 0; i < nr_token; i ++) {
+    if (tokens[i].type == '*' && (i == 0 || tokens[i - 1].pri >= 1) ) {
+      tokens[i].type = TK_P;
+    }
+  }
+  
   return eval(0, nr_token-1);
 
   // TODO: Insert codes to evaluate the expression.
