@@ -135,8 +135,28 @@ static bool make_token(char *e) {
 	  case TK_EQ: tokens[nr_token++].type = TK_EQ;tokens[nr_token].pri = 3;pos++;break;
 	  case TK_NEQ: tokens[nr_token++].type = TK_NEQ;tokens[nr_token].pri = 3;pos++;break;
 	  case TK_AND: tokens[nr_token++].type = TK_AND;tokens[nr_token].pri = 3;pos++;break;
-	  case TK_DOLLAR: tokens[nr_token++].type = TK_DOLLAR;tokens[nr_token].pri = 4;pos++;break;
-	  case TK_HEX: tokens[nr_token++].type = TK_HEX;tokens[nr_token].pri = 4;pos++;break;
+	  case TK_DOLLAR: {
+	    tokens[nr_token].type = TK_DOLLAR;
+	    tokens[nr_token].pri = 4;
+	    int j = 0;
+	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
+	      tokens[nr_token].str[j++] = e[pos++];
+	    }
+	    tokens[nr_token].str[j] = '\0';
+	    nr_token++;
+	    break;
+	  }
+	  case TK_HEX: {
+	    tokens[nr_token].type = TK_HEX;
+	    tokens[nr_token].pri = 4;
+	    int j = 0;
+	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
+	      tokens[nr_token].str[j++] = e[pos++];
+	    }
+	    tokens[nr_token].str[j] = '\0';
+	    nr_token++;
+	    break;
+	  }
           default: TODO();pos++;break;
         }
       break;
@@ -229,7 +249,8 @@ int eval(int p, int q)
           //printf(")已弹出%d\n", i);
           LRPparen--;
           continue;
-        
+        //case TK_DOLLAR:
+          
         default:
           continue;
       }
