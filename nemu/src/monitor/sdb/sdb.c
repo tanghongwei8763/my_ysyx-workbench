@@ -59,6 +59,7 @@ static int cmd_w(char *args) {			//添加监视点
       return 1;
     }
   strncpy(e, args, 65531);
+  printf("success1:%d\n", success1);
   new_wp(e, &success1);
   return 0;
 }
