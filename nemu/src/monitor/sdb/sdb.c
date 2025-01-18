@@ -61,7 +61,7 @@ static int cmd_w(char *args) {			//添加监视点
   strncpy(e, args, 65531);
   //printf("success1:%d\n", success1);
   new_wp(e, &success1);
-  //printf("success1:%d\n", success1);
+  printf("success1:%d\n", success1);
   return 0;
 }
 static int cmd_p(char *args) {			//表达式求值
