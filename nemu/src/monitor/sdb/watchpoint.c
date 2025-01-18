@@ -43,6 +43,7 @@ void init_wp_pool() {
 
 void new_wp(char *e, bool *success) {
   if(success){
+    printf("enter success><\n");
     init_wp_pool();
     success = false;
   }
@@ -61,6 +62,7 @@ void new_wp(char *e, bool *success) {
     new->next = head;
     head = new;
   }
+  printf("已添加监视点%s\tresult:0x%08x\n", e, new->result);
 }
 
 void free_wp(int NO) {
