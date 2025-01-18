@@ -41,11 +41,11 @@ void init_wp_pool() {
   free_ = wp_pool;
 }
 
-void new_wp(char *e, int *success) {
+void new_wp(char *e, bool *success) {
   if(*success){
     printf("enter success><\n");
     init_wp_pool();
-    *success = 0;
+    *success = true;
   }
   if(free_ == NULL){
     printf("free_ is empty\n");
