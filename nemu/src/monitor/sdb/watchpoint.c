@@ -58,9 +58,11 @@ void new_wp(char *e, bool *success) {
   //new->result = expr(e,success);
   new->next = NULL;
   if(head == NULL){
+    printf("head is empty\n");
     head = new;
   }
   else {
+  printf("head is not empty\n");
     new->next = head;
     head = new;
   }
