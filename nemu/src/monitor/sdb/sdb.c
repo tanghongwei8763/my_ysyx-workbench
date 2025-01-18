@@ -42,9 +42,23 @@ static char* rl_gets() {
 
   return line_read;
 }
-static int cmd_w(char *args) {
 
+static int cmd_d(char *args) {			//删除监视点
+  int NO;
+  sscanf(args, "%d", &NO);
+  //free_wp(NO);
+  return 0;
+}
 
+static int cmd_w(char *args) {			//添加监视点
+  char *e = (char *)malloc(65532); 
+    if (e == NULL) {
+      perror("malloc failed");
+      return 1;
+    }
+  //bool success1 = true;
+  strncpy(e, args, 65531);
+  //new_wp(e, &success1);
   return 0;
 }
 static int cmd_p(char *args) {			//表达式求值
@@ -131,8 +145,8 @@ static struct {
   { "x", "求出表达式EXPR的值, 将结果作为起始内存地址, 以十六进制形式输出连续的N个4字节", cmd_x },
   { "p", "求出表达式EXPR的值", cmd_p },
   { "w", "当表达式EXPR的值发生变化时, 暂停程序执行", cmd_w },
-  /*
   { "d", "删除序号为[N]的监视点", cmd_d }
+  /*
   */
   /* TODO: Add more commands */
 

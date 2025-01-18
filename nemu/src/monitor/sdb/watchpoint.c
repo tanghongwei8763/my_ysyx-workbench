@@ -20,7 +20,7 @@
 typedef struct watchpoint {
   int NO;
   char expression[320];
-  int value;
+  int result;
   struct watchpoint *next;
 
   /* TODO: Add more members if necessary */
@@ -41,7 +41,7 @@ void init_wp_pool() {
   free_ = wp_pool;
 }
 
-WP* new_wp(char *e, int NO, bool *success) {
+void new_wp(char *e, bool *success) {
   if(success){
     init_wp_pool();
     success = false;
@@ -52,9 +52,8 @@ WP* new_wp(char *e, int NO, bool *success) {
   }
   WP *new = free_;
   free_ = free_->next;
-  new->NO = NO;
   strcpy(new->expression, e);
-  new->value = expr(e,success);
+  new->result = expr(e,success);
   new->next = NULL;
   if(head == NULL)
     head = new;
@@ -62,7 +61,6 @@ WP* new_wp(char *e, int NO, bool *success) {
     new->next = head;
     head = new;
   }
-  return new;
 }
 
 void free_wp(int NO) {
@@ -108,7 +106,7 @@ void watchpoint_printf() {
   }
   else {
     while(p!=NULL) {
-     printf("%d\t%s\t0x%08x\n", p->NO, p->expression, p->value);
+     printf("%d\t%s\t0x%08x\n", p->NO, p->expression, p->result);
     }
   }
 }
