@@ -51,23 +51,16 @@ void new_wp(char *e, bool *success) {
     printf("free_ is empty\n");
     assert(0);
   }
-  //printf("arrive here1\n");
   WP *new = free_;
-  //printf("arrive here2\n");
   free_ = free_->next;
-  //printf("arrive here3\n");
   strcpy(new->expression, e);
   printf("arrive here4\n");
   //new->result = expr(e,success);
-  printf("arrive here5\n");
   new->next = NULL;
-  printf("arrive here6\n");
   if(head == NULL){
-    printf("arrive here7\n"); 
     head = new;
   }
   else {
-    printf("arrive here8\n");
     new->next = head;
     head = new;
   }
