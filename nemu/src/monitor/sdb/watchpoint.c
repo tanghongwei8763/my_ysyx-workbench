@@ -74,7 +74,7 @@ void free_wp(int NO) {
   WP *p = head;
   if (head == NULL) {
     printf("watchpoint link is empty\n");
-    assert(0);
+    return;
   }
   else if (p->NO == NO) {
     head = head->next;
@@ -82,10 +82,9 @@ void free_wp(int NO) {
     p->next = free_;
     free_ = p;
     printf("watchpoint %d had been deleted\n", NO);
-    free(p); 
   }
   else {
-    WP *q = head;
+    WP *q = NULL;
     p = p->next;
     while(p!=NULL) {
       if(p->NO == NO) {
@@ -93,16 +92,16 @@ void free_wp(int NO) {
         p->next = free_;
         free_ = p;
         printf("watchpoint %d had been deleted\n", NO);
-        //free(p);
-        //free(q);
+        break;
       }
       else {
+        q = p;
         p = p->next;
-        q = q->next;
       }
     }
+    if (p == NULL)
+      printf("watchpoint %d was not found\n", NO);
   }
-  printf("watchpoint %d was not found\n", NO);
 }
 
 void watchpoint_printf() {
