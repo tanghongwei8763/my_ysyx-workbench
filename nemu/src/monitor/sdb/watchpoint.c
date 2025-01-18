@@ -45,7 +45,7 @@ void new_wp(char *e, bool *success) {
   if(*success){
     printf("enter success><\n");
     init_wp_pool();
-    *success = false;
+    *success = 0;
   }
   if(free_ == NULL){
     printf("free_ is empty\n");
@@ -54,7 +54,7 @@ void new_wp(char *e, bool *success) {
   WP *new = free_;
   free_ = free_->next;
   strcpy(new->expression, e);
-  printf("arrive here4\n");
+  //printf("arrive here4\n");
   new->result = expr(e,success);
   new->next = NULL;
   if(head == NULL){
