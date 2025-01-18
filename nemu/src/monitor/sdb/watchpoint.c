@@ -45,7 +45,7 @@ void new_wp(char *e, bool *success) {
   if(success){
     printf("enter success><\n");
     init_wp_pool();
-    success = false;
+    *success = false;
   }
   if(free_ == NULL){
     printf("free_ is empty\n");
