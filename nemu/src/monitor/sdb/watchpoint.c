@@ -56,6 +56,7 @@ void new_wp(char *e, bool *success) {
   strcpy(new->expression, e);
   //printf("arrive here4\n");
   new->result = expr(e,success);
+  *success = false;
   new->next = NULL;
   if(head == NULL){
     printf("head is empty\n");
