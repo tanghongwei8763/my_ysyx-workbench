@@ -56,9 +56,9 @@ static int cmd_w(char *args) {			//添加监视点
       perror("malloc failed");
       return 1;
     }
-  //bool success1 = true;
+  bool success1 = true;
   strncpy(e, args, 65531);
-  //new_wp(e, &success1);
+  new_wp(e, &success1);
   return 0;
 }
 static int cmd_p(char *args) {			//表达式求值
