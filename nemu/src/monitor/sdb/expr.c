@@ -14,6 +14,8 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include <cpu/cpu.h>
+//#include "../isa/riscv32/reg.c"
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -40,18 +42,18 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    			// spaces
-  {"[0-9]+", TK_NUM},			// number
+  {"[0-9]+", TK_NUM},				// number
   {"\\+", '+'},         			// plus
-  {"\\-", '-'},				// sub
-  {"\\*", '*'},				// mul
-  {"\\/", '/'},				// div
-  {"\\(", TK_LPAREN},			// left parenthesis
-  {"\\)", TK_RPAREN},			// right parenthesis
-  {"==", TK_EQ},       			// equal
+  {"\\-", '-'},					// sub
+  {"\\*", '*'},					// mul
+  {"\\/", '/'},					// div
+  {"\\(", TK_LPAREN},				// left parenthesis
+  {"\\)", TK_RPAREN},				// right parenthesis
+  {"==", TK_EQ},       				// equal
   {"!=", TK_NEQ},       			// nequal
   {"&&", TK_AND},       			// and
   {"^\\$[a-zA-Z0-9]+$", TK_DOLLAR},		// $
-  {"x", TK_HEX},                   	// hex
+  {"x", TK_HEX},                   		// hex
   //{"^0x[0-9a-fA-F]+$", TK_HEX},		// hex
   //{"*", TK_P},       				// point
 };
@@ -161,10 +163,26 @@ static bool make_token(char *e) {
 	    tokens[nr_token].type = TK_DOLLAR;
 	    tokens[nr_token].pri = 4;
 	    int j = 0;
-	    pos++;
+	    pos++;			//仅识别16进制数
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
 	      position++;
+	    }
+	    int dtemp;
+	    /*
+	    for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
+	      if(strcmp(tokens[nr_token].str, regs[i]) == 0) {
+	        dtemp = cpu.gpr[i];
+	      }
+	    }
+	    */
+	    dtemp = cpu.gpr[4];
+	    char stemp[32];
+	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
+	    int k = 0;
+	    while(k < strlen(stemp)) {
+	      tokens[nr_token-1].str[k] = stemp[k];	//重新存入str
+	      k++;
 	    }
 	    tokens[nr_token].str[j] = '\0';
 	    nr_token++;
