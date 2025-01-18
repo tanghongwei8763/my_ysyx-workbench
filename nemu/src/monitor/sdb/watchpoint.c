@@ -84,20 +84,19 @@ void free_wp(int NO) {
     printf("watchpoint %d had been deleted\n", NO);
   }
   else {
-    //WP *q = NULL;
+    WP *q = head;
     p = p->next;
     while(p!=NULL) {
       printf("p->NO=%d\t%d\n", p->NO, NO);
       if(p->NO == NO) {
-        //q->next = p->next;
-        head = head->next;
+        q->next = p->next;
         p->next = free_;
         free_ = p;
         printf("watchpoint %d had been deleted\n", NO);
         break;
       }
       else {
-        //q = p;
+        q = p;
         p = p->next;
       }
     }
