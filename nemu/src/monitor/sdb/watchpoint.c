@@ -19,6 +19,8 @@
 
 typedef struct watchpoint {
   int NO;
+  char expression[320];
+  int value;
   struct watchpoint *next;
 
   /* TODO: Add more members if necessary */
@@ -27,13 +29,6 @@ typedef struct watchpoint {
 
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
-
-WP* new_wp();
-
-void free_wp(WP *wp) {
-
-}
-
 
 void init_wp_pool() {
   int i;
@@ -45,6 +40,79 @@ void init_wp_pool() {
   head = NULL;
   free_ = wp_pool;
 }
+
+WP* new_wp(char *e, int NO, bool *success) {
+  if(success){
+    init_wp_pool();
+    success = false;
+  }
+  if(free_ == NULL){
+    printf("free_ is empty\n");
+    assert(0);
+  }
+  WP *new = free_;
+  free_ = free_->next;
+  new->NO = NO;
+  strcpy(new->expression, e);
+  new->value = expr(e,success);
+  new->next = NULL;
+  if(head == NULL)
+    head = new;
+  else {
+    new->next = head;
+    head = new;
+  }
+  return new;
+}
+
+void free_wp(int NO) {
+  WP *p = head;
+  if (head == NULL) {
+    printf("watchpoint link is empty\n");
+    assert(0);
+  }
+  else if (p->NO == NO) {
+    head = head->next;
+    p->NO = 0;
+    p->next = free_;
+    free_ = p;
+    printf("watchpoint %d had been deleted\n", NO);
+    free(p); 
+  }
+  else {
+    WP *q = head;
+    p = p->next;
+    while(p!=NULL) {
+      if(p->NO == NO) {
+        q->next = p->next;
+        p->NO = 0;
+        p->next = free_;
+        free_ = p;
+        printf("watchpoint %d had been deleted\n", NO);
+        free(p);
+        free(q);
+      }
+      else {
+        p = p->next;
+        q = q->next;
+      }
+    }
+  }
+  printf("watchpoint %d was not found\n", NO);
+}
+
+void watchpoint_printf() {
+  WP *p = head;
+  if(p == NULL) {
+    printf("watchpoint link is empty\n");
+  }
+  else {
+    while(p!=NULL) {
+     printf("%d\t%s\t0x%08x\n", p->NO, p->expression, p->value);
+    }
+  }
+}
+
 
 /* TODO: Implement the functionality of watchpoint */
 

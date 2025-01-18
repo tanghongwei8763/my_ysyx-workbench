@@ -42,7 +42,11 @@ static char* rl_gets() {
 
   return line_read;
 }
+static int cmd_w(char *args) {
 
+
+  return 0;
+}
 static int cmd_p(char *args) {			//表达式求值
   char *e = (char *)malloc(65532); 
     if (e == NULL) {
@@ -82,7 +86,8 @@ static int cmd_x(char *args) {			//扫描内存
 static int cmd_info(char *args) {		//打印寄存器，监视点
   if (args[0] == 'r')
     isa_reg_display();
-  //else if (args == 'w')
+  else if (args[0] == 'w')
+    watchpoint_printf();
   else
     printf("输入有误，需要帮助可以键入‘help’");
   return 0;
@@ -125,8 +130,8 @@ static struct {
   { "info", "打印寄存器状态[r]打印监视点信息[w]", cmd_info },
   { "x", "求出表达式EXPR的值, 将结果作为起始内存地址, 以十六进制形式输出连续的N个4字节", cmd_x },
   { "p", "求出表达式EXPR的值", cmd_p },
-  /*
   { "w", "当表达式EXPR的值发生变化时, 暂停程序执行", cmd_w },
+  /*
   { "d", "删除序号为[N]的监视点", cmd_d }
   */
   /* TODO: Add more commands */

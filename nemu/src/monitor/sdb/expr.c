@@ -141,6 +141,7 @@ static bool make_token(char *e) {
 	        tokens[nr_token].str[j++] = e[pos++];
 	        position++;
 	      }
+	      nr_token++;
             }
             else{
               tokens[nr_token].type = '*';
