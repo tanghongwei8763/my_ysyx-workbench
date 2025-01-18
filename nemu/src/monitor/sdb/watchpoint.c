@@ -118,6 +118,7 @@ void watchpoint_printf() {
   else {
     while(p!=NULL) {
      printf("%d\t%s\t0x%08x\n", p->NO, p->expression, p->result);
+     p = p->next;
     }
   }
 }
