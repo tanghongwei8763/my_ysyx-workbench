@@ -88,7 +88,7 @@ void free_wp(int NO) {
     WP *q = NULL;
     p = p->next;
     while(p!=NULL) {
-      printf("p->NO=%d\n", p->NO);
+      printf("p->NO=%d\t%d\n", p->NO, NO);
       if(p->NO == NO) {
         q->next = p->next;
         p->next = free_;
