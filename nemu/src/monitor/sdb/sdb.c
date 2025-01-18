@@ -50,7 +50,7 @@ static int cmd_d(char *args) {			//删除监视点
   return 0;
 }
 
-bool success1 = true;
+int success1 = 1;
 
 static int cmd_w(char *args) {			//添加监视点
   char *e = (char *)malloc(65532); 
