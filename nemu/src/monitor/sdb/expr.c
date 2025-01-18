@@ -204,11 +204,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  /*
+  
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
-    printf("%c\t%s\t&d\n", tokens[ert].type, tokens[ert].str, tokens[ert].pri);
+    printf("%c\t%s\t%d\n", tokens[ert].type, tokens[ert].str, tokens[ert].pri);
   }
-  */
+  
   return true;
 }
 
@@ -350,13 +350,6 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
   *success = true;
-  
-  for (int i = 0; i < nr_token; i ++) {
-    if (tokens[i].type == '*' && (i == 0 || tokens[i - 1].pri >= 1) ) {
-      tokens[i].type = TK_P;
-      tokens[i].pri = 4;		//成为指针后优先级变高
-    }
-  }
   
   return eval(0, nr_token-1);
 
