@@ -43,7 +43,7 @@ void init_wp_pool() {
 
 void new_wp(char *e, bool *success) {
   if(*success){
-    printf("enter success><\n");
+   // printf("enter success><\n");
     init_wp_pool();
     *success = 0;
   }
@@ -59,7 +59,7 @@ void new_wp(char *e, bool *success) {
   *success = false;
   new->next = NULL;
   if(head == NULL){
-    printf("head is empty\n");
+    //printf("head is empty\n");
     head = new;
   }
   else {
@@ -90,7 +90,6 @@ void free_wp(int NO) {
     while(p!=NULL) {
       if(p->NO == NO) {
         q->next = p->next;
-        p->NO = 0;
         p->next = free_;
         free_ = p;
         printf("watchpoint %d had been deleted\n", NO);
@@ -113,7 +112,7 @@ void watchpoint_printf() {
   }
   else {
     while(p!=NULL) {
-     printf("%d\t%s\t0x%08x\n", p->NO, p->expression, p->result);
+     printf("%d\t%s\t\t0x%08x\n", p->NO, p->expression, p->result);
      p = p->next;
     }
   }
