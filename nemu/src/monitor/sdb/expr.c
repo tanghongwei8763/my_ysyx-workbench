@@ -129,15 +129,33 @@ static bool make_token(char *e) {
             //printf("%d\n", position);
             break;
           }
-          case '+': tokens[nr_token++].type = '+';tokens[nr_token].pri = 1;pos++;break;
-          case '-': tokens[nr_token++].type = '-';tokens[nr_token].pri = 1;pos++;break;
-          case '*': tokens[nr_token++].type = '*';tokens[nr_token].pri = 2;pos++;break;
-          case '/': tokens[nr_token++].type = '/';tokens[nr_token].pri = 2;pos++;break;
-          case TK_LPAREN: tokens[nr_token++].type = TK_LPAREN;tokens[nr_token].pri = 2;pos++;break;
-	  case TK_RPAREN: tokens[nr_token++].type = TK_RPAREN;tokens[nr_token].pri = 0;pos++;break;
-	  case TK_EQ: tokens[nr_token++].type = TK_EQ;tokens[nr_token].pri = 3;pos++;break;
-	  case TK_NEQ: tokens[nr_token++].type = TK_NEQ;tokens[nr_token].pri = 3;pos++;break;
-	  case TK_AND: tokens[nr_token++].type = TK_AND;tokens[nr_token].pri = 3;pos++;break;
+          case '+': tokens[nr_token].type = '+';tokens[nr_token].pri = 1;nr_token++;pos++;break;
+          case '-': tokens[nr_token].type = '-';tokens[nr_token].pri = 1;nr_token++;pos++;break;
+          case '*': {
+            if(nr_token==0 || tokens[nr_token-1].pri > 1){
+              tokens[i].type = TK_P;
+              tokens[i].pri = 4;		//成为指针后优先级变高
+              int j = 0;
+	      pos++;
+	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
+	        tokens[nr_token].str[j++] = e[pos++];
+	        position++;
+	      }
+            }
+            else{
+              tokens[nr_token].type = '*';
+              tokens[nr_token].pri = 2;
+              nr_token++;
+              pos++;
+              break;
+            }
+          }
+          case '/': tokens[nr_token].type = '/';tokens[nr_token].pri = 2;nr_token++;pos++;break;
+          case TK_LPAREN: tokens[nr_token].type = TK_LPAREN;tokens[nr_token].pri = 2;nr_token++;pos++;break;
+	  case TK_RPAREN: tokens[nr_token].type = TK_RPAREN;tokens[nr_token].pri = 0;nr_token++;pos++;break;
+	  case TK_EQ: tokens[nr_token].type = TK_EQ;tokens[nr_token].pri = 3;nr_token++;pos++;break;
+	  case TK_NEQ: tokens[nr_token].type = TK_NEQ;tokens[nr_token].pri = 3;nr_token++;pos++;break;
+	  case TK_AND: tokens[nr_token].type = TK_AND;tokens[nr_token].pri = 3;nr_token++;pos++;break;
 	  case TK_DOLLAR: {
 	    tokens[nr_token].type = TK_DOLLAR;
 	    tokens[nr_token].pri = 4;
@@ -188,7 +206,7 @@ static bool make_token(char *e) {
   }
   /*
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
-    printf("%c\t%s\n", tokens[ert].type, tokens[ert].str);
+    printf("%c\t%s\t&d\n", tokens[ert].type, tokens[ert].str, tokens[ert].pri);
   }
   */
   return true;
