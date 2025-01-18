@@ -94,7 +94,7 @@ void free_wp(int NO) {
         free_ = p;
         printf("watchpoint %d had been deleted\n", NO);
         free(p);
-        free(q);
+        //free(q);
       }
       else {
         p = p->next;
