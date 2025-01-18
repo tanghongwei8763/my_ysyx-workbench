@@ -15,12 +15,18 @@
 
 #include <isa.h>
 #include <cpu/cpu.h>
-//#include "../isa/riscv32/reg.c"
-
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+
+char *myregs[] = {
+  "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
+  "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
+  "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
+  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
+};
+
 
 enum {
   TK_NOTYPE = 256, TK_DOLLAR, TK_HEX,
@@ -169,14 +175,11 @@ static bool make_token(char *e) {
 	      position++;
 	    }
 	    int dtemp;
-	    /*
 	    for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
-	      if(strcmp(tokens[nr_token].str, regs[i]) == 0) {
+	      if(strcmp(tokens[nr_token].str, myregs[i]) == 0) {
 	        dtemp = cpu.gpr[i];
 	      }
 	    }
-	    */
-	    dtemp = cpu.gpr[4];
 	    char stemp[32];
 	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
 	    int k = 0;
