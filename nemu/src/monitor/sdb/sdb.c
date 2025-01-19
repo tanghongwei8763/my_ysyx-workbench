@@ -85,12 +85,20 @@ static int cmd_p(char *args) {			//表达式求值
 }
 
 static int cmd_x(char *args) {			//扫描内存
+  char *e = (char *)malloc(65532); 
+    if (e == NULL) {
+      perror("malloc failed");
+      return 1;
+    }
+  bool success = true;
+  int result;
   char *arg1 = strtok(NULL, " ");
   char *arg2 = strtok(NULL, " ");
-  int k;
-  vaddr_t data;					//使用 vaddr中对传入参数的定义
+  int k;	
   sscanf(arg1, "%d", &k);
-  sscanf(arg2, "%x", &data);
+  sscanf(arg2, "%s", e);
+  result = expr(e, &success);
+  vaddr_t data = result;			//使用 vaddr中对传入参数的定义
   for (int i = 0; i < k; i++){
     printf("0x%08x\t", data+4*i);
     uint32_t temp = vaddr_read(data+i*4,4);
