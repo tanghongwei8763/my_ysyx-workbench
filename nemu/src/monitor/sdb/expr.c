@@ -191,7 +191,6 @@ static bool make_token(char *e) {
 	    int dtemp;
 	    
 	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
-	      printf("我是探针\n");
 	      dtemp = cpu.pc;
 	      printf("dtemp=%d\n", dtemp);
 	    }
@@ -210,8 +209,8 @@ static bool make_token(char *e) {
 	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
 	    int k = 0;
 	    while(k < strlen(stemp)) {
-	      printf("%d\n", k);
 	      tokens[nr_token].str[k] = stemp[k];	//重新存入str
+	      printf("%d  %c <= %c\n", k, tokens[nr_token].str[k], stemp[k]);
 	      k++;
 	    }
 	    tokens[nr_token].str[j] = '\0';
