@@ -163,7 +163,7 @@ static bool make_token(char *e) {
               break;
             }
           }
-          case '/': tokens[nr_token].type = '/';tokens[nr_token].pri = 2;nr_token++;pos++;break;
+          case '/': printf("%d\n", position);tokens[nr_token].type = '/';tokens[nr_token].pri = 2;nr_token++;pos++;break;
           case TK_LPAREN: tokens[nr_token].type = TK_LPAREN;tokens[nr_token].pri = 2;nr_token++;pos++;break;
 	  case TK_RPAREN: tokens[nr_token].type = TK_RPAREN;tokens[nr_token].pri = 0;nr_token++;pos++;break;
 	  case TK_EQ: tokens[nr_token].type = TK_EQ;tokens[nr_token].pri = 3;nr_token++;pos+=2;break;
