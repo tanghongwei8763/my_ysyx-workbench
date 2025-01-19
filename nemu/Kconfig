@@ -46,6 +46,10 @@ config ENGINE
   string
   default "interpreter" if ENGINE_INTERPRETER
   default "none"
+  
+config WATCHPOINT
+  bool "Enable watchpoint"
+  default n
 
 choice
   prompt "Running mode"
