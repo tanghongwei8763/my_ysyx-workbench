@@ -152,6 +152,7 @@ static bool make_token(char *e) {
 	        tokens[nr_token].str[j++] = e[pos++];
 	        position++;
 	      }
+	      printf("%d\n", position);
 	      nr_token++;
             }
             else{
