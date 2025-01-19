@@ -208,7 +208,7 @@ static bool make_token(char *e) {
 	    
 	    char stemp[32];
 	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
-	    printf("stemp=%s\n", stemp);
+	    printf("stemp=%c\n", stemp[4]);
 	    int k = 0;
 	    while(k < strlen(stemp)) {
 	      tokens[nr_token].str[k] = stemp[k];	//重新存入str
