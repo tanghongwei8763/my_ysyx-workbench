@@ -210,7 +210,7 @@ static bool make_token(char *e) {
 	    int k = 0;
 	    while(k < strlen(stemp)) {
 	      tokens[nr_token].str[k] = stemp[k];	//重新存入str
-	      printf("%d  %c <= %c\n", k, tokens[nr_token].str[k], stemp[k]);
+	      //printf("%d  %c <= %c\n", k, tokens[nr_token].str[k], stemp[k]);
 	      k++;
 	    }
 	    tokens[nr_token].str[k] = '\0';
