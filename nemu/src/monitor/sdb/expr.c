@@ -187,6 +187,7 @@ static bool make_token(char *e) {
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
 	      position++;
+	      printf("%d", position);
 	    }
 	    int dtemp;
 	    
