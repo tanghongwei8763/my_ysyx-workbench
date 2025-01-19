@@ -346,7 +346,7 @@ int eval(int p, int q)
     }
     int left = eval(p, split - 1);
     int right = eval(split + 1, q);
-    printf("%d\t%d\n", left, right);
+    //printf("%d\t%d\n", left, right);
     switch (tokens[split].type) {
       case TK_EQ: return left == right;
       case TK_NEQ: return left != right;
