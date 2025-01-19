@@ -112,6 +112,7 @@ static bool make_token(char *e) {
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
         */
         //printf("p+%d\n", substr_len);
+	printf("%d\n", position);
         position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -152,7 +153,6 @@ static bool make_token(char *e) {
 	        tokens[nr_token].str[j++] = e[pos++];
 	        position++;
 	      }
-	      printf("%d\n", position);
 	      nr_token++;
             }
             else{
