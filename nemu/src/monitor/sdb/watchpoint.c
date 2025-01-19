@@ -24,7 +24,6 @@ typedef struct watchpoint {
   int result;
   struct watchpoint *next;
 
-  /* TODO: Add more members if necessary */
 
 } WP;
 
