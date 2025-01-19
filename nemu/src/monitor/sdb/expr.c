@@ -129,7 +129,7 @@ static bool make_token(char *e) {
             tokens[nr_token].type = TK_NUM;
             tokens[nr_token].pri = 0;
             int j = 0;
-            printf("pos %d\n", pos);
+            printf("pos %d    %c\n", pos, e[pos]);
             while (e[pos] >= '0' && e[pos] <= '9') 
             {
               printf("我是探针\n");
