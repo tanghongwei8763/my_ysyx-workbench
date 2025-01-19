@@ -110,7 +110,7 @@ static bool make_token(char *e) {
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
         */
         //printf("p+%d\n", substr_len);
-	//printf("%d\n", position);
+	printf("%d\n", position);
         position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -183,7 +183,7 @@ static bool make_token(char *e) {
 	    tokens[nr_token].type = TK_DOLLAR;
 	    tokens[nr_token].pri = 0;
 	    int j = 0;
-	    pos++;			//仅识别16进制数
+	    pos++;			
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
 	      position++;
@@ -192,7 +192,6 @@ static bool make_token(char *e) {
 	    
 	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
 	      dtemp = cpu.pc;
-	      printf("dtemp=%d\n", dtemp);
 	    }
 	    else {
 	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
