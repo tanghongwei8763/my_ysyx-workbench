@@ -109,8 +109,8 @@ static bool make_token(char *e) {
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
         */
-        printf("p+%d\n", substr_len);
-	printf("%d\n", position);
+        //printf("p+%d\n", substr_len);
+	//printf("%d\n", position);
         position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -189,7 +189,7 @@ static bool make_token(char *e) {
 	      //position++;
 	      printf("%d\n", position);
 	    }
-	    printf("%s\n", tokens[nr_token].str);
+	    //printf("%s\n", tokens[nr_token].str);
 	    int dtemp;
 	    
 	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
