@@ -20,7 +20,6 @@
 
 word_t expr(char *e, bool *success);
 
-
 /*
 typedef struct watchpoint WP;
 extern const int NR_WP;
