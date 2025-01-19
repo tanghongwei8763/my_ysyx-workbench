@@ -209,13 +209,12 @@ static bool make_token(char *e) {
 	    char stemp[32];
 	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
 	    int k = 0;
-	    printf("%zu\n", strlen(stemp));
 	    while(k < strlen(stemp)) {
+	      printf("%d", k);
 	      tokens[nr_token].str[k] = stemp[k];	//重新存入str
 	      k++;
 	    }
 	    tokens[nr_token].str[j] = '\0';
-	    printf("%s\n", tokens[nr_token].str);
 	    nr_token++;
 	    break;
 	  }
