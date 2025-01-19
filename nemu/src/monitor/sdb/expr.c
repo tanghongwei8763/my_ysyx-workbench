@@ -181,7 +181,7 @@ static bool make_token(char *e) {
 	  case TK_AND: tokens[nr_token].type = TK_AND;tokens[nr_token].pri = 3;nr_token++;pos+=2;break;
 	  case TK_DOLLAR: {
 	    tokens[nr_token].type = TK_DOLLAR;
-	    tokens[nr_token].pri = 4;
+	    tokens[nr_token].pri = 0;
 	    int j = 0;
 	    pos++;			//仅识别16进制数
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
@@ -190,13 +190,18 @@ static bool make_token(char *e) {
 	    }
 	    int dtemp;
 	    
-	    for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
-	      if(strcmp(tokens[nr_token].str, tempregs[i]) == 0) {
-	        dtemp = cpu.gpr[i];
-	      }
-	    }
 	    if(strcmp(tokens[nr_token].str, "pc") == 0)	//单独的pc寄存器
 	      dtemp = cpu.pc;
+	    else {
+	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
+	        if(strcmp(tokens[nr_token].str, tempregs[i]) == 0) {
+	          dtemp = cpu.gpr[i];
+	          break;
+	        }
+	      }
+	      printf("输入寄存器名称有误\n");
+	      assert(0);
+	    }
 	    
 	    char stemp[32];
 	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
