@@ -189,6 +189,7 @@ static bool make_token(char *e) {
 	      //position++;
 	      printf("%d\n", position);
 	    }
+	    printf("%s\n", tokens[nr_token].str);
 	    int dtemp;
 	    
 	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
