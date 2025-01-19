@@ -20,14 +20,13 @@
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
-/*
-char *myregs[] = {
+
+char *tempregs[] = {
   "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
   "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
   "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
-*/
 
 enum {
   TK_NOTYPE = 256, TK_DOLLAR, TK_HEX,
@@ -52,7 +51,7 @@ static struct rule {
   {"[0-9]+", TK_NUM},				// number
   {"\\+", '+'},         			// plus
   {"\\-", '-'},					// sub
-  {"\\*", '*'},					// mul
+  {"\\*", '*'},					// mul   point
   {"\\/", '/'},					// div
   {"\\(", TK_LPAREN},				// left parenthesis
   {"\\)", TK_RPAREN},				// right parenthesis
@@ -61,8 +60,6 @@ static struct rule {
   {"&&", TK_AND},       			// and
   {"\\$(\\$0|ra|sp|gp|tp|t[0-6]|s[0-9]|s10|s11|a[0-7])", TK_DOLLAR},		// $
   {"x", TK_HEX},                   		// hex
-  //{"^0x[0-9a-fA-F]+$", TK_HEX},		// hex
-  //{"*", TK_P},       				// point
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -192,13 +189,13 @@ static bool make_token(char *e) {
 	      position++;
 	    }
 	    int dtemp;
-	    /*
+	    
 	    for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
-	      if(strcmp(tokens[nr_token].str, myregs[i]) == 0) {
+	      if(strcmp(tokens[nr_token].str, tempregs[i]) == 0) {
 	        dtemp = cpu.gpr[i];
 	      }
 	    }
-	    */
+	    
 	    char stemp[32];
 	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
 	    int k = 0;
