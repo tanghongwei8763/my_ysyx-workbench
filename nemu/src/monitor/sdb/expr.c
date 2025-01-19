@@ -186,8 +186,6 @@ static bool make_token(char *e) {
 	    pos++;			
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
-	      //position++;
-	      printf("%d\n", position);
 	    }
 	    //printf("%s\n", tokens[nr_token].str);
 	    int dtemp;
@@ -253,11 +251,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  
+  /*
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\t%d\n", tokens[ert].type, tokens[ert].str, tokens[ert].pri);
   }
-  
+  */
   return true;
 }
 
