@@ -190,8 +190,10 @@ static bool make_token(char *e) {
 	    }
 	    int dtemp;
 	    
-	    if(strcmp(tokens[nr_token].str, "pc") == 0)	//单独的pc寄存器
+	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
+	      printf("我是探针\n");
 	      dtemp = cpu.pc;
+	    }
 	    else {
 	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
 	        if(strcmp(tokens[nr_token].str, tempregs[i]) == 0) {
