@@ -213,7 +213,7 @@ static bool make_token(char *e) {
 	      printf("%d  %c <= %c\n", k, tokens[nr_token].str[k], stemp[k]);
 	      k++;
 	    }
-	    tokens[nr_token].str[j] = '\0';
+	    tokens[nr_token].str[k] = '\0';
 	    nr_token++;
 	    break;
 	  }
