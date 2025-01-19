@@ -45,7 +45,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
       bool success = true;
       int temp = expr(wp_pool[i].expression, &success);
       if(success) {
-        if(temp!=wp_pool[i].result) {
+        if(temp==wp_pool[i].result) {
           nemu_state.state = NEMU_STOP;
           printf("watchpoint %d not equavolent\n", i);
           return;
