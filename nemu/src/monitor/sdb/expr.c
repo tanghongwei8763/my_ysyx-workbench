@@ -58,7 +58,7 @@ static struct rule {
   {"==", TK_EQ},       				// equal
   {"!=", TK_NEQ},       			// nequal
   {"&&", TK_AND},       			// and
-  {"\\$(\\$0|ra|sp|gp|tp|t[0-6]|s[0-9]|s10|s11|a[0-7])", TK_DOLLAR},		// $
+  {"\\$(\\pc|$0|ra|sp|gp|tp|t[0-6]|s[0-9]|s10|s11|a[0-7])", TK_DOLLAR},		// $
   {"x", TK_HEX},                   		// hex
 };
 
@@ -195,6 +195,8 @@ static bool make_token(char *e) {
 	        dtemp = cpu.gpr[i];
 	      }
 	    }
+	    if(strcmp(tokens[nr_token].str, "pc") == 0)	//单独的pc寄存器
+	      dtemp = cpu.pc;
 	    
 	    char stemp[32];
 	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
