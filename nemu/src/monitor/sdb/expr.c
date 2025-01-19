@@ -125,10 +125,11 @@ static bool make_token(char *e) {
             break;
           }
           case TK_NUM: {		//数字
-            printf("TK_NUM\n");
+            //printf("TK_NUM\n");
             tokens[nr_token].type = TK_NUM;
             tokens[nr_token].pri = 0;
             int j = 0;
+            printf("pos %d\n", pos);
             while (e[pos] >= '0' && e[pos] <= '9') 
             {
               tokens[nr_token].str[j++] = e[pos++];
