@@ -41,6 +41,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 #ifdef CONFIG_WATCHPOINT			//监视点
   for(int i = 0; i < NR_WP; i++) {
+    printf("enter(0)\n");
     if(wp_pool[i].enable) {
       bool success = true;
       int temp = expr(wp_pool[i].expression, &success);
