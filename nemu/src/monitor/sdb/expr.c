@@ -210,7 +210,7 @@ static bool make_token(char *e) {
 	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
 	    int k = 0;
 	    while(k < strlen(stemp)) {
-	      tokens[nr_token-1].str[k] = stemp[k];	//重新存入str
+	      tokens[nr_token].str[k] = stemp[k];	//重新存入str
 	      k++;
 	    }
 	    tokens[nr_token].str[j] = '\0';
