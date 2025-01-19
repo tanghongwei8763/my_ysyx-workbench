@@ -93,10 +93,9 @@ static int cmd_x(char *args) {			//扫描内存
   bool success = true;
   int result;
   char *arg1 = strtok(NULL, " ");
-  char *arg2 = strtok(NULL, " ");
   int k;	
   sscanf(arg1, "%d", &k);
-  sscanf(arg2, "%s", e);
+  strncpy(e, args+2, 65531);
   result = expr(e, &success);
   vaddr_t data = result;			//使用 vaddr中对传入参数的定义
   for (int i = 0; i < k; i++){
