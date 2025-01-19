@@ -149,7 +149,7 @@ static bool make_token(char *e) {
 	      pos++;
 	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	        tokens[nr_token].str[j++] = e[pos++];
-	        //position++;
+	        position++;
 	      }
 	      vaddr_t data;
 	      sscanf(tokens[nr_token].str, "%x", &data);
@@ -186,7 +186,7 @@ static bool make_token(char *e) {
 	    pos++;			
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
-	      position++;
+	      //position++;
 	      printf("%d\n", position);
 	    }
 	    int dtemp;
