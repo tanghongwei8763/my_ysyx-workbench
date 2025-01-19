@@ -96,7 +96,7 @@ static int cmd_x(char *args) {			//扫描内存
   int k;	
   sscanf(arg1, "%d", &k);
   strncpy(e, args+2, 65531);
-  result = expr(e, &success);
+  result = expr(e, &success);			//添加表达式求值功能
   vaddr_t data = result;			//使用 vaddr中对传入参数的定义
   for (int i = 0; i < k; i++){
     printf("0x%08x\t", data+4*i);

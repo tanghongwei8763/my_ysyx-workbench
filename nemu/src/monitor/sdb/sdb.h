@@ -21,9 +21,17 @@
 word_t expr(char *e, bool *success);
 
 /*
-typedef struct watchpoint WP;
+typedef struct watchpoint {
+  int NO;
+  char expression[320];
+  bool enable;
+  int result;
+  struct watchpoint *next;
+
+} WP;
+
 extern const int NR_WP;
-extern WP wp_pool[NR_WP];
+extern WP wp_pool[];
 */
 void watchpoint_printf();
 void new_wp(char *e, bool *success);
