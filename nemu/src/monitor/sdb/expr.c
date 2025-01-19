@@ -15,6 +15,7 @@
 
 #include <isa.h>
 #include <cpu/cpu.h>
+#include "memory/vaddr.h"
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
@@ -112,7 +113,7 @@ static bool make_token(char *e) {
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
         */
         //printf("p+%d\n", substr_len);
-	printf("%d\n", position);
+	//printf("%d\n", position);
         position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -153,6 +154,17 @@ static bool make_token(char *e) {
 	        tokens[nr_token].str[j++] = e[pos++];
 	        position++;
 	      }
+	      vaddr_t data;
+	      sscanf(tokens[nr_token].str, "%x", &data);
+	      uint32_t dtemp = vaddr_read(data,4);
+	      char stemp[32];
+	      snprintf(stemp, sizeof(stemp), "%d", dtemp);
+	      int k = 0;
+	      while(k < strlen(stemp)) {
+	        tokens[nr_token].str[k] = stemp[k];
+	        k++;
+	      }
+	      tokens[nr_token].str[k] = '\0';
 	      nr_token++;
 	      break;
             }
@@ -233,11 +245,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  
+  /*
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\t%d\n", tokens[ert].type, tokens[ert].str, tokens[ert].pri);
   }
-  
+  */
   return true;
 }
 
