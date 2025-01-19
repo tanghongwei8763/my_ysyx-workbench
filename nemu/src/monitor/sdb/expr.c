@@ -129,10 +129,10 @@ static bool make_token(char *e) {
             tokens[nr_token].type = TK_NUM;
             tokens[nr_token].pri = 0;
             int j = 0;
-            printf("pos %d    %c\n", pos, e[pos]);
+            //printf("pos %d    %c\n", pos, e[pos]);
             while (e[pos] >= '0' && e[pos] <= '9') 
             {
-              printf("我是探针\n");
+              //printf("我是探针\n");
               tokens[nr_token].str[j++] = e[pos++];
             }
             tokens[nr_token].str[j] = '\0';
@@ -231,11 +231,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  
+  /*
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\t%d\n", tokens[ert].type, tokens[ert].str, tokens[ert].pri);
   }
-  
+  */
   return true;
 }
 
