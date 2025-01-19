@@ -125,6 +125,7 @@ static bool make_token(char *e) {
             break;
           }
           case TK_NUM: {		//数字
+            printf("TK_NUM\n");
             tokens[nr_token].type = TK_NUM;
             tokens[nr_token].pri = 0;
             int j = 0;
