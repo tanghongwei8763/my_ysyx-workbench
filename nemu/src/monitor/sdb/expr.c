@@ -143,7 +143,7 @@ static bool make_token(char *e) {
           case '+': tokens[nr_token].type = '+';tokens[nr_token].pri = 1;nr_token++;pos++;break;
           case '-': tokens[nr_token].type = '-';tokens[nr_token].pri = 1;nr_token++;pos++;break;
           case '*': {
-            if(nr_token==0 || tokens[nr_token-1].pri > 1){
+            if(nr_token==0 || tokens[nr_token-1].pri > 1){	//判断指针形成的条件
               tokens[i].type = TK_P;
               tokens[i].pri = 4;		//成为指针后优先级变高
               int j = 0;
