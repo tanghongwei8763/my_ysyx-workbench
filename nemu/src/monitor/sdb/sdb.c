@@ -75,8 +75,10 @@ static int cmd_p(char *args) {			//表达式求值
   strncpy(e, args, 65531);
   //printf("%s\n", e);
   result = expr(e, &success);
-  if (success)
-    printf("%d\n", result);
+  if (success){
+    printf("%d\n", result);			//两种输出进制
+    //printf("0x%08x\n", result);
+  }
   else
     printf("Bad expression\n");
   return 0;
