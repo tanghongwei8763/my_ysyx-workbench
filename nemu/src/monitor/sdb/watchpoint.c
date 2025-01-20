@@ -82,8 +82,9 @@ void free_wp(int NO) {
     return;
   }
   else if (p->NO == NO) {
-    printf("!p->NO=%d\n", p->NO);
+    //printf("!p->NO=%d\n", p->NO);
     head = head->next;
+    memset(p->expression, '\0', sizeof(p->expression));
     p->next = free_;
     free_ = p;
     printf("watchpoint %d had been deleted\n", NO);
@@ -95,6 +96,7 @@ void free_wp(int NO) {
       printf("p->NO=%d\t%d\n", p->NO, NO);
       if(p->NO == NO) {
         q->next = p->next;
+        memset(p->expression, '\0', sizeof(p->expression));
         p->next = free_;
         free_ = p;
         printf("watchpoint %d had been deleted\n", NO);
@@ -127,7 +129,7 @@ int watchpoint_exec(int *sign) {
   for(int i = 0; i < NR_WP; i++) {
     if(wp_pool[i].enable) {
       bool success = true;
-      printf("%s\n", wp_pool[i].expression);
+      //printf("%s\n", wp_pool[i].expression);
       int temp = expr(wp_pool[i].expression, &success);
       if(success) {
         if(temp==wp_pool[i].result) {
