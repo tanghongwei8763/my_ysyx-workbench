@@ -188,7 +188,7 @@ static bool make_token(char *e) {
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
 	    }
-	    printf("%s\n", tokens[nr_token].str);
+	    //printf("%s\n", tokens[nr_token].str);
 	    int dtemp;
 	    
 	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
@@ -196,6 +196,7 @@ static bool make_token(char *e) {
 	    }
 	    else {
 	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
+	        printf("%s ? %s\n", tokens[nr_token].str, tempregs[i]);
 	        if(strcmp(tokens[nr_token].str, tempregs[i]) == 0) {
 	          dtemp = cpu.gpr[i];
 	          break;
