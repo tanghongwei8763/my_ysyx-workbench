@@ -131,12 +131,12 @@ int watchpoint_exec(int *sign) {
       bool success = true;
       //printf("%s\n", wp_pool[i].expression);
       int temp = 0;
-      if(strcmp(wp_pool[i].expression, "\0") == 1) {
-        temp = expr(wp_pool[i].expression, &success);
-      }
-      else {
+      if(strcmp(wp_pool[i].expression, "\0") == 0) {
         *sign = 3;
         return 0;
+      }
+      else {
+        temp = expr(wp_pool[i].expression, &success);
       }
       if(success) {
         if(temp==wp_pool[i].result) {
