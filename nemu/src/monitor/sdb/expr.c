@@ -183,7 +183,8 @@ static bool make_token(char *e) {
 	    tokens[nr_token].type = TK_DOLLAR;
 	    tokens[nr_token].pri = 0;
 	    int j = 0;
-	    pos++;			
+	    pos++;
+	    memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str));	
 	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
 	      tokens[nr_token].str[j++] = e[pos++];
 	    }
