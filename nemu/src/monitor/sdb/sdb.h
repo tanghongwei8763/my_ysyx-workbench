@@ -24,5 +24,5 @@ word_t expr(char *e, bool *success);
 void watchpoint_printf();
 void new_wp(char *e, bool *success);
 void free_wp(int NO); 
-void watchpoint_exec();
+int watchpoint_exec(int *sign);
 #endif

@@ -47,7 +47,16 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 #ifdef CONFIG_WATCHPOINT			//监视点
   printf("enter(1)\n");
-  void watchpoint_exec();
+  int sign = 0, i = 0;
+  i = watchpoint_exec(&sign);
+  if(sign == 1) {
+    nemu_state.state = NEMU_STOP;
+    printf("watchpoint %d not equavolent\n", i);
+  }
+  else if (sign == 2) {
+    printf("caculate error\n");
+    assert(0);
+  }
 #endif
 }
 
