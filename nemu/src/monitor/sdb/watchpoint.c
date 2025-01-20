@@ -57,6 +57,10 @@ void new_wp(char *e, bool *success) {
   strcpy(new->expression, e);
   //printf("arrive here4\n");
   new->result = expr(e,success);
+  if(!*success) {
+    printf("calculate error\n");
+    return;
+  }
   *success = false;
   new->next = NULL;
   if(head == NULL){
