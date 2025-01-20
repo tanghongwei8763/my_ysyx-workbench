@@ -190,18 +190,21 @@ static bool make_token(char *e) {
 	    }
 	    //printf("%s\n", tokens[nr_token].str);
 	    int dtemp;
-	    
+	    int judge = 0;
 	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
 	      dtemp = cpu.pc;
 	    }
 	    else {
 	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
-	        printf("%s ? %s\n", tokens[nr_token].str, tempregs[reg]);
+	        //printf("%s ? %s\n", tokens[nr_token].str, tempregs[reg]);
 	        if(strcmp(tokens[nr_token].str, tempregs[reg]) == 0) {
 	          dtemp = cpu.gpr[i];
+	          judge = 1;
 	          break;
 	        }
 	      }
+	    }
+	    if(!judge) {
 	      printf("输入寄存器名称有误\n");
 	      assert(0);
 	    }
