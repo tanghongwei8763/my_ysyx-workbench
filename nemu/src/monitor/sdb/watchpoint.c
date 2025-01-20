@@ -119,6 +119,27 @@ void watchpoint_printf() {
   }
 }
 
+void watchpoint_exec() {
+  for(int i = 0; i < NR_WP; i++) {
+    printf("enter(0)\n");
+    if(wp_pool[i].enable) {
+      bool success = true;
+      int temp = expr(wp_pool[i].expression, &success);
+      if(success) {
+        if(temp==wp_pool[i].result) {
+          nemu_state.state = NEMU_STOP;
+          printf("watchpoint %d not equavolent\n", i);
+          return;
+        }
+      }
+      else {
+        printf("caculate error\n");
+        assert(0);
+      }
+    }
+  }
+}
+
 
 /* TODO: Implement the functionality of watchpoint */
 
