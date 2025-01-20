@@ -204,6 +204,7 @@ static bool make_token(char *e) {
 	        }
 	      }
 	    }
+	    printf("%d\n", judge);
 	    if(!judge) {
 	      printf("输入寄存器名称有误\n");
 	      assert(0);
