@@ -196,8 +196,8 @@ static bool make_token(char *e) {
 	    }
 	    else {
 	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
-	        printf("%s ? %s\n", tokens[nr_token].str, tempregs[i]);
-	        if(strcmp(tokens[nr_token].str, tempregs[i]) == 0) {
+	        printf("%s ? %s\n", tokens[nr_token].str, tempregs[reg]);
+	        if(strcmp(tokens[nr_token].str, tempregs[reg]) == 0) {
 	          dtemp = cpu.gpr[i];
 	          break;
 	        }
