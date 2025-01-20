@@ -193,6 +193,7 @@ static bool make_token(char *e) {
 	    int judge = 0;
 	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
 	      dtemp = cpu.pc;
+	      judge = 1;
 	    }
 	    else {
 	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
