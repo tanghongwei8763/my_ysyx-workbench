@@ -120,9 +120,7 @@ void watchpoint_printf() {
 }
 
 int watchpoint_exec(int *sign) {
-  printf("!!!\n");
   for(int i = 0; i < NR_WP; i++) {
-    printf("enter(0)\n");
     if(wp_pool[i].enable) {
       bool success = true;
       int temp = expr(wp_pool[i].expression, &success);
