@@ -40,6 +40,10 @@ run: run-env
 gdb: run-env
 	$(call git_commit, "gdb NEMU")
 	gdb -s $(BINARY) --args $(NEMU_EXEC)
+	
+count:
+	total_lines=$$(find -type f \( -name "*.c" -o -name "*.h" \) | xargs grep -v '^$$' | wc -l); \
+	echo "Total lines of.c and.h files: $${total_lines}"
 
 clean-tools = $(dir $(shell find ./tools -maxdepth 2 -mindepth 2 -name "Makefile"))
 $(clean-tools):
