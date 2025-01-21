@@ -66,7 +66,7 @@ static int cmd_w(char *args) {			//添加监视点
 }
 
 static int cmd_t(char *args) {
-  FILE *file = fopen("../tools/gen-expr/build/input", "r");
+  FILE *file = fopen("../../tools/gen-expr/build/input", "r");
   if(file == NULL) {
     perror("Error opening file");
     return -1;
