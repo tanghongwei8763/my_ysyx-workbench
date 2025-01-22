@@ -121,10 +121,10 @@ int main(int argc, char *argv[]) {
     ret = fscanf(fp, "%d", &result);
     
     if (has_div_by_zero_warning) {
-      //printf("有/0\n");
+      printf("有/0\n");
       printf("1 1\n");
     } else {
-      //printf("无/0\n");
+      printf("无/0\n");
       printf("%u %s\n", result, buf);
     }
   }
