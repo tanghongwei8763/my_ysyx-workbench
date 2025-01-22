@@ -111,17 +111,21 @@ int main(int argc, char *argv[]) {
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc -Wall - Werror /tmp/.code.c -o /tmp/.expr");
+    int ret = system("gcc -o /tmp/.expr -Wall -Werror /tmp/.code.c");
     if (ret != 0) continue;
 
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
 
     int result;
+    int error;
     ret = fscanf(fp, "%d", &result);
-    pclose(fp);
-
-    
+    error = pclose(fp);
+    if (WIFEXITED(error)){
+      if (WEXITSTATUS(error) == 136){
+        continue;
+      }
+    }
     printf("%u %s\n", result, buf);
     
   return 0;
