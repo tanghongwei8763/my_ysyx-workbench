@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     gen_rand_expr();
 
     sprintf(code_buf, code_format, buf);
-    /*
+    
     FILE *gcc_output = popen("gcc -o /tmp/.expr /tmp/.code.c 2>&1", "r");
     if (gcc_output == NULL) {
       perror("popen");
@@ -105,28 +105,27 @@ int main(int argc, char *argv[]) {
       strcpy(buf, "1");
       position = 1;
     }
-    */
+    
     FILE *fp = fopen("/tmp/.code.c", "w");
     assert(fp != NULL);
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc -o /tmp/.expr -Wall -Werror /tmp/.code.c");
+    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
     if (ret != 0) continue;
 
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
 
     int result;
-    int error;
     ret = fscanf(fp, "%d", &result);
-    error = pclose(fp);
-    if (WIFEXITED(error)){
-      if (WEXITSTATUS(error) == 136){
-        continue;
-      }
+    
+    if (has_div_by_zero_warning) {
+      printf("1 1\n");
+    } else {
+      printf("%u %s\n", result, buf);
     }
-    printf("%u %s\n", result, buf);
+  }
     
   return 0;
 }
