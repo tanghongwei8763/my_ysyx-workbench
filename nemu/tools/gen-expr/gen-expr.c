@@ -84,28 +84,6 @@ int main(int argc, char *argv[]) {
 
     sprintf(code_buf, code_format, buf);
     
-    FILE *gcc_output = popen("gcc -o /tmp/.expr /tmp/.code.c 2>&1", "r");
-    if (gcc_output == NULL) {
-      perror("popen");
-      continue;
-    }
-    
-    char gcc_message[1024];
-    int has_div_by_zero_warning = 0;
-    while (fgets(gcc_message, sizeof(gcc_message), gcc_output)!= NULL) {
-      if (strstr(gcc_message, "division by zero")!= NULL) {
-        has_div_by_zero_warning = 1;
-        break;
-      }
-    }
-    pclose(gcc_output);
-
-    if (has_div_by_zero_warning) {
-      // 有除以零的警告，修改 buf 和结果
-      strcpy(buf, "1");
-      position = 1;
-    }
-    
     FILE *fp = fopen("/tmp/.code.c", "w");
     assert(fp != NULL);
     fputs(code_buf, fp);
@@ -113,6 +91,20 @@ int main(int argc, char *argv[]) {
 
     int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
     if (ret != 0) continue;
+    
+    FILE *fp_out = popen("gcc -c -Wall /tmp/.code.c 2>&1", "r");
+    assert(fp_out!= NULL);
+    char output[1024] = {};
+    while (fgets(output, sizeof(output), fp_out)!= NULL) {
+        // 检查是否包含除零警告
+        if (strstr(output, "division by zero")!= NULL) {
+            // 存在除零警告，将表达式重置为 "1"
+            strncpy(buf, "1", 2);
+            position = 1;
+            break;
+        }
+    }
+    pclose(fp_out);
 
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
@@ -120,11 +112,11 @@ int main(int argc, char *argv[]) {
     int result;
     ret = fscanf(fp, "%d", &result);
     
-    if (has_div_by_zero_warning) {
-      printf("有/0\n");
+    if (strstr(output, "division by zero")!= NULL) {
+      //printf("有/0\n");
       printf("1 1\n");
     } else {
-      printf("无/0\n");
+      //printf("无/0\n");
       printf("%u %s\n", result, buf);
     }
   }
