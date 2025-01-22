@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     gen_rand_expr();
 
     sprintf(code_buf, code_format, buf);
-    
+    /*
     FILE *gcc_output = popen("gcc -o /tmp/.expr /tmp/.code.c 2>&1", "r");
     if (gcc_output == NULL) {
       perror("popen");
@@ -105,13 +105,13 @@ int main(int argc, char *argv[]) {
       strcpy(buf, "1");
       position = 1;
     }
-
+    */
     FILE *fp = fopen("/tmp/.code.c", "w");
     assert(fp != NULL);
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
+    int ret = system("gcc -Wall - Werror /tmp/.code.c -o /tmp/.expr");
     if (ret != 0) continue;
 
     fp = popen("/tmp/.expr", "r");
@@ -121,12 +121,8 @@ int main(int argc, char *argv[]) {
     ret = fscanf(fp, "%d", &result);
     pclose(fp);
 
-    if (has_div_by_zero_warning) {
-      // 输出修改后的值
-      printf("1 1\n");
-    } else {
-      printf("%u %s\n", result, buf);
-    }
-  }
+    
+    printf("%u %s\n", result, buf);
+    
   return 0;
 }
