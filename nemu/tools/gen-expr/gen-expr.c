@@ -83,6 +83,28 @@ int main(int argc, char *argv[]) {
     gen_rand_expr();
 
     sprintf(code_buf, code_format, buf);
+    
+    FILE *gcc_output = popen("gcc -o /tmp/.expr /tmp/.code.c 2>&1", "r");
+    if (gcc_output == NULL) {
+      perror("popen");
+      continue;
+    }
+    
+    char gcc_message[1024];
+    int has_div_by_zero_warning = 0;
+    while (fgets(gcc_message, sizeof(gcc_message), gcc_output)!= NULL) {
+      if (strstr(gcc_message, "division by zero")!= NULL) {
+        has_div_by_zero_warning = 1;
+        break;
+      }
+    }
+    pclose(gcc_output);
+
+    if (has_div_by_zero_warning) {
+      // 有除以零的警告，修改 buf 和结果
+      strcpy(buf, "1");
+      position = 1;
+    }
 
     FILE *fp = fopen("/tmp/.code.c", "w");
     assert(fp != NULL);
@@ -99,7 +121,12 @@ int main(int argc, char *argv[]) {
     ret = fscanf(fp, "%d", &result);
     pclose(fp);
 
-    printf("%u %s\n", result, buf);
+    if (has_div_by_zero_warning) {
+      // 输出修改后的值
+      printf("1 1\n");
+    } else {
+      printf("%u %s\n", result, buf);
+    }
   }
   return 0;
 }
