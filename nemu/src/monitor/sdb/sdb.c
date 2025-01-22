@@ -74,7 +74,7 @@ static int cmd_t(char *args) {
   int goalresult;
   char e[2048];
   char line[2058];
-  
+  int i = 1;
   while (fgets(line, 2058, file)!= NULL) {
     char *token = strtok(line, " ");
     if (token!= NULL) {
@@ -83,6 +83,7 @@ static int cmd_t(char *args) {
       if (token!= NULL) {
         strcpy(e, token);
         bool s = true;
+        printf("%d\n", i++);
         int result = expr(e, &s);
         if(result != goalresult)
           assert(0);
