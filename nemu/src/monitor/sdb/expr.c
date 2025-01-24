@@ -224,7 +224,7 @@ static bool make_token(char *e) {
 	    break;
 	  }
 	  case TK_HEX: {
-	    printf("识别为16进制\n");
+	    //printf("识别为16进制\n");
 	    if(e[position-2] == '0') {
 	      pos += 1;
 	      memset(tokens[nr_token-1].str, '\0', sizeof(tokens[nr_token].str));
@@ -233,12 +233,12 @@ static bool make_token(char *e) {
 	        tokens[nr_token-1].str[j++] = e[pos++];
 	        position++;
 	      }
-	      printf("存入的16进制数:%s\n", tokens[nr_token-1].str);
+	      //printf("存入的16进制数:%s\n", tokens[nr_token-1].str);
 	      int dtemp = strtol(tokens[nr_token-1].str, NULL, 16);
-	      printf("转化为10进制数:%d\n", dtemp);
+	      //printf("转化为10进制数:%d\n", dtemp);
 	      char stemp[32];
 	      snprintf(stemp, sizeof(stemp), "%d", dtemp);
-	      printf("最终存入stemp:%s\n", stemp);
+	      //printf("最终存入stemp:%s\n", stemp);
 	      int k = 0;
 	      while(k < strlen(stemp)) {
 	        tokens[nr_token-1].str[k] = stemp[k];
