@@ -227,6 +227,7 @@ static bool make_token(char *e) {
 	    printf("识别为16进制\n");
 	    if(e[position-2] == '0') {
 	      pos += 1;
+	      memset(tokens[nr_token-1].str, '\0', sizeof(tokens[nr_token].str));
 	      int j = 0;
 	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
 	        tokens[nr_token-1].str[j++] = e[pos++];
