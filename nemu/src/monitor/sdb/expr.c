@@ -258,11 +258,11 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  /*
+  
   for(int ert = 0; ert < nr_token; ert++) {		//检测点
     printf("%c\t%s\t%d\n", tokens[ert].type, tokens[ert].str, tokens[ert].pri);
   }
-  */
+  
   return true;
 }
 
@@ -400,7 +400,7 @@ int eval(int p, int q)
 
 
 word_t expr(char *e, bool *success) {
-  printf("e:%s\n", e);
+  //printf("e:%s\n", e);
   if (!make_token(e)) {
     *success = false;
     return 0;
