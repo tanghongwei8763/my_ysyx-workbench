@@ -140,7 +140,7 @@ int watchpoint_exec(int *sign) {
       }
       if(success) {
         //printf("参加了判断\n");
-        printf("%d  %d\n", temp, wp_pool[i].result);
+        //printf("%d  %d\n", temp, wp_pool[i].result);
         if(temp!=wp_pool[i].result) {
           *sign = 1;
           return i;
