@@ -291,7 +291,17 @@ int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开
   else if (tokens[p].type != TK_LPAREN || tokens[q].type != TK_RPAREN) {
     return 2;
   }
-  return 0;	//括号部匹配
+  int stack = 0;
+    for (int i = p+1; i < q; i++) {
+      if (tokens[i].type == TK_LPAREN) 
+        stack++;
+      else if (tokens[i].type == TK_RPAREN) {
+        stack--;
+      }
+    }
+  if(stack<0)
+    return 0;	//括号部匹配
+  return 2;
 }
   
 
