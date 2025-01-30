@@ -274,19 +274,16 @@ static bool make_token(char *e) {
 int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开最外层相匹配的括号
 {
   int banlance = 0;
-  for (int j = 0; j<=q; j++) {
+  for (int j = p; j<=q; j++) {
     if (tokens[j].type == TK_LPAREN){
       banlance++;
-      printf("+\n");
     }
     else if (tokens[j].type == TK_RPAREN) {
       banlance--;
-      printf("-\n");
     }
     if(banlance<0)
       return 0;		//中途右括号不多于左括号
   }
-  printf("banlance:%d\n", banlance);
   if(banlance != 0)
     return 0;
   //以上为判断括号是否左右匹配
@@ -333,7 +330,7 @@ int eval(int p, int q)
     return atoi(tokens[p].str);
   }
   else if (check_parentheses(p, q) == 1) {
-    printf("打开括号%d  %d\n", p+1, q-1);
+    //printf("打开括号%d  %d\n", p+1, q-1);
     return eval(p+1, q-1);
   }
   else  if(check_parentheses(p, q) == 2) {
@@ -389,7 +386,7 @@ int eval(int p, int q)
       }
       if (priority <= min_priority) {
         min_priority = priority;
-        printf("split at here %d\n", i);
+        //printf("split at here %d\n", i);
         split = i;
       }
     }
