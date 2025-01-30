@@ -329,7 +329,7 @@ int eval(int p, int q)
     return atoi(tokens[p].str);
   }
   else if (check_parentheses(p, q) == 1) {
-    //printf("打开括号%d  %d\n", p+1, q-1);
+    printf("打开括号%d  %d\n", p+1, q-1);
     return eval(p+1, q-1);
   }
   else  if(check_parentheses(p, q) == 2) {
