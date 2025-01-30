@@ -280,8 +280,9 @@ int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开
     else if (tokens[j].type == TK_RPAREN)
       banlance--;
     if(banlance<0)
-      return 0;
+      return 0;		//中途右括号不多于左括号
   }
+  printf("banlance:%d\n", banlance);
   if(banlance != 0)
     return 0;
   //以上为判断括号是否左右匹配
