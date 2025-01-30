@@ -273,7 +273,18 @@ static bool make_token(char *e) {
 
 int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开最外层相匹配的括号
 {
-  
+  int banlance = 0;
+  for (int j = 0; j<=q; j++) {
+    if (tokens[j].type == TK_LPAREN) 
+      banlance++;
+    else if (tokens[j].type == TK_RPAREN)
+      banlance--;
+    if(banlance<0)
+      return 0;
+  }
+  if(banlance != 0)
+    return 0;
+  //以上为判断括号是否左右匹配
   if (tokens[p].type == TK_LPAREN && tokens[q].type == TK_RPAREN) {
     int stack = 0;
     for (int i = p+1; i < q; i++) {
@@ -288,9 +299,9 @@ int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开
     if(stack == 0)
       return 1;  //括号匹配并且最外层可以打开
   }
-  else if (tokens[p].type != TK_LPAREN || tokens[q].type != TK_RPAREN) {
+  else if (tokens[p].type != TK_LPAREN || tokens[q].type != TK_RPAREN)
     return 2;
-  }
+  /*
   int stack = 0;
     for (int i = p+1; i < q; i++) {
       if (tokens[i].type == TK_LPAREN) 
@@ -301,6 +312,7 @@ int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开
     }
   if(stack<0)
     return 0;	//括号部匹配
+  */
   return 2;
 }
   
