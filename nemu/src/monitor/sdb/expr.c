@@ -275,10 +275,14 @@ int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开
 {
   int banlance = 0;
   for (int j = 0; j<=q; j++) {
-    if (tokens[j].type == TK_LPAREN) 
+    if (tokens[j].type == TK_LPAREN){
       banlance++;
-    else if (tokens[j].type == TK_RPAREN)
+      printf("+\n");
+    }
+    else if (tokens[j].type == TK_RPAREN) {
       banlance--;
+      printf("-\n");
+    }
     if(banlance<0)
       return 0;		//中途右括号不多于左括号
   }
