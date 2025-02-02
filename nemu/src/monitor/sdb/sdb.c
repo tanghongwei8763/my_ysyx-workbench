@@ -101,14 +101,15 @@ static int cmd_t(char *args) {
 }
 
 static int cmd_p(char *args) {			//表达式求值
-  char *e = (char *)malloc(65532); 
+  size_t len = strlen(args);
+  char *e = (char *)malloc(len+1); 
     if (e == NULL) {
       perror("malloc failed");
       return 1;
     }
   bool success = true;
   int result;
-  strncpy(e, args, 65531);
+  strcpy(e, args);
   //printf("%s\n", e);
   result = expr(e, &success);
   if (success){
@@ -121,7 +122,8 @@ static int cmd_p(char *args) {			//表达式求值
 }
 
 static int cmd_x(char *args) {			//扫描内存
-  char *e = (char *)malloc(65532); 
+  size_t len = strlen(args);
+  char *e = (char *)malloc(len+1); 
     if (e == NULL) {
       perror("malloc failed");
       return 1;
@@ -131,7 +133,7 @@ static int cmd_x(char *args) {			//扫描内存
   char *arg1 = strtok(NULL, " ");
   int k;	
   sscanf(arg1, "%d", &k);
-  strncpy(e, args+2, 65531);
+  strcpy(e, args+2);
   result = expr(e, &success);			//添加表达式求值功能
   vaddr_t data = result;			//使用 vaddr中对传入参数的定义
   for (int i = 0; i < k; i++){
