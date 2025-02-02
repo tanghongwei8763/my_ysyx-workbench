@@ -118,6 +118,7 @@ static int cmd_p(char *args) {			//表达式求值
   }
   else
     printf("Bad expression\n");
+  free(e);
   return 0;
 }
 
@@ -144,6 +145,7 @@ static int cmd_x(char *args) {			//扫描内存
     }
     printf("\n");
   }
+  free(e);
   return 0;
 }
 
