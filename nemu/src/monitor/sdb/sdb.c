@@ -53,15 +53,17 @@ static int cmd_d(char *args) {			//删除监视点
 bool success1 = true;
 
 static int cmd_w(char *args) {			//添加监视点
-  char *e = (char *)malloc(65532); 
+  size_t len = strlen(args);
+  char *e = (char *)malloc(len+1); 
     if (e == NULL) {
       perror("malloc failed");
       return 1;
     }
-  strncpy(e, args, 65531);
+  strcpy(e, args);
   //printf("success1:%d\n", success1);
   new_wp(e, &success1);
   //printf("success1:%d\n", success1);
+  free(e);
   return 0;
 }
 
