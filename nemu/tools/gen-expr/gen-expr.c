@@ -114,7 +114,8 @@ int main(int argc, char *argv[]) {
     
     if (strstr(output, "division by zero")!= NULL) {
       //printf("有/0\n");
-      printf("1 1\n");
+      //printf("1 1\n");
+      pass;
     } else {
       //printf("无/0\n");
       printf("%u %s\n", result, buf);
