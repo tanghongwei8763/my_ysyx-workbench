@@ -112,11 +112,7 @@ int main(int argc, char *argv[]) {
     int result;
     ret = fscanf(fp, "%d", &result);
     
-    if (strstr(output, "division by zero")!= NULL) {
-      //printf("有/0\n");
-      //printf("1 1\n");
-      pass;
-    } else {
+    if (strstr(output, "division by zero") = NULL) {
       //printf("无/0\n");
       printf("%u %s\n", result, buf);
     }
