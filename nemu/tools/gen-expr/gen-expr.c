@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr -g");
+    int ret = system("gcc /tmp/.code.c -g -o /tmp/.expr");
     if (ret != 0) continue;
     
     FILE *fp_out = popen("gcc -c -Wall /tmp/.code.c 2>&1", "r");
