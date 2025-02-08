@@ -21,9 +21,9 @@
 #include <string.h>
 
 // this should be enough
-static char buf[2048] = {};
+static char buf[65536] = {};
 static int position;
-static char code_buf[2048 + 128] = {}; // a little larger than `buf`
+static char code_buf[65536+128] = {}; // a little larger than `buf`
 static char *code_format =
 "#include <stdio.h>\n"
 "int main() { "
@@ -37,11 +37,9 @@ int choose(int n) {		//三选一
 }
 
 void buf_add(char adder) {
-  if(position < sizeof(buf)-1) {
-    if(choose(10) == 1)		//10%概率获得一个空格在任意位置
-      buf[position++] = ' ';
-    buf[position++] = adder;
-  }
+  if(choose(10) == 1)		//10%概率获得一个空格在任意位置
+    buf[position++] = ' ';
+  buf[position++] = adder;
 }
 
 void gen_num() {		//生成数字
@@ -61,13 +59,16 @@ void gen_rand_op() {		//生成运算符
   buf_add(pos[i]);
 }
 
-static void gen_rand_expr() {
+static void gen_rand_expr(int de) {
+  if (de > 10) {
+    gen_num();
+    return;
+  }
   switch (choose(3)) {
     case 0: gen_num(); break;
-    case 1: gen('('); gen_rand_expr(); gen(')'); break;
-    default: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+    case 1: gen('('); gen_rand_expr(de+1); gen(')'); break;
+    default: gen_rand_expr(de+1); gen_rand_op(); gen_rand_expr(de+1); break;
   }
-  buf[position] = '\0';
 }
 
 int main(int argc, char *argv[]) {
@@ -80,8 +81,8 @@ int main(int argc, char *argv[]) {
   int i;
   for (i = 0; i < loop; i ++) {
     position = 0;
-    gen_rand_expr();
-
+    gen_rand_expr(0);
+    buf[position] = '\0';
     sprintf(code_buf, code_format, buf);
     
     FILE *fp = fopen("/tmp/.code.c", "w");
@@ -89,7 +90,7 @@ int main(int argc, char *argv[]) {
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
+    int ret = system("gcc /tmp/.code.c -o /tmp/.expr -g");
     if (ret != 0) continue;
     
     FILE *fp_out = popen("gcc -c -Wall /tmp/.code.c 2>&1", "r");
@@ -98,22 +99,19 @@ int main(int argc, char *argv[]) {
     while (fgets(output, sizeof(output), fp_out)!= NULL) {
         // 检查是否包含除零警告
         if (strstr(output, "division by zero")!= NULL) {
-            // 存在除零警告，将表达式重置为 "1"
-            strncpy(buf, "1", 2);
             position = 1;
             break;
         }
     }
     pclose(fp_out);
-
+    
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
 
     int result;
     ret = fscanf(fp, "%d", &result);
     
-    if (strstr(output, "division by zero") = NULL) {
-      //printf("无/0\n");
+    if(strstr(output, "division by zero") == NULL) {
       printf("%u %s\n", result, buf);
     }
   }
