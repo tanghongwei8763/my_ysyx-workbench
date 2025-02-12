@@ -46,7 +46,7 @@ config ENGINE
   string
   default "interpreter" if ENGINE_INTERPRETER
   default "none"
-
+  
 choice
   prompt "Running mode"
   default MODE_SYSTEM
@@ -126,6 +126,10 @@ endmenu
 
 menu "Testing and Debugging"
 
+
+config WATCHPOINT
+  bool "Enable watchpoint"
+  default y
 
 config TRACE
   bool "Enable tracer"
