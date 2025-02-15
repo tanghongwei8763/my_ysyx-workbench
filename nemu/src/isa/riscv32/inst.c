@@ -38,6 +38,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
   //printf("译码：%d 正确：%d\n", type, TYPE_I);
   uint32_t i = s->isa.inst;
   int rs1 = BITS(i, 19, 15);
+  printf("rs1=%d\n", rs1);
   int rs2 = BITS(i, 24, 20);
   *rd     = BITS(i, 11, 7);
   switch (type) {
