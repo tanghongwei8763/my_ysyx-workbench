@@ -38,7 +38,6 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
   //printf("译码：%d 正确：%d\n", type, TYPE_I);
   uint32_t i = s->isa.inst;
   int rs1 = BITS(i, 19, 15);
-  printf("rs1=%d\n", rs1);
   int rs2 = BITS(i, 24, 20);
   *rd     = BITS(i, 11, 7);
   switch (type) {
@@ -59,7 +58,6 @@ static int decode_exec(Decode *s) {
   int rd = 0; \
   word_t src1 = 0, src2 = 0, imm = 0; \
   decode_operand(s, &rd, &src1, &src2, &imm, concat(TYPE_, type)); \
-  printf("imm=%d,rd=%d,rs1=%d,rs2=%d\n", imm, rd, src1, src2);\
   __VA_ARGS__ ; \
 }
 
@@ -69,7 +67,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 000 ????? 01000 11", sb     , S, Mw(src1 + imm, 1, src2));
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
   
-  INSTPAT("??????? ????? ????? 000 ????? 00100 11", addi   , I, R(rd) = R(src1) + imm);
+  INSTPAT("??????? ????? ????? 000 ????? 00100 11", addi   , I, R(rd) = src1 + imm);
   //INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, R(rd) = Mr(src1, 4) + imm);
 
 
