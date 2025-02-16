@@ -32,8 +32,8 @@ enum {
 #define immI() do { *imm = SEXT(BITS(i, 31, 20), 12); } while(0)
 #define immU() do { *imm = SEXT(BITS(i, 31, 12), 20) << 12; } while(0)
 #define immS() do { *imm = (SEXT(BITS(i, 31, 25), 7) << 5) | BITS(i, 11, 7); } while(0)
-//#define immJ() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 19) | (BITS(i, 21, 12) << 9) | (SEXT(BITS(i, 22, 22), 1) << 8) | BITS(i, 30, 23); }while(0)
-#define immJ() do { *imm = (SEXT(BITS(i, 31, 28), 4) << 16) | (BITS(i, 19, 12) << 8) | BITS(i, 27, 20); }while(0)
+#define immJ() do { *imm = (SEXT(BITS(i, 31, 31), 1) << 19) | (BITS(i, 21, 12) << 9) | (SEXT(BITS(i, 22, 22), 1) << 8) | BITS(i, 30, 23); }while(0)
+//#define immJ() do { *imm = (SEXT(BITS(i, 31, 28), 4) << 16) | (BITS(i, 19, 12) << 8) | BITS(i, 27, 20); }while(0)
 
 static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_t *imm, int type) {
   //printf("译码：%d 正确：%d\n", type, TYPE_I);
