@@ -55,7 +55,7 @@ void new_wp(char *e, bool *success) {
   WP *new = free_;
   free_ = free_->next;
   strcpy(new->expression, e);
-  printf("%s\n", new->expression);
+  //printf("%s\n", new->expression);
   //printf("arrive here4\n");
   new->result = expr(e,success);
   if(!*success) {
