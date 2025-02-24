@@ -23,7 +23,7 @@ module Gpr (
   output [31:0] src2,
   input [4:0] waddr,
   input wen
-)
+);
 
   reg [31:0] regs [31:0];
 
