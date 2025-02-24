@@ -32,7 +32,7 @@ module idu (
     localparam KEY_LEN_INS = 32;
     localparam DATA_LEN_INS = 3;
     localparam LUT_INS_TYPE = {
-        32'bxxxxxxx_xxxxx_xxxxx_000_xxxxx_00100_11, TYPE_I, //addi
+        32'bxxxxxxx_xxxxx_xxxxx_000_xxxxx_00100_11, TYPE_I,
     };
 
     //匹配指令，类似于INSTPAT那个宏但没有执行功能
