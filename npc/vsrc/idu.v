@@ -16,11 +16,11 @@ module idu (
 
     //定义5种imm的拼接
     wire [63:0] immI, immS, immU, immB, immJ;
-    assign immI = {{20s[31]}, s[31:20]};
-    assign immS = {{20s[31]}, s[31:25], s[11:7]};
-    assign immB = {{20s[31]}, s[7], s[30:25], s[11:8], 1'b0};
-    assign immU = {{12s[31]}, s[31:12]};
-    assign immJ = {{12s[31]}, s[19:12], s[20], s[30:21], 1'b0};
+    assign immI = {{20{s[31]}}, s[31:20]};
+    assign immS = {{20{s[31]}}, s[31:25], s[11:7]};
+    assign immB = {{20{s[31]}}, s[7], s[30:25], s[11:8], 1'b0};
+    assign immU = {{12{s[31]}}, s[31:12]};
+    assign immJ = {{12{s[31]}}, s[19:12], s[20], s[30:21], 1'b0};
 
     //获取3个寄存器的地址
     assign rs1 = s[19:15];
