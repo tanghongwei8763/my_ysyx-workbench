@@ -7,6 +7,7 @@ module cpu (
     reg [4:0] rs1, rs2, rd;
     reg [31:0] imm, src1, src2, result;
     reg [2:0] TYPE_type;
+    reg wen;
     
 
     initial begin
@@ -29,21 +30,9 @@ module cpu (
         .src1(src1),
         .src2(src2),
         .waddr(rd),
-        .wen(1'b0)
+        .wen(wen)
         );
     
     //执行
     exu exu(clk, src1, src2, TYPE_type, imm, result);
-
-    Gpr gpr(
-        .clk(clk),
-        .rst(rst),
-        .d(result),
-        .rs1(rs1),
-        .rs2(rs2),
-        .src1(src1),
-        .src2(src2),
-        .waddr(rd),
-        .wen(1'b1)
-        );
 endmodule

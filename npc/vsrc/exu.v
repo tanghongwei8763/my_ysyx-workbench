@@ -4,7 +4,8 @@ module exu (
     input [31:0] src2,
     input [2:0] TYPE_type,
     input [31:0] imm,
-    output [31:0] result
+    output [31:0] result,
+    output wen
 );
 
     MuxKeyWithDefault #(2, 3, 32) mux_inst (
@@ -16,5 +17,5 @@ module exu (
         3'b1, src1 + src2
         })
   );
-
+    assign wen = 1'b1;
 endmodule
