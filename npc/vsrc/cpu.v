@@ -10,7 +10,7 @@ module ysyx_25020037_CPU (
     
 
     initial begin
-        pc = 32'b80000000;
+        pc = 32'h80000000;
         nspc = pc + 3'h4;
     end
 
