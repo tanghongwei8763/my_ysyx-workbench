@@ -15,7 +15,7 @@ module idu (
     localparam TYPE_N = 3'b110;
 
     //定义5种imm的拼接
-    wire [63:0] immI, immS, immU, immB, immJ;
+    wire [31:0] immI, immS, immU, immB, immJ;
     assign immI = {{20{s[31]}}, s[31:20]};
     assign immS = {{20{s[31]}}, s[31:25], s[11:7]};
     assign immB = {{20{s[31]}}, s[7], s[30:25], s[11:8], 1'b0};
@@ -32,7 +32,7 @@ module idu (
     localparam KEY_LEN_INS = 32;
     localparam DATA_LEN_INS = 3;
     localparam LUT_INS_TYPE = {
-        32'bxxxxxxx_xxxxx_xxxxx_000_xxxxx_00100_11, TYPE_I,
+        32'bxxxxxxx_xxxxx_xxxxx_000_xxxxx_0010011, TYPE_I //addi
     };
 
     //匹配指令，类似于INSTPAT那个宏但没有执行功能
@@ -50,5 +50,5 @@ module idu (
         TYPE_J, immJ
     };
 
-    MuxKeyWithDefault #(NR_KEY_IMM, KEY_LEN_IMM, DATA_LEN_IMM) INSTPAT_imm (imm, TYPE_type, 64'b0, LUT_IMM);
+    MuxKeyWithDefault #(NR_KEY_IMM, KEY_LEN_IMM, DATA_LEN_IMM) INSTPAT_imm (imm, TYPE_type, 32'b0, LUT_IMM);
 endmodule
