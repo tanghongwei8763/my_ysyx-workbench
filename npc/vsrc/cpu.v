@@ -1,4 +1,4 @@
-module ysyx_25020037_CPU (
+module cpu (
     input clk,
     input rst
 );
@@ -15,12 +15,12 @@ module ysyx_25020037_CPU (
     end
 
     //取指
-    ysyx_25020037_IFU ifu(clk, pc, s);
+    ifu ifu(clk, pc, s);
 
     //译码
-    ysyx_25020037_IDU idu(s, rs1, rs2, imm, TYPE_type);
+    idu idu(s, rs1, rs2, imm, TYPE_type);
 
-    ysyx_25020037_GPR gpr(
+    Gpr gpr(
         .clk(clk),
         .rst(rst),
         .d(result),
@@ -33,9 +33,9 @@ module ysyx_25020037_CPU (
         );
     
     //执行
-    ysyx_25020037_EXU exu(clk, src1, src2, TYPE_type, imm, result);
+    exu exu(clk, src1, src2, TYPE_type, imm, result);
 
-    ysyx_25020037_GPR gpr(
+    Gpr gpr(
         .clk(clk),
         .rst(rst),
         .d(result),

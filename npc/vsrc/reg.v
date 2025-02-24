@@ -1,5 +1,5 @@
 // 触发器模板
-module ysyx_25020037_Reg #(WIDTH = 1, RESET_VAL = 0) (
+module Reg #(WIDTH = 1, RESET_VAL = 0) (
   input clk,
   input rst,
   input [WIDTH-1:0] din,
@@ -13,7 +13,7 @@ module ysyx_25020037_Reg #(WIDTH = 1, RESET_VAL = 0) (
 endmodule
 
 //寄存器堆
-module ysyx_25020037_GPR (
+module Gpr (
   input clk,
   input rst,
   input [31:0] d,
@@ -32,7 +32,7 @@ module ysyx_25020037_GPR (
   genvar i;
   generate
     for (i = 0; i < 32; i = i+1) begin : RBG32
-      ysyx_25020037_Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (wen & waddr == 1));
+      Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (wen & waddr == 1));
     end
   endgenerate
 
