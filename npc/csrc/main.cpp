@@ -24,10 +24,18 @@ int main (int argc, char** argv)
   top->trace(tfp, 99);  
   tfp->open("cpu.vcd");
 
+  static const uint32_t img [] = {
+  0x00100093,  // reg1=zero+1
+  0x00908113,  // reg2=reg1+9
+  0xffe10193,  // reg3=reg2-2
+  0x00908093,  // reg1=reg1+9
+};
+
   int step = 0;
   while (!contextp->gotFinish())
     {
-      top->eval();
+      cpu->s=img[step]
+      cpu->eval();
       
       // 写入波形数据
       tfp->dump(step);

@@ -16,7 +16,7 @@ module cpu (
     end
 
     //取指
-    ifu ifu(clk, pc, s);
+    //ifu ifu(clk, pc, s);
 
     //译码
     idu idu(s, rs1, rs2, imm, TYPE_type);

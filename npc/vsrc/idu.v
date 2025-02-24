@@ -1,4 +1,4 @@
-module ysyx_25020037_IDU (
+module idu (
     input [31:0] s,
     output [4:0] rs1,
     output [4:0] rs2,
@@ -36,7 +36,7 @@ module ysyx_25020037_IDU (
     };
 
     //匹配指令，类似于INSTPAT那个宏但没有执行功能
-    ysyx_25020037_MuxKey #(NR_KEY_INS, KEY_LEN_INS, DATA_LEN_INS) INSTPAT_code (TYPE_type, s, LUT_INS_TYPE);
+    MuxKey #(NR_KEY_INS, KEY_LEN_INS, DATA_LEN_INS) INSTPAT_code (TYPE_type, s, LUT_INS_TYPE);
 
     //选择imm拼接方式
     localparam NR_KEY_IMM = 5;
@@ -50,5 +50,5 @@ module ysyx_25020037_IDU (
         TYPE_J, immJ
     };
 
-    ysyx_25020037_MuxKeyWithDefault #(NR_KEY_IMM, KEY_LEN_IMM, DATA_LEN_IMM) INSTPAT_imm (imm, TYPE_type, 64'b0, LUT_IMM);
+    MuxKeyWithDefault #(NR_KEY_IMM, KEY_LEN_IMM, DATA_LEN_IMM) INSTPAT_imm (imm, TYPE_type, 64'b0, LUT_IMM);
 endmodule

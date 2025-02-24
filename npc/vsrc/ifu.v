@@ -1,8 +1,8 @@
-module ysyx_25020037_IFU(
+module ifu(
     input clk,
     input [31:0] pc,
     output [31:0] s
 );
-
+    
 
 endmodule
