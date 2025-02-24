@@ -12,7 +12,7 @@ module cpu (
 
     initial begin
         pc = 32'h80000000;
-        nspc = pc + 3'h4;
+        nspc = pc + 32'h4;
     end
 
     //取指
