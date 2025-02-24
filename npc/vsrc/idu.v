@@ -1,0 +1,54 @@
+module ysyx_25020037_IDU (
+    input [31:0] s,
+    output [4:0] rs1,
+    output [4:0] rs2,
+    output [31:0] imm,
+    output [2:0] TYPE_type
+);
+    //6种指令类型
+    localparam TYPE_R = 3'b000;
+    localparam TYPE_I = 3'b001;
+    localparam TYPE_S = 3'b010;
+    localparam TYPE_B = 3'b011;
+    localparam TYPE_U = 3'b100;
+    localparam TYPE_J = 3'b101;
+    localparam TYPE_N = 3'b110;
+
+    //定义5种imm的拼接
+    wire [63:0] immI, immS, immU, immB, immJ;
+    assign immI = {{20s[31]}, s[31:20]};
+    assign immS = {{20s[31]}, s[31:25], s[11:7]};
+    assign immB = {{20s[31]}, s[7], s[30:25], s[11:8], 1'b0};
+    assign immU = {{12s[31]}, s[31:12]};
+    assign immJ = {{12s[31]}, s[19:12], s[20], s[30:21], 1'b0};
+
+    //获取3个寄存器的地址
+    assign rs1 = s[19:15];
+    assign rs2 = s[24:20];
+    assign rd = s[11:7];
+
+    // 定义指令匹配模式和对应的指令类型
+    localparam NR_KEY_INS = 1;
+    localparam KEY_LEN_INS = 32;
+    localparam DATA_LEN_INS = 3;
+    localparam LUT_INS_TYPE = {
+        32'b??????? ????? ????? 000 ????? 00100 11, TYPE_I, //addi
+    };
+
+    //匹配指令，类似于INSTPAT那个宏但没有执行功能
+    ysyx_25020037_MuxKey #(NR_KEY_INS, KEY_LEN_INS, DATA_LEN_INS) INSTPAT_code (TYPE_type, s, LUT_INS_TYPE);
+
+    //选择imm拼接方式
+    localparam NR_KEY_IMM = 5;
+    localparam KEY_LEN_IMM = 3;
+    localparam DATA_LEN_IMM = 64;
+    localparam LUT_IMM = {
+        TYPE_I, immI,
+        TYPE_S, immS,
+        TYPE_B, immB,
+        TYPE_U, immU,
+        TYPE_J, immJ
+    };
+
+    ysyx_25020037_MuxKeyWithDefault #(NR_KEY_IMM, KEY_LEN_IMM, DATA_LEN_IMM) INSTPAT_imm (imm, TYPE_type, 64'b0, LUT_IMM);
+endmodule

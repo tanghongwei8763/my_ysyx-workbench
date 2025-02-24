@@ -1,4 +1,4 @@
-STUID = ysyx_202401201017
+STUID = ysyx_25020037
 STUNAME = 唐宏伟
 
 # DO NOT modify the following code!!!
