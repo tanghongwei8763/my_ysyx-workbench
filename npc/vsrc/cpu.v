@@ -34,5 +34,5 @@ module cpu (
         );
     
     //执行
-    exu exu(clk, src1, src2, TYPE_type, imm, result);
+    exu exu(clk, src1, src2, TYPE_type, imm, result, wen);
 endmodule
