@@ -25,12 +25,12 @@ module Gpr (
   input wen
 )
 
-  wire [31:0] regs [31:0];
+  reg [31:0] regs [31:0];
 
 
   //实例化寄存器
-  genvar i;
   generate
+    genvar i;
     for (i = 0; i < 32; i = i+1) begin : RBG32
       Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (wen & waddr == 1));
     end
