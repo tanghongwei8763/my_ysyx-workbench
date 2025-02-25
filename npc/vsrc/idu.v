@@ -43,14 +43,6 @@ module idu (
     //匹配指令，类似于INSTPAT那个宏但没有执行功能
     MuxKey #(NR_KEY_INS, KEY_LEN_INS, DATA_LEN_INS) INSTPAT_code (TYPE_type, s, LUT_INS_TYPE);
 
-    //选择imm拼接方式
-    localparam NR_KEY_IMM = 1;
-    localparam KEY_LEN_IMM = 1;
-    localparam DATA_LEN_IMM = 32;
-    localparam LUT_IMM = {
-        TYPE_I, immI
-    };
-
-    MuxKeyWithDefault #(NR_KEY_IMM, KEY_LEN_IMM, DATA_LEN_IMM) INSTPAT_imm (imm, TYPE_type, 32'b0, LUT_IMM);
+    assign imm = (TYPE_type == TYPE_I) ? immI : 32'b0;
     
 endmodule
