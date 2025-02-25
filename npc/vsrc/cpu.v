@@ -34,7 +34,6 @@ module cpu (
 
     exu exu_cpu(
         .src1(src1),
-        .src2(src2),
         .imm(imm),
         .result(result),
         .wen(wen)

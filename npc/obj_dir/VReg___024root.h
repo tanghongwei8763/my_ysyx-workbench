@@ -19,6 +19,7 @@ class VReg___024root final : public VerilatedModule {
     CData/*0:0*/ __VactContinue;
     IData/*31:0*/ cpu__DOT__pc;
     IData/*31:0*/ cpu__DOT__s;
+    IData/*31:0*/ cpu__DOT__src1;
     IData/*31:0*/ cpu__DOT__result;
     IData/*31:0*/ cpu__DOT____Vcellinp__PC__din;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber4;

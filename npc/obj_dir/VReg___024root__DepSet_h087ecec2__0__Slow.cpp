@@ -150,13 +150,13 @@ VL_ATTR_COLD void VReg___024root___stl_sequent__TOP__0(VReg___024root* vlSelf) {
         = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__30__KET____DOT__reg_inst____pinNumber4;
     vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs[0x1fU] 
         = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__31__KET____DOT__reg_inst____pinNumber4;
+    vlSelf->cpu__DOT__src1 = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
+        [(0x1fU & (vlSelf->cpu__DOT__s >> 0xfU))];
     vlSelf->cpu__DOT__result = ((((- (IData)((vlSelf->cpu__DOT__s 
                                               >> 0x1fU))) 
                                   << 0xcU) | (vlSelf->cpu__DOT__s 
                                               >> 0x14U)) 
-                                + vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
-                                [(0x1fU & (vlSelf->cpu__DOT__s 
-                                           >> 0xfU))]);
+                                + vlSelf->cpu__DOT__src1);
 }
 
 VL_ATTR_COLD void VReg___024root___eval_stl(VReg___024root* vlSelf) {
@@ -210,6 +210,7 @@ VL_ATTR_COLD void VReg___024root___ctor_var_reset(VReg___024root* vlSelf) {
     vlSelf->rst = VL_RAND_RESET_I(1);
     vlSelf->cpu__DOT__pc = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__s = VL_RAND_RESET_I(32);
+    vlSelf->cpu__DOT__src1 = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__result = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT____Vcellinp__PC__din = VL_RAND_RESET_I(32);
     for (int __Vi0 = 0; __Vi0 < 32; ++__Vi0) {
