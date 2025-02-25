@@ -8,7 +8,6 @@
 typedef uint32_t paddr_t;
 typedef uint32_t word_t;
 
-static uint8_t *pmem = NULL;
 static uint8_t pmem[CONFIG_MSIZE];
 
 static const uint32_t img [] = {
@@ -20,11 +19,6 @@ static const uint32_t img [] = {
 
 uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
 
-static word_t pmem_read(paddr_t addr, int len) {
-  word_t ret = host_read(guest_to_host(addr), len);
-  return ret;
-}
-
 static inline word_t host_read(void *addr, int len) {
   switch (len) {
     case 1: return *(uint8_t  *)addr;
@@ -33,4 +27,9 @@ static inline word_t host_read(void *addr, int len) {
     //IFDEF(CONFIG_ISA64, case 8: return *(uint64_t *)addr);
     default: return 0x80000000;
   }
+}
+
+static word_t pmem_read(paddr_t addr, int len) {
+  word_t ret = host_read(guest_to_host(addr), len);
+  return ret;
 }
