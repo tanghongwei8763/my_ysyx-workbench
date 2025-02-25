@@ -2,7 +2,7 @@
 # DESCRIPTION: Verilator output: Make include file with class lists
 #
 # This file lists generated Verilated files, for including in higher level makefiles.
-# See VReg.mk for the caller.
+# See Vcpu.mk for the caller.
 
 ### Switches...
 # C11 constructs required?  0/1 (always on now)
@@ -23,27 +23,27 @@ VM_TRACE_FST = 0
 ### Object file lists...
 # Generated module classes, fast-path, compile with highest optimization
 VM_CLASSES_FAST += \
-	VReg \
-	VReg___024root__DepSet_hebe1f6c3__0 \
-	VReg___024root__DepSet_h087ecec2__0 \
+	Vcpu \
+	Vcpu___024root__DepSet_hfb2f662d__0 \
+	Vcpu___024root__DepSet_h2d56fd23__0 \
 
 # Generated module classes, non-fast-path, compile with low/medium optimization
 VM_CLASSES_SLOW += \
-	VReg___024root__Slow \
-	VReg___024root__DepSet_hebe1f6c3__0__Slow \
-	VReg___024root__DepSet_h087ecec2__0__Slow \
-	VReg___024unit__Slow \
-	VReg___024unit__DepSet_hf0ad1ee2__0__Slow \
+	Vcpu___024root__Slow \
+	Vcpu___024root__DepSet_hfb2f662d__0__Slow \
+	Vcpu___024root__DepSet_h2d56fd23__0__Slow \
+	Vcpu___024unit__Slow \
+	Vcpu___024unit__DepSet_h40df864d__0__Slow \
 
 # Generated support classes, fast-path, compile with highest optimization
 VM_SUPPORT_FAST += \
-	VReg__Dpi \
-	VReg__Trace__0 \
+	Vcpu__Dpi \
+	Vcpu__Trace__0 \
 
 # Generated support classes, non-fast-path, compile with low/medium optimization
 VM_SUPPORT_SLOW += \
-	VReg__Syms \
-	VReg__Trace__0__Slow \
+	Vcpu__Syms \
+	Vcpu__Trace__0__Slow \
 
 # Global classes, need linked once per executable, fast-path, compile with highest optimization
 VM_GLOBAL_FAST += \

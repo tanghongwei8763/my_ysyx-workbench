@@ -1,13 +1,13 @@
 // Verilated -*- C++ -*-
 // DESCRIPTION: Verilator output: Tracing implementation internals
 #include "verilated_vcd_c.h"
-#include "VReg__Syms.h"
+#include "Vcpu__Syms.h"
 
 
-VL_ATTR_COLD void VReg___024root__trace_init_sub__TOP__0(VReg___024root* vlSelf, VerilatedVcd* tracep) {
+VL_ATTR_COLD void Vcpu___024root__trace_init_sub__TOP__0(Vcpu___024root* vlSelf, VerilatedVcd* tracep) {
     if (false && vlSelf) {}  // Prevent unused
-    VReg__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
-    VL_DEBUG_IF(VL_DBG_MSGF("+    VReg___024root__trace_init_sub__TOP__0\n"); );
+    Vcpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vcpu___024root__trace_init_sub__TOP__0\n"); );
     // Init
     const int c = vlSymsp->__Vm_baseCode;
     // Body
@@ -404,43 +404,43 @@ VL_ATTR_COLD void VReg___024root__trace_init_sub__TOP__0(VReg___024root* vlSelf,
     tracep->popNamePrefix(5);
 }
 
-VL_ATTR_COLD void VReg___024root__trace_init_top(VReg___024root* vlSelf, VerilatedVcd* tracep) {
+VL_ATTR_COLD void Vcpu___024root__trace_init_top(Vcpu___024root* vlSelf, VerilatedVcd* tracep) {
     if (false && vlSelf) {}  // Prevent unused
-    VReg__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
-    VL_DEBUG_IF(VL_DBG_MSGF("+    VReg___024root__trace_init_top\n"); );
+    Vcpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vcpu___024root__trace_init_top\n"); );
     // Body
-    VReg___024root__trace_init_sub__TOP__0(vlSelf, tracep);
+    Vcpu___024root__trace_init_sub__TOP__0(vlSelf, tracep);
 }
 
-VL_ATTR_COLD void VReg___024root__trace_full_top_0(void* voidSelf, VerilatedVcd::Buffer* bufp);
-void VReg___024root__trace_chg_top_0(void* voidSelf, VerilatedVcd::Buffer* bufp);
-void VReg___024root__trace_cleanup(void* voidSelf, VerilatedVcd* /*unused*/);
+VL_ATTR_COLD void Vcpu___024root__trace_full_top_0(void* voidSelf, VerilatedVcd::Buffer* bufp);
+void Vcpu___024root__trace_chg_top_0(void* voidSelf, VerilatedVcd::Buffer* bufp);
+void Vcpu___024root__trace_cleanup(void* voidSelf, VerilatedVcd* /*unused*/);
 
-VL_ATTR_COLD void VReg___024root__trace_register(VReg___024root* vlSelf, VerilatedVcd* tracep) {
+VL_ATTR_COLD void Vcpu___024root__trace_register(Vcpu___024root* vlSelf, VerilatedVcd* tracep) {
     if (false && vlSelf) {}  // Prevent unused
-    VReg__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
-    VL_DEBUG_IF(VL_DBG_MSGF("+    VReg___024root__trace_register\n"); );
+    Vcpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vcpu___024root__trace_register\n"); );
     // Body
-    tracep->addFullCb(&VReg___024root__trace_full_top_0, vlSelf);
-    tracep->addChgCb(&VReg___024root__trace_chg_top_0, vlSelf);
-    tracep->addCleanupCb(&VReg___024root__trace_cleanup, vlSelf);
+    tracep->addFullCb(&Vcpu___024root__trace_full_top_0, vlSelf);
+    tracep->addChgCb(&Vcpu___024root__trace_chg_top_0, vlSelf);
+    tracep->addCleanupCb(&Vcpu___024root__trace_cleanup, vlSelf);
 }
 
-VL_ATTR_COLD void VReg___024root__trace_full_sub_0(VReg___024root* vlSelf, VerilatedVcd::Buffer* bufp);
+VL_ATTR_COLD void Vcpu___024root__trace_full_sub_0(Vcpu___024root* vlSelf, VerilatedVcd::Buffer* bufp);
 
-VL_ATTR_COLD void VReg___024root__trace_full_top_0(void* voidSelf, VerilatedVcd::Buffer* bufp) {
-    VL_DEBUG_IF(VL_DBG_MSGF("+    VReg___024root__trace_full_top_0\n"); );
+VL_ATTR_COLD void Vcpu___024root__trace_full_top_0(void* voidSelf, VerilatedVcd::Buffer* bufp) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vcpu___024root__trace_full_top_0\n"); );
     // Init
-    VReg___024root* const __restrict vlSelf VL_ATTR_UNUSED = static_cast<VReg___024root*>(voidSelf);
-    VReg__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    Vcpu___024root* const __restrict vlSelf VL_ATTR_UNUSED = static_cast<Vcpu___024root*>(voidSelf);
+    Vcpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     // Body
-    VReg___024root__trace_full_sub_0((&vlSymsp->TOP), bufp);
+    Vcpu___024root__trace_full_sub_0((&vlSymsp->TOP), bufp);
 }
 
-VL_ATTR_COLD void VReg___024root__trace_full_sub_0(VReg___024root* vlSelf, VerilatedVcd::Buffer* bufp) {
+VL_ATTR_COLD void Vcpu___024root__trace_full_sub_0(Vcpu___024root* vlSelf, VerilatedVcd::Buffer* bufp) {
     if (false && vlSelf) {}  // Prevent unused
-    VReg__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
-    VL_DEBUG_IF(VL_DBG_MSGF("+    VReg___024root__trace_full_sub_0\n"); );
+    Vcpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vcpu___024root__trace_full_sub_0\n"); );
     // Init
     uint32_t* const oldp VL_ATTR_UNUSED = bufp->oldp(vlSymsp->__Vm_baseCode);
     // Body

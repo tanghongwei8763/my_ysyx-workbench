@@ -1,15 +1,15 @@
 // Verilated -*- C++ -*-
 // DESCRIPTION: Verilator output: Design internal header
-// See VReg.h for the primary calling header
+// See Vcpu.h for the primary calling header
 
-#ifndef VERILATED_VREG___024ROOT_H_
-#define VERILATED_VREG___024ROOT_H_  // guard
+#ifndef VERILATED_VCPU___024ROOT_H_
+#define VERILATED_VCPU___024ROOT_H_  // guard
 
 #include "verilated.h"
 
-class VReg__Syms;
+class Vcpu__Syms;
 
-class VReg___024root final : public VerilatedModule {
+class Vcpu___024root final : public VerilatedModule {
   public:
 
     // DESIGN SPECIFIC STATE
@@ -64,12 +64,12 @@ class VReg___024root final : public VerilatedModule {
     VlTriggerVec<1> __VnbaTriggered;
 
     // INTERNAL VARIABLES
-    VReg__Syms* const vlSymsp;
+    Vcpu__Syms* const vlSymsp;
 
     // CONSTRUCTORS
-    VReg___024root(VReg__Syms* symsp, const char* v__name);
-    ~VReg___024root();
-    VL_UNCOPYABLE(VReg___024root);
+    Vcpu___024root(Vcpu__Syms* symsp, const char* v__name);
+    ~Vcpu___024root();
+    VL_UNCOPYABLE(Vcpu___024root);
 
     // INTERNAL METHODS
     void __Vconfigure(bool first);
