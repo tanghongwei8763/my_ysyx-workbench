@@ -192,12 +192,10 @@ VL_INLINE_OPT void VMuxKey___024root___nba_sequent__TOP__0(VMuxKey___024root* vl
     vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs[0U] 
         = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber4;
     vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__lut_out 
-        = ((- (IData)(((1U & vlSelf->cpu__DOT__s) == 
-                       vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__key_list
-                       [0U]))) & vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__data_list
+        = ((vlSelf->cpu__DOT__s == vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__key_list
+            [0U]) & vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__data_list
            [0U]);
-    vlSelf->cpu__DOT__idu_cpu__DOT____Vcellout__INSTPAT_code____pinNumber1 
-        = vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__lut_out;
+    vlSelf->cpu__DOT__TYPE_type = vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__lut_out;
     vlSelf->cpu__DOT__src2 = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
         [(0x1fU & (vlSelf->cpu__DOT__s >> 0x14U))];
     vlSelf->cpu__DOT__src1 = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
@@ -226,23 +224,23 @@ VL_INLINE_OPT void VMuxKey___024root___nba_sequent__TOP__0(VMuxKey___024root* vl
         = (vlSelf->cpu__DOT__exu_cpu__DOT__result1 
            >> 2U);
     vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__lut_out 
-        = ((- (IData)(((1U & vlSelf->cpu__DOT__idu_cpu__DOT____Vcellout__INSTPAT_code____pinNumber1) 
+        = ((- (IData)(((IData)(vlSelf->cpu__DOT__TYPE_type) 
                        == vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list
                        [0U]))) & vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__data_list
            [0U]);
     vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__hit 
-        = ((1U & vlSelf->cpu__DOT__idu_cpu__DOT____Vcellout__INSTPAT_code____pinNumber1) 
-           == vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list
+        = ((IData)(vlSelf->cpu__DOT__TYPE_type) == 
+           vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list
            [0U]);
     vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__lut_out 
         = (vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__lut_out 
-           | ((- (IData)(((1U & vlSelf->cpu__DOT__idu_cpu__DOT____Vcellout__INSTPAT_code____pinNumber1) 
+           | ((- (IData)(((IData)(vlSelf->cpu__DOT__TYPE_type) 
                           == vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list
                           [1U]))) & vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__data_list
               [1U]));
     vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__hit 
         = ((IData)(vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__hit) 
-           | ((1U & vlSelf->cpu__DOT__idu_cpu__DOT____Vcellout__INSTPAT_code____pinNumber1) 
+           | ((IData)(vlSelf->cpu__DOT__TYPE_type) 
               == vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list
               [1U]));
     vlSelf->cpu__DOT__result = ((IData)(vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__hit)

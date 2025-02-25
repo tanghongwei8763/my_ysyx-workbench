@@ -15,6 +15,8 @@ class VMuxKey___024root final : public VerilatedModule {
     // DESIGN SPECIFIC STATE
     VL_IN8(clk,0,0);
     VL_IN8(rst,0,0);
+    CData/*0:0*/ cpu__DOT__TYPE_type;
+    CData/*0:0*/ cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__lut_out;
     CData/*0:0*/ cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__hit;
     CData/*0:0*/ __Vtrigrprev__TOP__clk;
     CData/*0:0*/ __VactContinue;
@@ -24,8 +26,6 @@ class VMuxKey___024root final : public VerilatedModule {
     IData/*31:0*/ cpu__DOT__src2;
     IData/*31:0*/ cpu__DOT__result;
     IData/*31:0*/ cpu__DOT____Vcellinp__PC__din;
-    IData/*31:0*/ cpu__DOT__idu_cpu__DOT____Vcellout__INSTPAT_code____pinNumber1;
-    IData/*31:0*/ cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__lut_out;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber4;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__1__KET____DOT__reg_inst____pinNumber4;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__2__KET____DOT__reg_inst____pinNumber4;
@@ -65,8 +65,8 @@ class VMuxKey___024root final : public VerilatedModule {
     IData/*31:0*/ __VstlIterCount;
     IData/*31:0*/ __VactIterCount;
     VlUnpacked<QData/*32:0*/, 1> cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__pair_list;
-    VlUnpacked<CData/*0:0*/, 1> cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__key_list;
-    VlUnpacked<IData/*31:0*/, 1> cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__data_list;
+    VlUnpacked<IData/*31:0*/, 1> cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__key_list;
+    VlUnpacked<CData/*0:0*/, 1> cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__data_list;
     VlUnpacked<IData/*31:0*/, 32> cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs;
     VlUnpacked<QData/*34:0*/, 2> cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list;
     VlUnpacked<CData/*2:0*/, 2> cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list;

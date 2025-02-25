@@ -10,7 +10,7 @@ module exu (
     assign result1 = src1 + imm;
     assign result2 = src1 + src2;
     
-    MuxKeyWithDefault #(2, 3, 32) mux_inst (
+    MuxKeyWithDefault #(2, 1, 32) mux_inst (
     .out(result),
     .key(TYPE_type),
     .default_out(32'b0),
