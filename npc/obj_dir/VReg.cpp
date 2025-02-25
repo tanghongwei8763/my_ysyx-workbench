@@ -14,7 +14,6 @@ VReg::VReg(VerilatedContext* _vcontextp__, const char* _vcname__)
     , vlSymsp{new VReg__Syms(contextp(), _vcname__, this)}
     , clk{vlSymsp->TOP.clk}
     , rst{vlSymsp->TOP.rst}
-    , dnpc{vlSymsp->TOP.dnpc}
     , rootp{&(vlSymsp->TOP)}
 {
     // Register model with the context

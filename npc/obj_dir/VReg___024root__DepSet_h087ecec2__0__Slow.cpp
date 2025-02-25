@@ -208,7 +208,6 @@ VL_ATTR_COLD void VReg___024root___ctor_var_reset(VReg___024root* vlSelf) {
     // Body
     vlSelf->clk = VL_RAND_RESET_I(1);
     vlSelf->rst = VL_RAND_RESET_I(1);
-    vlSelf->dnpc = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__pc = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__s = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__result = VL_RAND_RESET_I(32);

@@ -146,7 +146,6 @@ void VReg___024root__trace_chg_sub_0(VReg___024root* vlSelf, VerilatedVcd::Buffe
     }
     bufp->chgBit(oldp+79,(vlSelf->clk));
     bufp->chgBit(oldp+80,(vlSelf->rst));
-    bufp->chgIData(oldp+81,(vlSelf->dnpc),32);
 }
 
 void VReg___024root__trace_cleanup(void* voidSelf, VerilatedVcd* /*unused*/) {

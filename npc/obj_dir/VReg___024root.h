@@ -17,7 +17,6 @@ class VReg___024root final : public VerilatedModule {
     VL_IN8(rst,0,0);
     CData/*0:0*/ __Vtrigrprev__TOP__clk;
     CData/*0:0*/ __VactContinue;
-    VL_IN(dnpc,31,0);
     IData/*31:0*/ cpu__DOT__pc;
     IData/*31:0*/ cpu__DOT__s;
     IData/*31:0*/ cpu__DOT__result;
