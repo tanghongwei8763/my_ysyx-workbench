@@ -31,6 +31,7 @@ VL_ATTR_COLD void VMuxKey___024root___eval_initial__TOP(VMuxKey___024root* vlSel
     VMuxKey__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     VL_DEBUG_IF(VL_DBG_MSGF("+    VMuxKey___024root___eval_initial__TOP\n"); );
     // Body
+    vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list[0U] = 1U;
     vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list[1U] = 0U;
     vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__key_list[0U] = 0x13U;
     vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__data_list[0U] = 0U;
@@ -171,33 +172,23 @@ VL_ATTR_COLD void VMuxKey___024root___stl_sequent__TOP__0(VMuxKey___024root* vlS
             [0U]) & vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__data_list
            [0U]);
     vlSelf->cpu__DOT__TYPE_type = vlSelf->cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__lut_out;
+    vlSelf->cpu__DOT__imm = (((- (IData)((vlSelf->cpu__DOT__s 
+                                          >> 0x1fU))) 
+                              << 0xcU) | (vlSelf->cpu__DOT__s 
+                                          >> 0x14U));
     vlSelf->cpu__DOT__src2 = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
         [(0x1fU & (vlSelf->cpu__DOT__s >> 0x14U))];
     vlSelf->cpu__DOT__src1 = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
         [(0x1fU & (vlSelf->cpu__DOT__s >> 0xfU))];
-    vlSelf->cpu__DOT__exu_cpu__DOT__result2 = (vlSelf->cpu__DOT__src1 
-                                               + vlSelf->cpu__DOT__src2);
+    vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list[0U] 
+        = (0x100000000ULL | (QData)((IData)((vlSelf->cpu__DOT__src1 
+                                             + vlSelf->cpu__DOT__src2))));
+    vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list[1U] 
+        = (QData)((IData)((vlSelf->cpu__DOT__imm + vlSelf->cpu__DOT__src1)));
     vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__data_list[0U] 
         = (vlSelf->cpu__DOT__src1 + vlSelf->cpu__DOT__src2);
-    vlSelf->cpu__DOT__exu_cpu__DOT__result1 = ((((- (IData)(
-                                                            (vlSelf->cpu__DOT__s 
-                                                             >> 0x1fU))) 
-                                                 << 0xcU) 
-                                                | (vlSelf->cpu__DOT__s 
-                                                   >> 0x14U)) 
-                                               + vlSelf->cpu__DOT__src1);
-    vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list[1U] 
-        = (QData)((IData)((vlSelf->cpu__DOT__exu_cpu__DOT__result1 
-                           >> 2U)));
-    vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list[0U] 
-        = (0x100000000ULL | (((QData)((IData)((3U & vlSelf->cpu__DOT__exu_cpu__DOT__result1))) 
-                              << 0x21U) | (QData)((IData)(vlSelf->cpu__DOT__exu_cpu__DOT__result2))));
-    vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list[0U] 
-        = (1U | (6U & (vlSelf->cpu__DOT__exu_cpu__DOT__result1 
-                       << 1U)));
     vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__data_list[1U] 
-        = (vlSelf->cpu__DOT__exu_cpu__DOT__result1 
-           >> 2U);
+        = (vlSelf->cpu__DOT__imm + vlSelf->cpu__DOT__src1);
     vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__lut_out 
         = ((- (IData)(((IData)(vlSelf->cpu__DOT__TYPE_type) 
                        == vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list
@@ -274,6 +265,7 @@ VL_ATTR_COLD void VMuxKey___024root___ctor_var_reset(VMuxKey___024root* vlSelf) 
     vlSelf->rst = VL_RAND_RESET_I(1);
     vlSelf->cpu__DOT__pc = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__s = VL_RAND_RESET_I(32);
+    vlSelf->cpu__DOT__imm = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__src1 = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__src2 = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__result = VL_RAND_RESET_I(32);
@@ -324,13 +316,11 @@ VL_ATTR_COLD void VMuxKey___024root___ctor_var_reset(VMuxKey___024root* vlSelf) 
     vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__29__KET____DOT__reg_inst____pinNumber4 = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__30__KET____DOT__reg_inst____pinNumber4 = VL_RAND_RESET_I(32);
     vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__31__KET____DOT__reg_inst____pinNumber4 = VL_RAND_RESET_I(32);
-    vlSelf->cpu__DOT__exu_cpu__DOT__result1 = VL_RAND_RESET_I(32);
-    vlSelf->cpu__DOT__exu_cpu__DOT__result2 = VL_RAND_RESET_I(32);
     for (int __Vi0 = 0; __Vi0 < 2; ++__Vi0) {
-        vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list[__Vi0] = VL_RAND_RESET_Q(35);
+        vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list[__Vi0] = VL_RAND_RESET_Q(33);
     }
     for (int __Vi0 = 0; __Vi0 < 2; ++__Vi0) {
-        vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list[__Vi0] = VL_RAND_RESET_I(3);
+        vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list[__Vi0] = VL_RAND_RESET_I(1);
     }
     for (int __Vi0 = 0; __Vi0 < 2; ++__Vi0) {
         vlSelf->cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__data_list[__Vi0] = VL_RAND_RESET_I(32);

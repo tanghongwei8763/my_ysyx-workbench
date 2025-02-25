@@ -22,6 +22,7 @@ class VMuxKey___024root final : public VerilatedModule {
     CData/*0:0*/ __VactContinue;
     IData/*31:0*/ cpu__DOT__pc;
     IData/*31:0*/ cpu__DOT__s;
+    IData/*31:0*/ cpu__DOT__imm;
     IData/*31:0*/ cpu__DOT__src1;
     IData/*31:0*/ cpu__DOT__src2;
     IData/*31:0*/ cpu__DOT__result;
@@ -58,8 +59,6 @@ class VMuxKey___024root final : public VerilatedModule {
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__29__KET____DOT__reg_inst____pinNumber4;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__30__KET____DOT__reg_inst____pinNumber4;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__31__KET____DOT__reg_inst____pinNumber4;
-    IData/*31:0*/ cpu__DOT__exu_cpu__DOT__result1;
-    IData/*31:0*/ cpu__DOT__exu_cpu__DOT__result2;
     IData/*31:0*/ cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__lut_out;
     IData/*31:0*/ __Vfunc_cpu__DOT__ifu_cpu__DOT__pmem_read__0__Vfuncout;
     IData/*31:0*/ __VstlIterCount;
@@ -68,8 +67,8 @@ class VMuxKey___024root final : public VerilatedModule {
     VlUnpacked<IData/*31:0*/, 1> cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__key_list;
     VlUnpacked<CData/*0:0*/, 1> cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__data_list;
     VlUnpacked<IData/*31:0*/, 32> cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs;
-    VlUnpacked<QData/*34:0*/, 2> cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list;
-    VlUnpacked<CData/*2:0*/, 2> cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list;
+    VlUnpacked<QData/*32:0*/, 2> cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__pair_list;
+    VlUnpacked<CData/*0:0*/, 2> cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list;
     VlUnpacked<IData/*31:0*/, 2> cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__data_list;
     VlUnpacked<CData/*0:0*/, 2> __Vm_traceActivity;
     VlTriggerVec<1> __VstlTriggered;
