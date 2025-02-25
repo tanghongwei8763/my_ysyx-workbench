@@ -191,13 +191,13 @@ VL_INLINE_OPT void VReg___024root___nba_sequent__TOP__0(VReg___024root* vlSelf) 
         = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__1__KET____DOT__reg_inst____pinNumber4;
     vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs[0U] 
         = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber4;
-    vlSelf->cpu__DOT__src1 = vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
-        [(0x1fU & (vlSelf->cpu__DOT__s >> 0xfU))];
     vlSelf->cpu__DOT__result = ((((- (IData)((vlSelf->cpu__DOT__s 
                                               >> 0x1fU))) 
                                   << 0xcU) | (vlSelf->cpu__DOT__s 
                                               >> 0x14U)) 
-                                + vlSelf->cpu__DOT__src1);
+                                + vlSelf->cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
+                                [(0x1fU & (vlSelf->cpu__DOT__s 
+                                           >> 0xfU))]);
 }
 
 void VReg___024root___eval_nba(VReg___024root* vlSelf) {

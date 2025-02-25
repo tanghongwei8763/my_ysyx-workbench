@@ -19,7 +19,6 @@ class VReg___024root final : public VerilatedModule {
     CData/*0:0*/ __VactContinue;
     IData/*31:0*/ cpu__DOT__pc;
     IData/*31:0*/ cpu__DOT__s;
-    IData/*31:0*/ cpu__DOT__src1;
     IData/*31:0*/ cpu__DOT__result;
     IData/*31:0*/ cpu__DOT____Vcellinp__PC__din;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber4;
@@ -54,6 +53,7 @@ class VReg___024root final : public VerilatedModule {
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__29__KET____DOT__reg_inst____pinNumber4;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__30__KET____DOT__reg_inst____pinNumber4;
     IData/*31:0*/ cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__31__KET____DOT__reg_inst____pinNumber4;
+    IData/*31:0*/ cpu__DOT__exu_cpu__DOT__result1;
     IData/*31:0*/ __Vfunc_cpu__DOT__ifu_cpu__DOT__pmem_read__0__Vfuncout;
     IData/*31:0*/ __VstlIterCount;
     IData/*31:0*/ __VactIterCount;
