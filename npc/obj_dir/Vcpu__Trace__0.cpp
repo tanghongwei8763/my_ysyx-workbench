@@ -1,25 +1,25 @@
 // Verilated -*- C++ -*-
 // DESCRIPTION: Verilator output: Tracing implementation internals
 #include "verilated_vcd_c.h"
-#include "VMuxKey__Syms.h"
+#include "Vcpu__Syms.h"
 
 
-void VMuxKey___024root__trace_chg_sub_0(VMuxKey___024root* vlSelf, VerilatedVcd::Buffer* bufp);
+void Vcpu___024root__trace_chg_sub_0(Vcpu___024root* vlSelf, VerilatedVcd::Buffer* bufp);
 
-void VMuxKey___024root__trace_chg_top_0(void* voidSelf, VerilatedVcd::Buffer* bufp) {
-    VL_DEBUG_IF(VL_DBG_MSGF("+    VMuxKey___024root__trace_chg_top_0\n"); );
+void Vcpu___024root__trace_chg_top_0(void* voidSelf, VerilatedVcd::Buffer* bufp) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vcpu___024root__trace_chg_top_0\n"); );
     // Init
-    VMuxKey___024root* const __restrict vlSelf VL_ATTR_UNUSED = static_cast<VMuxKey___024root*>(voidSelf);
-    VMuxKey__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    Vcpu___024root* const __restrict vlSelf VL_ATTR_UNUSED = static_cast<Vcpu___024root*>(voidSelf);
+    Vcpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     if (VL_UNLIKELY(!vlSymsp->__Vm_activity)) return;
     // Body
-    VMuxKey___024root__trace_chg_sub_0((&vlSymsp->TOP), bufp);
+    Vcpu___024root__trace_chg_sub_0((&vlSymsp->TOP), bufp);
 }
 
-void VMuxKey___024root__trace_chg_sub_0(VMuxKey___024root* vlSelf, VerilatedVcd::Buffer* bufp) {
+void Vcpu___024root__trace_chg_sub_0(Vcpu___024root* vlSelf, VerilatedVcd::Buffer* bufp) {
     if (false && vlSelf) {}  // Prevent unused
-    VMuxKey__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
-    VL_DEBUG_IF(VL_DBG_MSGF("+    VMuxKey___024root__trace_chg_sub_0\n"); );
+    Vcpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vcpu___024root__trace_chg_sub_0\n"); );
     // Init
     uint32_t* const oldp VL_ATTR_UNUSED = bufp->oldp(vlSymsp->__Vm_baseCode + 1);
     VlWide<3>/*95:0*/ __Vtemp_h59e856f8__0;
@@ -151,11 +151,11 @@ void VMuxKey___024root__trace_chg_sub_0(VMuxKey___024root* vlSelf, VerilatedVcd:
     bufp->chgBit(oldp+99,(vlSelf->rst));
 }
 
-void VMuxKey___024root__trace_cleanup(void* voidSelf, VerilatedVcd* /*unused*/) {
-    VL_DEBUG_IF(VL_DBG_MSGF("+    VMuxKey___024root__trace_cleanup\n"); );
+void Vcpu___024root__trace_cleanup(void* voidSelf, VerilatedVcd* /*unused*/) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vcpu___024root__trace_cleanup\n"); );
     // Init
-    VMuxKey___024root* const __restrict vlSelf VL_ATTR_UNUSED = static_cast<VMuxKey___024root*>(voidSelf);
-    VMuxKey__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    Vcpu___024root* const __restrict vlSelf VL_ATTR_UNUSED = static_cast<Vcpu___024root*>(voidSelf);
+    Vcpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     // Body
     vlSymsp->__Vm_activity = false;
     vlSymsp->TOP.__Vm_traceActivity[0U] = 0U;
