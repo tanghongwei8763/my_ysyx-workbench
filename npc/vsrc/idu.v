@@ -34,8 +34,8 @@ module idu (
     
     // 定义指令匹配模式和对应的指令类型
     localparam NR_KEY_INS = 1;
-    localparam KEY_LEN_INS = 1;
-    localparam DATA_LEN_INS = 32;
+    localparam KEY_LEN_INS = 32;
+    localparam DATA_LEN_INS = 1;
     localparam LUT_INS_TYPE = {
         32'bxxxxxxx_xxxxx_xxxxx_000_xxxxx_0010011, TYPE_I //addi
     };
