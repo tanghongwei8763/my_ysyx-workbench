@@ -1,7 +1,6 @@
 module cpu (
     input clk,
-    input rst,
-    input [31:0] dnpc
+    input rst
 );
 
     reg [31:0] pc, s;
