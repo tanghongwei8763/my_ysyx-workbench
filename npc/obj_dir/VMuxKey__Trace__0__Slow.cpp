@@ -120,7 +120,6 @@ VL_ATTR_COLD void VMuxKey___024root__trace_init_sub__TOP__0(VMuxKey___024root* v
     tracep->declBus(c+113,"i", false,-1, 31,0);
     tracep->popNamePrefix(3);
     tracep->pushNamePrefix("ifu_cpu ");
-    tracep->declBit(c+98,"clk", false,-1);
     tracep->declBus(c+7,"pc", false,-1, 31,0);
     tracep->declBus(c+8,"s", false,-1, 31,0);
     tracep->popNamePrefix(1);

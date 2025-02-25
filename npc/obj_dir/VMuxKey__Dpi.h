@@ -16,7 +16,7 @@ extern "C" {
 
 
     // DPI IMPORTS
-    // DPI import at vsrc/ifu.v:9:33
+    // DPI import at vsrc/ifu.v:8:33
     extern int pmem_read(const svLogicVecVal* addr, int len);
 
 #ifdef __cplusplus

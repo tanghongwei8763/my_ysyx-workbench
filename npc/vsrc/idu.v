@@ -29,8 +29,6 @@ module idu (
     assign rs1 = s[19:15];
     assign rs2 = s[24:20];
     assign rd = s[11:7];
-
-    assign imm = immI;
     
     // 定义指令匹配模式和对应的指令类型
     localparam NR_KEY_INS = 1;
