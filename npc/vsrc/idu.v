@@ -4,8 +4,9 @@ module idu (
     output [4:0] rs2,
     output [4:0] rd,
     output [31:0] imm,
-    output [2:0] TYPE_type
+    //output [2:0] TYPE_type
 );
+    /*
     //6种指令类型
     localparam TYPE_R = 3'b000;
     localparam TYPE_I = 3'b001;
@@ -14,7 +15,7 @@ module idu (
     localparam TYPE_U = 3'b100;
     localparam TYPE_J = 3'b101;
     localparam TYPE_N = 3'b110;
-
+    */
     //定义5种imm的拼接
     wire [31:0] immI, immS, immU, immB, immJ;
     assign immI = {{20{s[31]}}, s[31:20]};
@@ -28,6 +29,8 @@ module idu (
     assign rs2 = s[24:20];
     assign rd = s[11:7];
 
+    assign imm = immI;
+    /*
     // 定义指令匹配模式和对应的指令类型
     localparam NR_KEY_INS = 1;
     localparam KEY_LEN_INS = 32;
@@ -52,4 +55,5 @@ module idu (
     };
 
     MuxKeyWithDefault #(NR_KEY_IMM, KEY_LEN_IMM, DATA_LEN_IMM) INSTPAT_imm (imm, TYPE_type, 32'b0, LUT_IMM);
+    */
 endmodule

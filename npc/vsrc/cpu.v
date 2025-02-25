@@ -8,7 +8,6 @@ module cpu (
     reg [4:0] rd, rs1, rs2;
     reg [31:0] imm, src1, src2, result;
     reg wen;
-    reg [2:1] TYPE_type;
 
     Reg #(32, 32'h80000000) PC (
         .clk(clk),
@@ -20,7 +19,7 @@ module cpu (
 
     ifu ifu_cpu(clk, pc, s);
 
-    idu idu_cpu(s, rs1, rs2, rd, imm, TYPE_type);
+    idu idu_cpu(s, rs1, rs2, rd, imm);
 
     lsu lsu_cpu(
         .clk(clk),
@@ -38,7 +37,6 @@ module cpu (
         .clk(clk),
         .src1(src1),
         .src2(src2),
-        .TYPE_type(TYPE_type),
         .imm(imm),
         .result(result),
         .wen(wen)
