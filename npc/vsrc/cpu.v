@@ -33,7 +33,6 @@ module cpu (
         );
 
     exu exu_cpu(
-        .clk(clk),
         .src1(src1),
         .src2(src2),
         .imm(imm),
