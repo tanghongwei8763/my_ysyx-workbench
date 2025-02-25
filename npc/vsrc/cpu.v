@@ -17,7 +17,7 @@ module cpu (
         .wen(1'b1)
     );
 
-    ifu ifu_cpu(clk, pc, s);
+    ifu ifu_cpu(pc, s);
 
     idu idu_cpu(s, rs1, rs2, rd, imm, TYPE_type);
 
