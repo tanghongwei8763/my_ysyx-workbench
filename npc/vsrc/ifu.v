@@ -1,3 +1,6 @@
+
+typedef logic [31:0] paddr_t;
+
 module ifu(
     input clk,
     input [31:0] pc,
