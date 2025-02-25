@@ -8,13 +8,14 @@ module exu (
     output wen
 );
 
+    assign result = src1 + imm;
+
     MuxKeyWithDefault #(2, 3, 32) mux_inst (
     .out(result),
     .key(TYPE_type),
     .default_out(32'b0),
     .lut({
-        3'b0, src1 + imm,
-        3'b1, src1 + src2
+        3'b0, result
         })
   );
     assign wen = 1'b1;

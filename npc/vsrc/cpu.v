@@ -1,27 +1,28 @@
 module cpu (
     input clk,
-    input rst
+    input rst,
+    input [31:0] dnpc
 );
-    reg [31:0] pc, nspc, dspc;
-    reg [31:0] s;
-    reg [4:0] rs1, rs2, rd;
+
+    reg [31:0] pc, s;
+    reg [4:0] rd, rs1, rs2;
     reg [31:0] imm, src1, src2, result;
-    reg [2:0] TYPE_type;
     reg wen;
-    
+    reg [2:1] TYPE_type;
 
-    initial begin
-        pc = 32'h80000000;
-        nspc = pc + 32'h4;
-    end
+    Reg #(32, 32'h80000000) PC (
+        .clk(clk),
+        .rst(rst),
+        .din(pc + 32'h4),
+        .dout(pc),
+        .wen(1'b1)
+    );
 
-    //取指
-    //ifu ifu(clk, pc, s);
+    ifu ifu_cpu(clk, pc, s);
 
-    //译码
-    idu idu(s, rs1, rs2, imm, TYPE_type);
+    idu idu_cpu(s, rs1, rs2, imm, TYPE_type);
 
-    Gpr gpr(
+    lsu lsu_cpu(
         .clk(clk),
         .rst(rst),
         .d(result),
@@ -29,10 +30,17 @@ module cpu (
         .rs2(rs2),
         .src1(src1),
         .src2(src2),
-        .waddr(rd),
+        .rd(rd),
         .wen(wen)
         );
-    
-    //执行
-    exu exu(clk, src1, src2, TYPE_type, imm, result, wen);
+
+    exu exu_cpu(
+        .clk(clk),
+        .src1(src1),
+        .src2(src2),
+        .TYPE_type(TYPE_type),
+        .imm(imm),
+        .result(result),
+        .wen(wen)
+    )
 endmodule
