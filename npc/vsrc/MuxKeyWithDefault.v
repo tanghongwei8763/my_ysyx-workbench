@@ -5,5 +5,5 @@ module MuxKeyWithDefault #(NR_KEY = 2, KEY_LEN = 1, DATA_LEN = 1) (
   input [DATA_LEN-1:0] default_out,
   input [NR_KEY*(KEY_LEN + DATA_LEN)-1:0] lut
 );
-  ysyx_25020037_MuxKeyInternal #(NR_KEY, KEY_LEN, DATA_LEN, 1) i0 (out, key, default_out, lut);
+  MuxKeyInternal #(NR_KEY, KEY_LEN, DATA_LEN, 1) i0 (out, key, default_out, lut);
 endmodule
