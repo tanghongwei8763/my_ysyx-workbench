@@ -42,5 +42,5 @@ module cpu (
         .imm(imm),
         .result(result),
         .wen(wen)
-    )
+    );
 endmodule
