@@ -1,4 +1,4 @@
-module cpu (
+module ysyx_25020037_cpu (
     input clk,
     input rst
 );
@@ -9,7 +9,7 @@ module cpu (
     reg TYPE_type;
     reg wen;
 
-    Reg #(32, 32'h80000000) PC (
+    ysyx_25020037_Reg #(32, 32'h80000000) PC (
         .clk(clk),
         .rst(rst),
         .din(pc + 32'h4),
@@ -17,11 +17,11 @@ module cpu (
         .wen(1'b1)
     );
 
-    ifu ifu_cpu(pc, s);
+    ysyx_25020037_ifu ifu_cpu(pc, s);
 
-    idu idu_cpu(s, rs1, rs2, rd, imm, TYPE_type);
+    ysyx_25020037_idu idu_cpu(s, rs1, rs2, rd, imm, TYPE_type);
 
-    lsu lsu_cpu(
+    ysyx_25020037_lsu lsu_cpu(
         .clk(clk),
         .rst(rst),
         .d(result),
@@ -33,7 +33,7 @@ module cpu (
         .wen(wen)
         );
 
-    exu exu_cpu(
+    ysyx_25020037_exu exu_cpu(
         .src1(src1),
         .src2(src2),
         .imm(imm),

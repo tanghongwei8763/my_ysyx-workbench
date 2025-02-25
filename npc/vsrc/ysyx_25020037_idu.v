@@ -1,4 +1,4 @@
-module idu (
+module ysyx_25020037_idu (
     input [31:0] s,
     output [4:0] rs1,
     output [4:0] rs2,
@@ -39,7 +39,7 @@ module idu (
     };
 
     //匹配指令，类似于INSTPAT那个宏但没有执行功能
-    MuxKey #(NR_KEY_INS, KEY_LEN_INS, DATA_LEN_INS) INSTPAT_code (TYPE_type, s, LUT_INS_TYPE);
+    ysyx_25020037_MuxKey #(NR_KEY_INS, KEY_LEN_INS, DATA_LEN_INS) INSTPAT_code (TYPE_type, s, LUT_INS_TYPE);
 
     assign imm = (TYPE_type == TYPE_I) ? immI : 32'b0;
     

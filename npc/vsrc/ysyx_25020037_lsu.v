@@ -1,4 +1,4 @@
-module lsu (
+module ysyx_25020037_lsu (
     input clk,
     input rst,
     input [31:0] d,
@@ -10,7 +10,7 @@ module lsu (
     input wen
 );
 
-    gpr lsu_gpr (
+    ysyx_25020037_gpr lsu_gpr (
         .clk(clk),
         .rst(rst),
         .d(d),

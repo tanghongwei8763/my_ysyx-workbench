@@ -1,5 +1,5 @@
 //寄存器堆
-module gpr (
+module ysyx_25020037_gpr (
   input clk,
   input rst,
   input [31:0] d,
@@ -18,7 +18,7 @@ module gpr (
   generate
     genvar i;
     for (i = 0; i < 32; i = i+1) begin : GPR32
-      Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (wen & waddr == 1));
+      ysyx_25020037_Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (wen & waddr == 1));
     end
   endgenerate
 

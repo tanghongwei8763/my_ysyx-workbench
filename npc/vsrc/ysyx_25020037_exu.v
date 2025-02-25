@@ -1,4 +1,4 @@
-module exu (
+module ysyx_25020037_exu (
     input [31:0] src1,
     input [31:0] src2,
     input [31:0] imm,
@@ -10,7 +10,7 @@ module exu (
     assign result1 = src1 + imm;
     assign result2 = src1 + src2;
     
-    MuxKeyWithDefault #(2, 1, 32) mux_inst (
+    ysyx_25020037_MuxKeyWithDefault #(2, 1, 32) mux_inst (
     .out(result),
     .key(TYPE_type),
     .default_out(32'b0),
