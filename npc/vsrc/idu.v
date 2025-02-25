@@ -2,6 +2,7 @@ module idu (
     input [31:0] s,
     output [4:0] rs1,
     output [4:0] rs2,
+    output [4:0] rd,
     output [31:0] imm,
     output [2:0] TYPE_type
 );

@@ -20,7 +20,7 @@ module cpu (
 
     ifu ifu_cpu(clk, pc, s);
 
-    idu idu_cpu(s, rs1, rs2, imm, TYPE_type);
+    idu idu_cpu(s, rs1, rs2, rd, imm, TYPE_type);
 
     lsu lsu_cpu(
         .clk(clk),
