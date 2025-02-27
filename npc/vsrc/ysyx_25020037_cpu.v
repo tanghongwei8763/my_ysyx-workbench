@@ -3,7 +3,7 @@ module ysyx_25020037_cpu (
     input rst
 );
 
-    reg [31:0] pc, s;
+    reg [31:0] pc, inst;
     reg [4:0] rd, rs1, rs2;
     reg [31:0] imm, src1, src2, result;
     reg TYPE_type;
@@ -17,9 +17,9 @@ module ysyx_25020037_cpu (
         .wen(1'b1)
     );
 
-    ysyx_25020037_ifu ifu_cpu(pc, s);
+    ysyx_25020037_ifu ifu_cpu(pc, inst);
 
-    ysyx_25020037_idu idu_cpu(s, rs1, rs2, rd, imm, TYPE_type);
+    ysyx_25020037_idu idu_cpu(inst, rs1, rs2, rd, imm, TYPE_type);
 
     ysyx_25020037_lsu lsu_cpu(
         .clk(clk),
