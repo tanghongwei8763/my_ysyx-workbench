@@ -45,7 +45,7 @@ int main (int argc, char** argv)
     reset(10);
     for(int i=0; i < 6; i++){
         single_cycle();
-        tfp.dump(contextp->time());
+        tfp->dump(contextp->time());
         contextp->timeInc(1);
     }
 
