@@ -19,27 +19,26 @@ static const uint32_t img [] = {
   0x00908093,  // reg1=reg1+9
   0x00100073,  // ebreak (used as nemu_trap)
 };
-
+/*
 uint32_t* init(size_t size) {
   uint32_t* memory = (uint32_t*)malloc(size * sizeof(uint32_t));
   memcpy(memory, img, sizeof(img));
   if(memory==NULL) exit(0);
   return memory;
 }
-
-uint32_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
-
-static inline word_t host_read(void *addr, int len) {
+*/
+static inline word_t host_read(paddr_t addr, int len) {
+  paddr_t temp_pc = addr - CONFIG_MBASE;
   switch (len) {
-    case 1: return *(uint8_t  *)addr;
-    case 2: return *(uint16_t *)addr;
-    case 4: return *(uint32_t *)addr;
+    case 1: return (uint8_t)*(img + temp_pc);
+    case 2: return (uint16_t)*(img + temp_pc);
+    case 4: return (uint32_t)*(img + temp_pc);
     //IFDEF(CONFIG_ISA64, case 8: return *(uint64_t *)addr);
-    default: return 0x80000000;
+    default: return 0x00100073;
   }
 }
 
 static word_t pmem_read(paddr_t addr, int len) {
-  word_t ret = host_read(guest_to_host(addr), len);
+  word_t ret = host_read(addr, len);
   return ret;
 }

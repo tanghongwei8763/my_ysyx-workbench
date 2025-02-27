@@ -16,9 +16,9 @@ int main() {
 typedef uint32_t paddr_t;
 typedef uint32_t word_t;
 static Vysyx_25020037_cpu dut;
-uint32_t* init(size_t size);
-uint32_t* guest_to_host(uint32_t addr);
+//uint32_t* init(size_t size);
 static word_t pmem_read(paddr_t addr, int len);
+static inline word_t host_read(paddr_t addr, int len);
 
 
 // 设置时钟，复位信号
@@ -35,9 +35,6 @@ static void reset(int n) {
 
 int main (int argc, char** argv)
 {
-    uint32_t* memory;
-    memory = init(5);
-
     VerilatedContext* contextp = new VerilatedContext;
 
     Verilated::traceEverOn(true);
@@ -47,10 +44,9 @@ int main (int argc, char** argv)
 
     reset(10);
     for(int i=0; i < 6; i++){
-        dut.inst = pmem_read(memory, dut.pc);
         single_cycle();
-        tfp.dump(concept->time());
-        concept->timeInc(1);
+        tfp.dump(contextp->time());
+        contextp->timeInc(1);
     }
 
     tfp->close();
