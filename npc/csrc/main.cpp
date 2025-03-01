@@ -13,13 +13,10 @@ int main() {
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-typedef uint32_t paddr_t;
-typedef uint32_t word_t;
-static Vysyx_25020037_cpu dut;
-//uint32_t* init(size_t size);
-static word_t pmem_read(paddr_t addr, int len);
-static inline word_t host_read(paddr_t addr, int len);
+#include "function.h"
 
+
+static Vysyx_25020037_cpu dut;
 
 // 设置时钟，复位信号
 void single_cycle() {
@@ -36,6 +33,7 @@ static void reset(int n) {
 int main (int argc, char** argv)
 {
     VerilatedContext* contextp = new VerilatedContext;
+    contextp->commandArgs(argc, argv);
 
     Verilated::traceEverOn(true);
     VerilatedVcdC* tfp = new VerilatedVcdC;
@@ -51,6 +49,7 @@ int main (int argc, char** argv)
 
     tfp->close();
 
+    delete tfp;
     delete contextp;
     return 0;
 }

@@ -20,12 +20,12 @@ class Vysyx_25020037_cpu___024root final : public VerilatedModule {
     CData/*0:0*/ ysyx_25020037_cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__hit;
     CData/*0:0*/ __Vtrigrprev__TOP__clk;
     CData/*0:0*/ __VactContinue;
+    VL_OUT(result,31,0);
     IData/*31:0*/ ysyx_25020037_cpu__DOT__pc;
-    IData/*31:0*/ ysyx_25020037_cpu__DOT__s;
+    IData/*31:0*/ ysyx_25020037_cpu__DOT__inst;
     IData/*31:0*/ ysyx_25020037_cpu__DOT__imm;
     IData/*31:0*/ ysyx_25020037_cpu__DOT__src1;
     IData/*31:0*/ ysyx_25020037_cpu__DOT__src2;
-    IData/*31:0*/ ysyx_25020037_cpu__DOT__result;
     IData/*31:0*/ ysyx_25020037_cpu__DOT____Vcellinp__PC__din;
     IData/*31:0*/ ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber4;
     IData/*31:0*/ ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__1__KET____DOT__reg_inst____pinNumber4;

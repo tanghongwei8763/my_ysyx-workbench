@@ -1,6 +1,6 @@
 module ysyx_25020037_cpu (
     input clk,
-    input rst
+    input rst,
 );
 
     reg [31:0] pc, inst;
