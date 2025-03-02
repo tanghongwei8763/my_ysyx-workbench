@@ -16,8 +16,8 @@ extern "C" {
 
 
     // DPI IMPORTS
-    // DPI import at vsrc/ysyx_25020037_ifu.v:8:33
-    extern int pmem_read(const svLogicVecVal* addr, int len);
+    // DPI import at vsrc/ysyx_25020037_ifu.v:8:36
+    extern svBitVecVal pmem_read(const svLogicVecVal* addr, int len);
 
 #ifdef __cplusplus
 }

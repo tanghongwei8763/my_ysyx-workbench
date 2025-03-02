@@ -7,10 +7,24 @@
 
 #include "Vysyx_25020037_cpu___024root.h"
 
+VL_ATTR_COLD void Vysyx_25020037_cpu___024root___eval_static__TOP(Vysyx_25020037_cpu___024root* vlSelf);
+
 VL_ATTR_COLD void Vysyx_25020037_cpu___024root___eval_static(Vysyx_25020037_cpu___024root* vlSelf) {
     if (false && vlSelf) {}  // Prevent unused
     Vysyx_25020037_cpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root___eval_static\n"); );
+    // Body
+    Vysyx_25020037_cpu___024root___eval_static__TOP(vlSelf);
+    vlSelf->__Vm_traceActivity[1U] = 1U;
+    vlSelf->__Vm_traceActivity[0U] = 1U;
+}
+
+VL_ATTR_COLD void Vysyx_25020037_cpu___024root___eval_static__TOP(Vysyx_25020037_cpu___024root* vlSelf) {
+    if (false && vlSelf) {}  // Prevent unused
+    Vysyx_25020037_cpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root___eval_static__TOP\n"); );
+    // Body
+    vlSelf->ysyx_25020037_cpu__DOT__pc = 0x80000000U;
 }
 
 VL_ATTR_COLD void Vysyx_25020037_cpu___024root___eval_initial__TOP(Vysyx_25020037_cpu___024root* vlSelf);
@@ -36,6 +50,8 @@ VL_ATTR_COLD void Vysyx_25020037_cpu___024root___eval_initial__TOP(Vysyx_2502003
     vlSelf->ysyx_25020037_cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__key_list[0U] = 0x13U;
     vlSelf->ysyx_25020037_cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__data_list[0U] = 0U;
     vlSelf->ysyx_25020037_cpu__DOT__idu_cpu__DOT__INSTPAT_code__DOT__i0__DOT__pair_list[0U] = 0x26ULL;
+    VL_WRITEF("pc=%x\nifu_pc=%x\n",32,vlSelf->ysyx_25020037_cpu__DOT__pc,
+              32,vlSelf->ysyx_25020037_cpu__DOT__pc);
 }
 
 VL_ATTR_COLD void Vysyx_25020037_cpu___024root___eval_final(Vysyx_25020037_cpu___024root* vlSelf) {
@@ -167,6 +183,9 @@ VL_ATTR_COLD void Vysyx_25020037_cpu___024root___stl_sequent__TOP__0(Vysyx_25020
         = vlSelf->ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__31__KET____DOT__reg_inst____pinNumber4;
     Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read_TOP(vlSelf->ysyx_25020037_cpu__DOT__pc, 4U, vlSelf->__Vfunc_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read__0__Vfuncout);
     vlSelf->ysyx_25020037_cpu__DOT__inst = vlSelf->__Vfunc_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read__0__Vfuncout;
+    vlSelf->ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellinp__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber5 
+        = ((~ (IData)(vlSelf->rst)) & (0x80U == (0xf80U 
+                                                 & vlSelf->ysyx_25020037_cpu__DOT__inst)));
     vlSelf->ysyx_25020037_cpu__DOT__src2 = vlSelf->ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs
         [(0x1fU & (vlSelf->ysyx_25020037_cpu__DOT__inst 
                    >> 0x14U))];
@@ -217,9 +236,9 @@ VL_ATTR_COLD void Vysyx_25020037_cpu___024root___stl_sequent__TOP__0(Vysyx_25020
            | ((IData)(vlSelf->ysyx_25020037_cpu__DOT__TYPE_type) 
               == vlSelf->ysyx_25020037_cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__key_list
               [1U]));
-    vlSelf->result = ((IData)(vlSelf->ysyx_25020037_cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__hit)
-                       ? vlSelf->ysyx_25020037_cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__lut_out
-                       : 0U);
+    vlSelf->ysyx_25020037_cpu__DOT__result = ((IData)(vlSelf->ysyx_25020037_cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__hit)
+                                               ? vlSelf->ysyx_25020037_cpu__DOT__exu_cpu__DOT__mux_inst__DOT__i0__DOT__lut_out
+                                               : 0U);
 }
 
 VL_ATTR_COLD void Vysyx_25020037_cpu___024root___eval_stl(Vysyx_25020037_cpu___024root* vlSelf) {
@@ -233,6 +252,21 @@ VL_ATTR_COLD void Vysyx_25020037_cpu___024root___eval_stl(Vysyx_25020037_cpu___0
         vlSelf->__Vm_traceActivity[0U] = 1U;
     }
 }
+
+#ifdef VL_DEBUG
+VL_ATTR_COLD void Vysyx_25020037_cpu___024root___dump_triggers__ico(Vysyx_25020037_cpu___024root* vlSelf) {
+    if (false && vlSelf) {}  // Prevent unused
+    Vysyx_25020037_cpu__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root___dump_triggers__ico\n"); );
+    // Body
+    if ((1U & (~ (IData)(vlSelf->__VicoTriggered.any())))) {
+        VL_DBG_MSGF("         No triggers active\n");
+    }
+    if (vlSelf->__VicoTriggered.at(0U)) {
+        VL_DBG_MSGF("         'ico' region trigger index 0 is active: Internal 'ico' trigger - first iteration\n");
+    }
+}
+#endif  // VL_DEBUG
 
 #ifdef VL_DEBUG
 VL_ATTR_COLD void Vysyx_25020037_cpu___024root___dump_triggers__act(Vysyx_25020037_cpu___024root* vlSelf) {
@@ -271,12 +305,12 @@ VL_ATTR_COLD void Vysyx_25020037_cpu___024root___ctor_var_reset(Vysyx_25020037_c
     // Body
     vlSelf->clk = VL_RAND_RESET_I(1);
     vlSelf->rst = VL_RAND_RESET_I(1);
-    vlSelf->result = VL_RAND_RESET_I(32);
-    vlSelf->ysyx_25020037_cpu__DOT__pc = VL_RAND_RESET_I(32);
     vlSelf->ysyx_25020037_cpu__DOT__inst = VL_RAND_RESET_I(32);
+    vlSelf->ysyx_25020037_cpu__DOT__pc = VL_RAND_RESET_I(32);
     vlSelf->ysyx_25020037_cpu__DOT__imm = VL_RAND_RESET_I(32);
     vlSelf->ysyx_25020037_cpu__DOT__src1 = VL_RAND_RESET_I(32);
     vlSelf->ysyx_25020037_cpu__DOT__src2 = VL_RAND_RESET_I(32);
+    vlSelf->ysyx_25020037_cpu__DOT__result = VL_RAND_RESET_I(32);
     vlSelf->ysyx_25020037_cpu__DOT__TYPE_type = VL_RAND_RESET_I(1);
     vlSelf->ysyx_25020037_cpu__DOT____Vcellinp__PC__din = VL_RAND_RESET_I(32);
     for (int __Vi0 = 0; __Vi0 < 1; ++__Vi0) {
@@ -292,6 +326,7 @@ VL_ATTR_COLD void Vysyx_25020037_cpu___024root___ctor_var_reset(Vysyx_25020037_c
     for (int __Vi0 = 0; __Vi0 < 32; ++__Vi0) {
         vlSelf->ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT__regs[__Vi0] = VL_RAND_RESET_I(32);
     }
+    vlSelf->ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellinp__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber5 = VL_RAND_RESET_I(1);
     vlSelf->ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__0__KET____DOT__reg_inst____pinNumber4 = VL_RAND_RESET_I(32);
     vlSelf->ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__1__KET____DOT__reg_inst____pinNumber4 = VL_RAND_RESET_I(32);
     vlSelf->ysyx_25020037_cpu__DOT__lsu_cpu__DOT__lsu_gpr__DOT____Vcellout__GPR32__BRA__2__KET____DOT__reg_inst____pinNumber4 = VL_RAND_RESET_I(32);

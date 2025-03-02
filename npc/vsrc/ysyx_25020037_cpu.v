@@ -3,7 +3,8 @@ module ysyx_25020037_cpu (
     input rst
 );
 
-    reg [31:0] pc, inst;
+    reg [31:0] inst;
+    reg [31:0] pc = 32'h80000000;
     reg [4:0] rd, rs1, rs2;
     reg [31:0] imm, src1, src2, result;
     reg TYPE_type;
@@ -16,6 +17,9 @@ module ysyx_25020037_cpu (
         .dout(pc),
         .wen(1'b1)
     );
+    initial begin
+        $display("pc=%h", pc);
+    end
 
     ysyx_25020037_ifu ifu_cpu(pc, inst);
 
@@ -30,7 +34,7 @@ module ysyx_25020037_cpu (
         .src1(src1),
         .src2(src2),
         .rd(rd),
-        .wen(wen)
+        .wen((~rst)&wen)
         );
 
     ysyx_25020037_exu exu_cpu(

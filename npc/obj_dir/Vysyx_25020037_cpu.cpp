@@ -14,7 +14,6 @@ Vysyx_25020037_cpu::Vysyx_25020037_cpu(VerilatedContext* _vcontextp__, const cha
     , vlSymsp{new Vysyx_25020037_cpu__Syms(contextp(), _vcname__, this)}
     , clk{vlSymsp->TOP.clk}
     , rst{vlSymsp->TOP.rst}
-    , result{vlSymsp->TOP.result}
     , rootp{&(vlSymsp->TOP)}
 {
     // Register model with the context
