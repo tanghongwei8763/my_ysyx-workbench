@@ -18,8 +18,10 @@ int main() {
 
 // 设置时钟，复位信号
 void single_cycle(Vysyx_25020037_cpu& dut) {
-    dut.clk=1;dut.eval();
-    dut.clk=0;dut.eval();
+    dut.clk=0;
+    dut.eval();
+    dut.clk=1;
+    dut.eval();
 }
 
 static void reset(Vysyx_25020037_cpu& dut, int n) {
