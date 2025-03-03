@@ -46,6 +46,7 @@ int main (int argc, char** argv)
 
     reset(dut,10);
     for(int i=0; i < 6; i++){
+        dut.inst = pmem_read(4*i+0x80000000, 4);
         single_cycle(dut);
         tfp->dump(contextp->time());
         contextp->timeInc(1);

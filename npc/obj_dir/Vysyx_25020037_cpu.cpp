@@ -4,7 +4,6 @@
 #include "Vysyx_25020037_cpu.h"
 #include "Vysyx_25020037_cpu__Syms.h"
 #include "verilated_vcd_c.h"
-#include "verilated_dpi.h"
 
 //============================================================
 // Constructors
@@ -14,6 +13,8 @@ Vysyx_25020037_cpu::Vysyx_25020037_cpu(VerilatedContext* _vcontextp__, const cha
     , vlSymsp{new Vysyx_25020037_cpu__Syms(contextp(), _vcname__, this)}
     , clk{vlSymsp->TOP.clk}
     , rst{vlSymsp->TOP.rst}
+    , inst{vlSymsp->TOP.inst}
+    , regs{vlSymsp->TOP.regs}
     , rootp{&(vlSymsp->TOP)}
 {
     // Register model with the context

@@ -4,8 +4,9 @@ module ysyx_25020037_lsu (
     input [31:0] d,
     input [4:0] rs1,
     input [4:0] rs2,
-    output [31:0] src1,
-    output [31:0] src2,
+    output reg [31:0] src1,
+    output reg [31:0] src2,
+    output reg [31:0] regs [31:0],
     input [4:0] rd,
     input wen
 );
@@ -18,6 +19,7 @@ module ysyx_25020037_lsu (
         .rs2(rs2),
         .src1(src1),
         .src2(src2),
+        .regs(regs),
         .waddr(rd),
         .wen(wen)
     );

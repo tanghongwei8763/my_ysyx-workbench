@@ -5,20 +5,18 @@ module ysyx_25020037_gpr (
   input [31:0] d,
   input [4:0] rs1,
   input [4:0] rs2,
-  output [31:0] src1,
-  output [31:0] src2,
+  output reg [31:0] src1,
+  output reg [31:0] src2,
+  output reg [31:0] regs [31:0],
   input [4:0] waddr,
   input wen
 );
-
-  reg [31:0] regs [31:0];
-
 
   //实例化寄存器
   generate
     genvar i;
     for (i = 0; i < 32; i = i+1) begin : GPR32
-      ysyx_25020037_Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (wen & waddr == 1));
+      ysyx_25020037_Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (wen && waddr == 1));
     end
   endgenerate
 

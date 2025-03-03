@@ -3,24 +3,9 @@
 // See Vysyx_25020037_cpu.h for the primary calling header
 
 #include "verilated.h"
-#include "verilated_dpi.h"
 
 #include "Vysyx_25020037_cpu__Syms.h"
 #include "Vysyx_25020037_cpu___024root.h"
-
-extern "C" svBitVecVal pmem_read(const svLogicVecVal* addr, int len);
-
-VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ &pmem_read__Vfuncrtn) {
-    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read_TOP\n"); );
-    // Body
-    svLogicVecVal addr__Vcvt[1];
-    for (size_t addr__Vidx = 0; addr__Vidx < 1; ++addr__Vidx) VL_SET_SVLV_I(32, addr__Vcvt + 1 * addr__Vidx, addr);
-    int len__Vcvt;
-    for (size_t len__Vidx = 0; len__Vidx < 1; ++len__Vidx) len__Vcvt = len;
-    svBitVecVal pmem_read__Vfuncrtn__Vcvt[1];
-    pmem_read__Vfuncrtn__Vcvt[0] = pmem_read(addr__Vcvt, len__Vcvt);
-    pmem_read__Vfuncrtn = VL_SET_I_SVBV(pmem_read__Vfuncrtn__Vcvt);
-}
 
 #ifdef VL_DEBUG
 VL_ATTR_COLD void Vysyx_25020037_cpu___024root___dump_triggers__ico(Vysyx_25020037_cpu___024root* vlSelf);

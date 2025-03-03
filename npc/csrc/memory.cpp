@@ -14,16 +14,8 @@ static const uint32_t img [] = {
   0x00908093,  // reg1=reg1+9
   0x00100073,  // ebreak (used as nemu_trap)
 };
-/*
-uint32_t* init(size_t size) {
-  uint32_t* memory = (uint32_t*)malloc(size * sizeof(uint32_t));
-  memcpy(memory, img, sizeof(img));
-  if(memory==NULL) exit(0);
-  return memory;
-}
-*/
 
-static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
+static uint8_t pmem[1000] PG_ALIGN = {};
 extern "C" {
   uint8_t* guest_to_host(uint32_t paddr) { return pmem + paddr - CONFIG_MBASE; }
 }

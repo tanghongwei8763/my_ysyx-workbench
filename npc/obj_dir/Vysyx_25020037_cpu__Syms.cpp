@@ -4,7 +4,6 @@
 #include "Vysyx_25020037_cpu__Syms.h"
 #include "Vysyx_25020037_cpu.h"
 #include "Vysyx_25020037_cpu___024root.h"
-#include "Vysyx_25020037_cpu___024unit.h"
 
 // FUNCTIONS
 Vysyx_25020037_cpu__Syms::~Vysyx_25020037_cpu__Syms()
@@ -24,7 +23,4 @@ Vysyx_25020037_cpu__Syms::Vysyx_25020037_cpu__Syms(VerilatedContext* contextp, c
     // Setup each module's pointers to their submodules
     // Setup each module's pointer back to symbol table (for public functions)
     TOP.__Vconfigure(true);
-    // Setup export functions
-    for (int __Vfinal = 0; __Vfinal < 2; ++__Vfinal) {
-    }
 }

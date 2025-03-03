@@ -3,7 +3,6 @@
 // See Vysyx_25020037_cpu.h for the primary calling header
 
 #include "verilated.h"
-#include "verilated_dpi.h"
 
 #include "Vysyx_25020037_cpu__Syms.h"
 #include "Vysyx_25020037_cpu___024root.h"
