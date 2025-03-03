@@ -2,12 +2,13 @@ module ysyx_25020037_cpu (
     input clk,
     input rst,
     input [31:0] inst,
-    output reg [31:0] regs [31:0]
+    output reg [31:0] regs [31:0],
+    output reg [31:0] result
 );
 
 
     reg [4:0] rd, rs1, rs2;
-    reg [31:0] imm, src1, src2, result;
+    reg [31:0] imm, src1, src2;
     reg [2:0] TYPE_type;
     reg wen;
     /*
