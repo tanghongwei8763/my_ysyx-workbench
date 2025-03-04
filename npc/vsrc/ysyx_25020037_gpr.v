@@ -16,7 +16,7 @@ module ysyx_25020037_gpr (
   generate
     genvar i;
     for (i = 0; i < 32; i = i+1) begin : GPR32
-      ysyx_25020037_Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (wen && waddr == 1));
+      ysyx_25020037_Reg #(32, 32'b0) reg_inst (clk, rst, d, regs[i], (waddr != 5'b0) && wen && (waddr == i));
     end
   endgenerate
 

@@ -15,6 +15,12 @@ int main() {
 #include <stdint.h>
 #include "function.h"
 
+extern "C" {
+    void ending() {
+        printf("ending....\n");
+        exit(0);
+    }
+}
 
 // 设置时钟，复位信号
 void single_cycle(Vysyx_25020037_cpu& dut, VerilatedContext* contextp, VerilatedVcdC* tfp) {
@@ -52,14 +58,17 @@ int main (int argc, char** argv)
     init_isa();
 
     reset(dut, contextp, tfp,10);
-    for(int i=0; i < 6; i++){
-        dut.inst = pmem_read(4*i+0x80000000, 4);
+    int inst = 0;
+    while(true){
+        dut.inst = pmem_read(4*inst+0x80000000, 4);
         single_cycle(dut, contextp, tfp);
+        inst++;
     }
 
     tfp->close();
 
     delete tfp;
     delete contextp;
+    ending();
     return 0;
 }

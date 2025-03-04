@@ -10,9 +10,14 @@
 static const uint32_t img [] = {
   0x00100093,  // reg1=zero+1
   0x00908113,  // reg2=reg1+9
+  0x00908113,  // reg2=reg1+9
   0xffe10193,  // reg3=reg2-2
   0x00908093,  // reg1=reg1+9
   0x00100073,  // ebreak (used as nemu_trap)
+  0x00100093,  // reg1=zero+1
+  0x00908113,  // reg2=reg1+9
+  0xffe10193,  // reg3=reg2-2
+  0x00908093,  // reg1=reg1+9
 };
 
 static uint8_t pmem[1000] PG_ALIGN = {};
