@@ -1,12 +1,3 @@
-/*
-#include <stdio.h>
-
-int main() {
-  printf("Hello, ysyx!\n");
-  return 0;
-}
-*/
-
 #include "Vysyx_25020037_cpu.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
@@ -15,8 +6,18 @@ int main() {
 #include <stdint.h>
 #include "function.h"
 
+VerilatedContext* global_contextp = nullptr;
+VerilatedVcdC* global_tfp = nullptr;
+
 extern "C" {
     void ending() {
+
+    global_contextp->timeInc(2);
+    global_tfp->dump(global_contextp->time());
+
+    global_tfp->close();
+    delete global_tfp;
+    delete global_contextp;
         printf("ending....\n");
         exit(0);
     }
@@ -55,20 +56,22 @@ int main (int argc, char** argv)
     dut.trace(tfp, 99);
     tfp->open("ysyx_25020037_cpu.vcd");
 
+    global_contextp = contextp;
+    global_tfp = tfp;
+
     init_isa();
+    //printf("here!!!\n");
 
     reset(dut, contextp, tfp,10);
     int inst = 0;
+    //printf("here0\n");
     while(true){
         dut.inst = pmem_read(4*inst+0x80000000, 4);
+        //printf("here 0x%08x\n",dut.inst);
         single_cycle(dut, contextp, tfp);
         inst++;
     }
-
-    tfp->close();
-
-    delete tfp;
-    delete contextp;
+    printf("here\n");
     ending();
     return 0;
 }

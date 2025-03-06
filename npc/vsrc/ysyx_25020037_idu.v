@@ -36,6 +36,6 @@ module ysyx_25020037_idu (
     always @(*) begin
         if ((inst&MASKI) == (addi&MASKI)) begin TYPE_type = TYPE_I;imm = immI;end
         else if (inst == ebreak) begin TYPE_type = 3'b010;imm = 32'b0; end
-        else begin TYPE_type = 3'b010;imm = 32'b0;end
+        else begin TYPE_type = 3'b100;imm = 32'b0;end
     end
 endmodule
