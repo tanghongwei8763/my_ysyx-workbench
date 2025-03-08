@@ -63,15 +63,15 @@ int sprintf(char *out, const char *fmt, ...) {
           break;
         }
         case 'd': {
-                    int num = va_arg(args, int);
-                    char num_str[20];
-                    inttostr(num, num_str, 10);
-                    int len = strlen(num_str);
-                    for (int j = 0; j < len; j++) {
-                        out[temp++] = num_str[j];
-                    }
-                    break;
-                }
+          int num = va_arg(args, int);
+          char num_str[20];
+          inttostr(num, num_str, 10);
+          int len = strlen(num_str);
+          for (int j = 0; j < len; j++) {
+            out[temp++] = num_str[j];
+          }
+          break;
+        }
         default:{
           out[temp++] = '%';
           out[temp++] = fmt[i];
