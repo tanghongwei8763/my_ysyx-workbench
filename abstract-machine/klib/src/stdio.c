@@ -29,11 +29,13 @@ int sprintf(char *out, const char *fmt, ...) {
             out[temp] = str[j];
             temp++;
           }
+          break;
         }
         case 'd': {
           int num = va_arg(args, int);
           int dnum = num, ynum;//十位以上的数（整除后的）和余数
           if(num < 0) {
+            num = -num;
             out[temp] = '-';
             temp++;
           }
@@ -42,15 +44,17 @@ int sprintf(char *out, const char *fmt, ...) {
             temp++;
           }
           while(dnum) {
+            ynum = dnum % 10;
             dnum = dnum / 10;
-            ynum = num % 10;
             out[temp] = ynum + '0';
             temp++;
           }
+          break;
         }
         default:{
           out[temp++] = '%';
           out[temp++] = fmt[i];
+          break;
         }
       }
     }
