@@ -52,9 +52,9 @@ int sprintf(char *out, const char *fmt, ...) {
   for(int i = 0; fmt[i] != '\0'; i++) {
     if(fmt[i] == '%') {
       i++;
-      printf("nihao\n");
       switch (fmt[i]) {
         case 's':{
+          printf("nihao\n");
           char *str = va_arg(args, char *);
           int len = strlen(str);
           for(int j = 0; j < len; j++) {
