@@ -56,11 +56,11 @@ int sprintf(char *out, const char *fmt, ...) {
         case 's':{
           char *str = va_arg(args, char *);
           int len = strlen(str);
+          printf("nihao\n");
           for(int j = 0; j < len; j++) {
             out[temp] = str[j];
             temp++;
           }
-          printf("nihao\n");
           break;
         }
         case 'd': {
