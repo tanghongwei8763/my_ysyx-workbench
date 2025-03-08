@@ -32,13 +32,17 @@ int sprintf(char *out, const char *fmt, ...) {
         }
         case 'd': {
           int num = va_arg(args, int);
-          int dnum = 1, ynum;//十位以上的数（整除后的）和余数
+          int dnum = num, ynum;//十位以上的数（整除后的）和余数
           if(num < 0) {
             out[temp] = '-';
             temp++;
           }
+          else if (num == 0) {
+            out[temp] = '0';
+            temp++;
+          }
           while(dnum) {
-            dnum = num / 10;
+            dnum = dnum / 10;
             ynum = num % 10;
             out[temp] = ynum + '0';
             temp++;
