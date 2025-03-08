@@ -50,6 +50,7 @@ int sprintf(char *out, const char *fmt, ...) {
   va_start(args, fmt);
   int temp = 0;
   for(int i = 0; fmt[i] != '\0'; i++) {
+    printf("nihao\n");
     if(fmt[i] == '%') {
       i++;
       switch (fmt[i]) {
