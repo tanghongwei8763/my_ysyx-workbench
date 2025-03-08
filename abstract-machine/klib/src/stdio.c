@@ -49,7 +49,6 @@ int sprintf(char *out, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   int temp = 0;
-  printf("nihao\n");
   for(int i = 0; fmt[i] != '\0'; i++) {
     if(fmt[i] == '%') {
       i++;
