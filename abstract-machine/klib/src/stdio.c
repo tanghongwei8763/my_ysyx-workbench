@@ -49,6 +49,7 @@ int sprintf(char *out, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   int temp = 0;
+  printf("nihao\n");
   for(int i = 0; fmt[i] != '\0'; i++) {
     if(fmt[i] == '%') {
       i++;
@@ -64,7 +65,7 @@ int sprintf(char *out, const char *fmt, ...) {
         }
         case 'd': {
           int num = va_arg(args, int);
-          char num_str[20];
+          char num_str[128];
           inttostr(num, num_str, 10);
           int len = strlen(num_str);
           for (int j = 0; j < len; j++) {
