@@ -54,13 +54,13 @@ int sprintf(char *out, const char *fmt, ...) {
       i++;
       switch (fmt[i]) {
         case 's':{
-          printf("nihao\n");
           char *str = va_arg(args, char *);
           int len = strlen(str);
           for(int j = 0; j < len; j++) {
             out[temp] = str[j];
             temp++;
           }
+          printf("nihao\n");
           break;
         }
         case 'd': {
