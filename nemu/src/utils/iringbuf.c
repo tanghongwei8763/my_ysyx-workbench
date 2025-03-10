@@ -1,8 +1,11 @@
-#include<common.h>
+#include <common.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
 
 #define RINGBUF_MAX 20
+
+
+static int ringbuf_index = 0;
 
 typedef struct {
   word_t pc;
@@ -17,7 +20,7 @@ void init_ringbuf() {
 }
 
 void iringbuf(Decode *s) {
-    int index = 0;
-    ringbuf[index % RINGBUF_MAX].pc = s->pc;
-    ringbuf[index % RINGBUF_MAX].inst = inst_fetch(&s->pc, 4);
+    ringbuf[ringbuf_index % RINGBUF_MAX].pc = s->pc;
+    ringbuf[ringbuf_index % RINGBUF_MAX].inst = inst_fetch(&s->pc, 4);
+    ringbuf_index++;
 }
