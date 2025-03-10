@@ -5,5 +5,6 @@
 
 void init_ringbuf();
 void iringbuf(Decode *s);
+void iringbuf_printf(int pos);
 
 #endif
