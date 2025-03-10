@@ -1,9 +1,7 @@
 #include <common.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
-
-#define RINGBUF_MAX 20
-
+#include "iringbuf.h"
 
 static int ringbuf_index = 0;
 
