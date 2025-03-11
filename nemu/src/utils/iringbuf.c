@@ -18,6 +18,7 @@ void init_ringbuf() {
 }
 
 void iringbuf(char *logbuf) {
+    printf("%d\n", ringbuf_index);
     strcpy(ringbuf[ringbuf_index % RINGBUF_MAX], logbuf);
     ringbuf_index++;
 }
