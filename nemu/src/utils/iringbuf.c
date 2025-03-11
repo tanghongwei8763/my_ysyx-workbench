@@ -24,7 +24,7 @@ void iringbuf(char *logbuf) {
 
 void iringbuf_printf() {
   for (int i = 0; i < RINGBUF_MAX; i++) {
-  printf("%s\n", (((ringbuf_index - 1) % RINGBUF_MAX) == i) ? "-->" : "   ");
+  printf("%s", (((ringbuf_index - 1) % RINGBUF_MAX) == i) ? "-->" : "   ");
   puts(ringbuf[i]);
   }
 }
