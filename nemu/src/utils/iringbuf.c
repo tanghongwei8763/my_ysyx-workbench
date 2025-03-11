@@ -2,6 +2,7 @@
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
 #include "iringbuf.h"
+#include "disasm.h"
 
 static int ringbuf_index = 0;
 /*
@@ -22,8 +23,17 @@ void iringbuf(uint32_t thispc) {
     uint32_t inst = inst_fetch(&pc, 4);
     char logbuf[128];
 
+    uint8_t code[4];
+    char buffer[20];
+    code[0] = (uint8_t)(inst & 0xFF);
+    code[1] = (uint8_t)((inst >> 8) & 0xFF);
+    code[2] = (uint8_t)((inst >> 16) & 0xFF);
+    code[3] = (uint8_t)((inst >> 24) & 0xFF);
+    disassemble(buffer, sizeof(buffer), pc, code, sizeof(code));
+
     sprintf(logbuf, "0x%08x:", thispc);
-    strcat(logbuf, "\t\t\t");
+    strcat(logbuf, buffer);
+    strcat(logbuf, "\t\t");
 
     for(int i = 3; i >= 0; i--) {
       char byte[4];
