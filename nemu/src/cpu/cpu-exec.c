@@ -65,8 +65,9 @@ static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
   //iringbuf(s);
-  printf("here\n");
+  printf("here1\n");
   isa_exec_once(s);
+  printf("here2\n");
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
