@@ -4,27 +4,27 @@
 #include "iringbuf.h"
 
 static int ringbuf_index = 0;
-
+/*
 typedef struct {
   word_t pc;
   uint32_t inst;
 } ItraceNode;
+*/
 
-
-ItraceNode ringbuf[RINGBUF_MAX];
+char ringbuf[RINGBUF_MAX][128];
 
 void init_ringbuf() {
     memset(ringbuf, 0, sizeof(ringbuf));
 }
 
-void iringbuf(Decode *s) {
-    ringbuf[ringbuf_index % RINGBUF_MAX].pc = s->pc;
-    ringbuf[ringbuf_index % RINGBUF_MAX].inst = inst_fetch(&s->pc, 4);
+void iringbuf(char *logbuf) {
+    strcpy(ringbuf[ringbuf_index % RINGBUF_MAX], logbuf);
     ringbuf_index++;
 }
 
-void iringbuf_printf(int pos) {
+void iringbuf_printf() {
   for (int i = 0; i < RINGBUF_MAX; i++) {
-  printf("%s0x%08x: %08x\n", (pos==i)?"-->":"   ", ringbuf[i].pc, ringbuf[i].inst);
+  puts((((ringbuf_index-1)%RINGBUF_MAX)==i)?"-->":"   ");
+  puts(ringbuf[i]);
   }
 }
