@@ -65,9 +65,7 @@ static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
   //iringbuf(s);
-  printf("here1\n");
   isa_exec_once(s);
-  printf("here2\n");
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
@@ -100,7 +98,9 @@ static void execute(uint64_t n) {
   for (;n > 0; n --) {
     exec_once(&s, cpu.pc);
     g_nr_guest_inst ++;
+    printf("here1\n");
     trace_and_difftest(&s, cpu.pc);
+    printf("here1\n");
     if (nemu_state.state != NEMU_RUNNING) break;
     IFDEF(CONFIG_DEVICE, device_update());
   }
