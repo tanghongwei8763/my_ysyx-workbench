@@ -31,9 +31,8 @@ void iringbuf(uint32_t thispc) {
     code[3] = (uint8_t)((inst >> 24) & 0xFF);
     disassemble(buffer, sizeof(buffer), pc, code, sizeof(code));
 
-    sprintf(logbuf, "0x%08x:", thispc);
-    strcat(logbuf, buffer);
-    strcat(logbuf, "\t\t");
+    sprintf(logbuf, "0x%08x: %-20s", thispc, buffer);
+    strcat(logbuf, "\t");
 
     for(int i = 3; i >= 0; i--) {
       char byte[4];
