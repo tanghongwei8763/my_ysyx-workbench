@@ -4,7 +4,7 @@
 #define RINGBUF_MAX 20
 
 void init_ringbuf();
-void iringbuf(char *logbuf);
+void iringbuf(uint32_t thispc);
 void iringbuf_printf();
 
 #endif
