@@ -61,12 +61,22 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
+extern uint32_t memory_trace;
+extern bool if_memory_trace;
+extern char load_or_store;
+
 static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
   iringbuf(pc);
   isa_exec_once(s);
   cpu.pc = s->dnpc;
+#ifdef CONFIG_MTRACE
+  if(if_memory_trace) {
+    if_memory_trace = false;
+    printf("0x%08x:\t%c\t0x%08x", pc, load_or_store, memory_trace);
+  }
+#endif
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
   p += snprintf(p, sizeof(s->logbuf), FMT_WORD ":", s->pc);

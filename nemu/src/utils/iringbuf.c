@@ -5,12 +5,6 @@
 #include "disasm.h"
 
 static int ringbuf_index = 0;
-/*
-typedef struct {
-  word_t pc;
-  uint32_t inst;
-} ItraceNode;
-*/
 
 char ringbuf[RINGBUF_MAX][128];
 
