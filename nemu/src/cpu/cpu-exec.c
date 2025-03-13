@@ -74,7 +74,7 @@ static void exec_once(Decode *s, vaddr_t pc) {
 //#ifdef CONFIG_MTRACE
   if(if_memory_trace) {
     if_memory_trace = false;
-    printf("0x%08x:\t%c\t0x%08x", pc, load_or_store, memory_trace);
+    printf("0x%08x:\t%c\t0x%08x\n", pc, load_or_store, memory_trace);
   }
 //#endif
 #ifdef CONFIG_ITRACE
