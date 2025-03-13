@@ -71,12 +71,12 @@ static void exec_once(Decode *s, vaddr_t pc) {
   iringbuf(pc);
   isa_exec_once(s);
   cpu.pc = s->dnpc;
-#ifdef CONFIG_MTRACE
+//#ifdef CONFIG_MTRACE
   if(if_memory_trace) {
     if_memory_trace = false;
     printf("0x%08x:\t%c\t0x%08x", pc, load_or_store, memory_trace);
   }
-#endif
+//#endif
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
   p += snprintf(p, sizeof(s->logbuf), FMT_WORD ":", s->pc);
