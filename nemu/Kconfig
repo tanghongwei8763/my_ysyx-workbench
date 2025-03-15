@@ -150,6 +150,16 @@ config ITRACE
   bool "Enable instruction tracer"
   default y
 
+config MTRACE
+  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
+  bool "Enable memory tracer"
+  default y
+
+config FTRACE
+  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
+  bool "Enable function tracer"
+  default y
+
 config ITRACE_COND
   depends on ITRACE
   string "Only trace instructions when the condition is true"
