@@ -108,12 +108,12 @@ void call_func(uint32_t pc, uint32_t dnpc){
     //printf("%*s", depth*2, " ");        //根据函数深度缩进
     for (int k = 0; k < depth; k++) {       //彩色缩进
         if (k % 7 == 0) printf("\033[30m  "); 
-        else if (k % 7 == 1) printf("\033[31m |"); 
-        else if (k % 7 == 2) printf("\033[32m |"); 
-        else if (k % 7 == 3) printf("\033[33m |"); 
-        else if (k % 7 == 4) printf("\033[34m |"); 
-        else if (k % 7 == 5) printf("\033[35m |"); 
-        else if (k % 7 == 6) printf("\033[36m |"); 
+        else if (k % 7 == 1) printf("\033[31m  "); 
+        else if (k % 7 == 2) printf("\033[32m  "); 
+        else if (k % 7 == 3) printf("\033[33m  "); 
+        else if (k % 7 == 4) printf("\033[34m  "); 
+        else if (k % 7 == 5) printf("\033[35m  "); 
+        else if (k % 7 == 6) printf("\033[36m  "); 
     }
     printf("call  [%s@0x%08x]\n", symbol[i].name, dnpc);
 
@@ -132,12 +132,12 @@ void ret_func(uint32_t pc){
     //printf("%*s", depth*2, " ");
     for (int k = 0; k < depth; k++) {       //彩色缩进
         if (k % 7 == 0) printf("\033[30m  "); 
-        else if (k % 7 == 1) printf("\033[31m |"); 
-        else if (k % 7 == 2) printf("\033[32m |"); 
-        else if (k % 7 == 3) printf("\033[33m |"); 
-        else if (k % 7 == 4) printf("\033[34m |"); 
-        else if (k % 7 == 5) printf("\033[35m |"); 
-        else if (k % 7 == 6) printf("\033[36m |"); 
+        else if (k % 7 == 1) printf("\033[31m  "); 
+        else if (k % 7 == 2) printf("\033[32m  "); 
+        else if (k % 7 == 3) printf("\033[33m  "); 
+        else if (k % 7 == 4) printf("\033[34m  "); 
+        else if (k % 7 == 5) printf("\033[35m  "); 
+        else if (k % 7 == 6) printf("\033[36m  "); 
     }
     printf("ret  [%s]\n", symbol[i].name);
 }
