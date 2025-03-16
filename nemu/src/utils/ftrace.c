@@ -97,7 +97,7 @@ void parse_elf(char *elf_file)
 }
 
 int depth = 1;
-void display_call_func(uint32_t pc, uint32_t dnpc){
+void call_func(uint32_t pc, uint32_t dnpc){
     int i = 0;
     while(i < func_sum){
         if(dnpc >= symbol[i].addr && dnpc < (symbol[i].addr + symbol[i].size)) break;
@@ -105,13 +105,22 @@ void display_call_func(uint32_t pc, uint32_t dnpc){
     }
 
     printf("0x%08x:", pc);
-    printf("%*s", depth*2, " ");        //根据函数深度缩进
+    //printf("%*s", depth*2, " ");        //根据函数深度缩进
+    for (int k = 0; k < depth; k++) {       //彩色缩进
+        if (k % 7 == 0) printf("\033[30m  "); 
+        else if (k % 7 == 1) printf("\033[31m |"); 
+        else if (k % 7 == 2) printf("\033[32m |"); 
+        else if (k % 7 == 3) printf("\033[33m |"); 
+        else if (k % 7 == 4) printf("\033[34m |"); 
+        else if (k % 7 == 5) printf("\033[35m |"); 
+        else if (k % 7 == 6) printf("\033[36m |"); 
+    }
     printf("call  [%s@0x%08x]\n", symbol[i].name, dnpc);
 
     depth++;
 }
 
-void display_ret_func(uint32_t pc){
+void ret_func(uint32_t pc){
     int i = 0;
     for(; i < func_sum; i++){
         if(pc >= symbol[i].addr && pc < (symbol[i].addr + symbol[i].size)) break;
@@ -120,7 +129,16 @@ void display_ret_func(uint32_t pc){
     depth--;
 
     printf("0x%08x:", pc);
-    printf("%*s", depth*2, " ");
+    //printf("%*s", depth*2, " ");
+    for (int k = 0; k < depth; k++) {       //彩色缩进
+        if (k % 7 == 0) printf("\033[30m  "); 
+        else if (k % 7 == 1) printf("\033[31m |"); 
+        else if (k % 7 == 2) printf("\033[32m |"); 
+        else if (k % 7 == 3) printf("\033[33m |"); 
+        else if (k % 7 == 4) printf("\033[34m |"); 
+        else if (k % 7 == 5) printf("\033[35m |"); 
+        else if (k % 7 == 6) printf("\033[36m |"); 
+    }
     printf("ret  [%s]\n", symbol[i].name);
 }
 

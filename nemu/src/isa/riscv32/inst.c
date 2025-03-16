@@ -87,9 +87,9 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 111 ????? 00100 11", andi   , I, R(rd) = src1 & imm);
   INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, R(rd) = s->pc + 4;s->dnpc = src1 + imm;
                                                                 IFDEF(CONFIG_FTRACE, if(rd == 1) 
-                                                                display_call_func(s->pc, s->dnpc);
+                                                                call_func(s->pc, s->dnpc);
                                                                 else if(rd == 0 && src1 == R(1))
-                                                                display_ret_func(s->pc);));
+                                                                ret_func(s->pc);));
   INSTPAT("??????? ????? ????? 100 ????? 00000 11", lbu    , I, R(rd) = Mr(src1 + imm, 1));
   INSTPAT("??????? ????? ????? 101 ????? 00000 11", lhu    , I, R(rd) = Mr(src1 + imm, 2));
   INSTPAT("??????? ????? ????? 001 ????? 00000 11", lh     , I, R(rd) = (int)((short)(Mr(src1 + imm, 2))));
@@ -116,7 +116,7 @@ static int decode_exec(Decode *s) {
 
   INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, R(rd) = s->pc + 4;s->dnpc = s->pc + imm;
                                                                 IFDEF(CONFIG_FTRACE, if(rd == 1)
-                                                                display_call_func(s->pc, s->dnpc);));
+                                                                call_func(s->pc, s->dnpc);));
 
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
