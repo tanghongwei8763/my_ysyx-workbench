@@ -1,27 +1,127 @@
 #include <common.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
+#include <elf.h>
 #include "ftrace.h"
 
+typedef struct {
+    char name[20];
+    paddr_t addr;
+    Elf32_Xword size;
+} Symbol;
 
-bool inst_match(uint32_t inst, const char *goal) {
-    for (int i = 31; i >= 0; i--) {
-        char bit = (inst >> i) & 1 ? '1' : '0';
-        if (goal[31 - i] != '?' && goal[31 - i] != bit) {
-            return 0;
+Symbol *symbol = NULL;
+size_t func_sum = 0;
+
+void parse_elf(char *elf_file)
+{
+
+    FILE *fp;
+    fp = fopen(elf_file, "rb");
+	
+    Elf32_Ehdr edhr;
+    
+    if(fread(&edhr, sizeof(Elf32_Ehdr), 1, fp) != 1) {
+        printf("fread error\n");
+        fclose(fp);
+        exit(1);
+    }
+
+    if(edhr.e_ident[0] != 0x7f || edhr.e_ident[1] != 'E' || edhr.e_ident[2] != 'L' ||edhr.e_ident[3] != 'F'){
+        printf("The opened file isn't an elf file!\n");
+        exit(1);
+    }
+    
+    fseek(fp, edhr.e_shoff, SEEK_SET);
+
+    Elf32_Shdr shdr;
+    char *string_table = NULL;
+    
+    for(int i = 0; i < edhr.e_shnum; i++){
+
+        if(fread(&shdr, sizeof(Elf32_Shdr), 1, fp) != 1) {
+            printf("fread error\n");
+            fclose(fp);
+            exit(1);
+        }
+        if(shdr.sh_type == SHT_STRTAB)
+        {
+            string_table = malloc(shdr.sh_size);
+            fseek(fp, shdr.sh_offset, SEEK_SET);
+            if(fread(string_table, shdr.sh_size, 1, fp) != 1) {
+                printf("fread error\n");
+                fclose(fp);
+                exit(1);
+            }
         }
     }
-    return 1;
-}
-/*
-void ftrace(uint32_t thispc) {
-    uint32_t pc = thispc;
-    uint32_t inst = inst_fetch(&pc, 4);
+    
+    
+    fseek(fp, edhr.e_shoff, SEEK_SET);
+    
+    for(int i = 0; i < edhr.e_shnum; i++){
 
-    char *goal1 = "??????? ????? ????? 000 00001 11001 11";     //一般将rd设置为ra（x1）寄存器就是函数
-    char *goal2 = "??????? ????? ????? ??? 00001 11011 11";
+        if(fread(&shdr, sizeof(Elf32_Shdr), 1, fp) != 1) {
+                printf("fread error\n");
+                fclose(fp);
+                exit(1);
+            }
 
-    bool ismatch;
-    if(inst_match(inst, goal1) || inst_match(inst, goal2)) {ismatch = true;};
+        if(shdr.sh_type == SHT_SYMTAB){
+            fseek(fp, shdr.sh_offset, SEEK_SET);
+
+            Elf32_Sym sym;
+
+            size_t sym_count = shdr.sh_size / shdr.sh_entsize;
+            symbol = malloc(sizeof(Symbol) * sym_count);
+
+            for(size_t j = 0; j < sym_count; j++){
+                if(fread(&sym, sizeof(Elf32_Sym), 1, fp) != 1) {
+                    printf("fread error\n");
+                    fclose(fp);
+                    exit(1);
+                }
+                if(ELF32_ST_TYPE(sym.st_info) == STT_FUNC){
+                    const char *name = string_table + sym.st_name;
+                    strncpy(symbol[func_sum].name, name, sizeof(symbol[func_sum].name) - 1);
+                    symbol[func_sum].name[sizeof(symbol[func_sum].name) - 1] = '\0';
+                    symbol[func_sum].addr = sym.st_value;
+                    symbol[func_sum].size = sym.st_size;
+                    func_sum++;
+                }
+            }
+        }
+    }
+    fclose(fp);
+    free(string_table);
 }
-*/
+
+int depth = 1;
+void display_call_func(uint32_t pc, uint32_t dnpc){
+    int i = 0;
+    while(i < func_sum){
+        if(dnpc >= symbol[i].addr && dnpc < (symbol[i].addr + symbol[i].size)) break;
+        i++;
+    }
+
+    printf("0x%08x:", pc);
+    printf("%*s", depth*2, " ");        //根据函数深度缩进
+    printf("call  [%s@0x%08x]\n", symbol[i].name, dnpc);
+
+    depth++;
+}
+
+void display_ret_func(uint32_t pc){
+    int i = 0;
+    for(; i < func_sum; i++){
+        if(pc >= symbol[i].addr && pc < (symbol[i].addr + symbol[i].size)) break;
+    }
+
+    depth--;
+
+    printf("0x%08x:", pc);
+    printf("%*s", depth*2, " ");
+    printf("ret  [%s]\n", symbol[i].name);
+}
+
+

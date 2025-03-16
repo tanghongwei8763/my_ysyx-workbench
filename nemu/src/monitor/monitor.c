@@ -24,6 +24,7 @@ void init_device();
 void init_sdb();
 void init_disasm();
 void init_ringbuf();
+void parse_elf();
 
 static void welcome() {
   Log("Trace: %s", MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
@@ -108,6 +109,9 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Parse arguments. */
   parse_args(argc, argv);
+
+  /* Parse elf file. */
+  parse_elf(elf_file);
 
   /* Set random seed. */
   init_rand();
