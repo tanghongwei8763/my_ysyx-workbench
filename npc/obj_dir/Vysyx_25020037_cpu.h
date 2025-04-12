@@ -5,26 +5,32 @@
 // The class here is then constructed to instantiate the design.
 // See the Verilator manual for examples.
 
-#ifndef VERILATED_VEXAMPLE_H_
-#define VERILATED_VEXAMPLE_H_  // guard
+#ifndef VERILATED_VYSYX_25020037_CPU_H_
+#define VERILATED_VYSYX_25020037_CPU_H_  // guard
 
 #include "verilated.h"
+#include "svdpi.h"
 
-class Vexample__Syms;
-class Vexample___024root;
+class Vysyx_25020037_cpu__Syms;
+class Vysyx_25020037_cpu___024root;
 class VerilatedVcdC;
 
 // This class is the main interface to the Verilated model
-class Vexample VL_NOT_FINAL : public VerilatedModel {
+class Vysyx_25020037_cpu VL_NOT_FINAL : public VerilatedModel {
   private:
     // Symbol table holding complete model state (owned by this class)
-    Vexample__Syms* const vlSymsp;
+    Vysyx_25020037_cpu__Syms* const vlSymsp;
 
   public:
 
     // PORTS
     // The application code writes and reads these signals to
     // propagate new values into/out from the Verilated model.
+    VL_IN8(&clk,0,0);
+    VL_IN8(&rst,0,0);
+    VL_OUT(&inst,31,0);
+    VL_OUT(&pc,31,0);
+    VL_OUT((&regs)[32],31,0);
 
     // CELLS
     // Public to allow access to /* verilator public */ items.
@@ -32,19 +38,19 @@ class Vexample VL_NOT_FINAL : public VerilatedModel {
 
     // Root instance pointer to allow access to model internals,
     // including inlined /* verilator public_flat_* */ items.
-    Vexample___024root* const rootp;
+    Vysyx_25020037_cpu___024root* const rootp;
 
     // CONSTRUCTORS
     /// Construct the model; called by application code
     /// If contextp is null, then the model will use the default global context
     /// If name is "", then makes a wrapper with a
     /// single model invisible with respect to DPI scope names.
-    explicit Vexample(VerilatedContext* contextp, const char* name = "TOP");
-    explicit Vexample(const char* name = "TOP");
+    explicit Vysyx_25020037_cpu(VerilatedContext* contextp, const char* name = "TOP");
+    explicit Vysyx_25020037_cpu(const char* name = "TOP");
     /// Destroy the model; called (often implicitly) by application code
-    virtual ~Vexample();
+    virtual ~Vysyx_25020037_cpu();
   private:
-    VL_UNCOPYABLE(Vexample);  ///< Copying not allowed
+    VL_UNCOPYABLE(Vysyx_25020037_cpu);  ///< Copying not allowed
 
   public:
     // API METHODS

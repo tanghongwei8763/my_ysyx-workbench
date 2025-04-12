@@ -14,7 +14,14 @@ static const char mainargs[MAINARGS_MAX_LEN] = MAINARGS_PLACEHOLDER; // defined 
 void putch(char ch) {
 }
 
+void npc_trap(int code) {
+    asm volatile("mv a0, %0; ebreak" : :"r"(code));
+}
+
 void halt(int code) {
+  npc_trap(code);
+  
+  // should not reach here
   while (1);
 }
 

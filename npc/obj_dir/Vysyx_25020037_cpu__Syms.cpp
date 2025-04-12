@@ -1,16 +1,16 @@
 // Verilated -*- C++ -*-
 // DESCRIPTION: Verilator output: Symbol table implementation internals
 
-#include "Vexample__Syms.h"
-#include "Vexample.h"
-#include "Vexample___024root.h"
+#include "Vysyx_25020037_cpu__Syms.h"
+#include "Vysyx_25020037_cpu.h"
+#include "Vysyx_25020037_cpu___024root.h"
 
 // FUNCTIONS
-Vexample__Syms::~Vexample__Syms()
+Vysyx_25020037_cpu__Syms::~Vysyx_25020037_cpu__Syms()
 {
 }
 
-Vexample__Syms::Vexample__Syms(VerilatedContext* contextp, const char* namep, Vexample* modelp)
+Vysyx_25020037_cpu__Syms::Vysyx_25020037_cpu__Syms(VerilatedContext* contextp, const char* namep, Vysyx_25020037_cpu* modelp)
     : VerilatedSyms{contextp}
     // Setup internal state of the Syms class
     , __Vm_modelp{modelp}
@@ -23,4 +23,7 @@ Vexample__Syms::Vexample__Syms(VerilatedContext* contextp, const char* namep, Ve
     // Setup each module's pointers to their submodules
     // Setup each module's pointer back to symbol table (for public functions)
     TOP.__Vconfigure(true);
+    // Setup export functions
+    for (int __Vfinal = 0; __Vfinal < 2; ++__Vfinal) {
+    }
 }

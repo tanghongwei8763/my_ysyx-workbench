@@ -1,19 +1,5 @@
-/***************************************************************************************
-* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
-*
-* NEMU is licensed under Mulan PSL v2.
-* You can use this software according to the terms and conditions of the Mulan PSL v2.
-* You may obtain a copy of Mulan PSL v2 at:
-*          http://license.coscl.org.cn/MulanPSL2
-*
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
-* EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
-* MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
-*
-* See the Mulan PSL v2 for more details.
-***************************************************************************************/
-
-#include "sdb.h"
+#include "../include/commen.h"
+#include "../include/monitor.h"
 
 #define NR_WP 32
 
@@ -52,28 +38,24 @@ void new_wp(char *e, bool *success) {
     printf("free_ is empty\n");
     assert(0);
   }
-  WP *new = free_;
+  WP *wp_new = free_;
   free_ = free_->next;
-  strcpy(new->expression, e);
-  //printf("%s\n", new->expression);
-  //printf("arrive here4\n");
-  new->result = expr(e,success);
+  strcpy(wp_new->expression, e);
+  wp_new->result = expr(e,success);
   if(!*success) {
     printf("calculate error\n");
     return;
   }
   *success = false;
-  new->next = NULL;
+  wp_new->next = NULL;
   if(head == NULL){
-    //printf("head is empty\n");
-    head = new;
+    head = wp_new;
   }
   else {
-    //printf("head is not empty\n");
-    new->next = head;
-    head = new;
+    wp_new->next = head;
+    head = wp_new;
   }
-  printf("已添加监视点%s\t0x%08x\n", e, new->result);
+  printf("已添加监视点%s\t0x%08x\n", e, wp_new->result);
 }
 
 void free_wp(int NO) {
@@ -130,7 +112,6 @@ int watchpoint_exec(int *sign) {
   for(int i = 0; i < NR_WP; i++) {
     if(wp_pool[i].enable) {
       bool success = true;
-      //printf("%s\n", wp_pool[i].expression);
       int temp = 0;
       if(strcmp(wp_pool[i].expression, "\0") == 0) {
         *sign = 3;
@@ -140,8 +121,6 @@ int watchpoint_exec(int *sign) {
         temp = expr(wp_pool[i].expression, &success);
       }
       if(success) {
-        //printf("参加了判断\n");
-        //printf("%d  %d\n", temp, wp_pool[i].result);
         if(temp!=wp_pool[i].result) {
           *sign = 1;
           return i;
@@ -155,7 +134,3 @@ int watchpoint_exec(int *sign) {
   }
   return 0;
 }
-
-
-/* TODO: Implement the functionality of watchpoint */
-

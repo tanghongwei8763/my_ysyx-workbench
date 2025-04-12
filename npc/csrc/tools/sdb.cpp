@@ -1,44 +1,39 @@
-/***************************************************************************************
-* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
-*
-* NEMU is licensed under Mulan PSL v2.
-* You can use this software according to the terms and conditions of the Mulan PSL v2.
-* You may obtain a copy of Mulan PSL v2 at:
-*          http://license.coscl.org.cn/MulanPSL2
-*
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
-* EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
-* MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
-*
-* See the Mulan PSL v2 for more details.
-***************************************************************************************/
-
-#include <isa.h>
-#include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include "sdb.h"
-#include "memory/vaddr.h"
+#include "../include/commen.h"
+#include "../include/monitor.h"
+#include "../include/reg.h"
+#include "../include/memory.h"
 
 static int is_batch_mode = false;
 
-void init_regex();
-void init_wp_pool();
+#define MAX_LINE_LENGTH 256
 
-/* We use the `readline' library to provide more flexibility to read from stdin. */
+char *readline(const char *prompt) {
+    static char line[MAX_LINE_LENGTH];
+
+    printf("%s", prompt);
+    if (fgets(line, MAX_LINE_LENGTH, stdin) == NULL) {
+        return NULL;
+    }
+
+    size_t len = strlen(line);
+    if (len > 0 && line[len - 1] == '\n') {
+        line[len - 1] = '\0';
+    }
+
+    return line;
+}
+
 static char* rl_gets() {
   static char *line_read = NULL;
 
   if (line_read) {
-    free(line_read);
+    //free(line_read);
     line_read = NULL;
   }
 
-  line_read = readline("(nemu) ");
-
-  if (line_read && *line_read) {
-    add_history(line_read);
-  }
+  line_read = readline("(npc) ");
 
   return line_read;
 }
@@ -60,44 +55,8 @@ static int cmd_w(char *args) {			//添加监视点
       return 1;
     }
   strcpy(e, args);
-  //printf("success1:%d\n", success1);
   new_wp(e, &success1);
-  //printf("success1:%d\n", success1);
   free(e);
-  return 0;
-}
-
-static int cmd_ext(char *args) {
-  FILE *file = fopen("/home/tanghongwei/ysyx-workbench/nemu/tools/gen-expr/build/input", "r");
-  if(file == NULL) {
-    perror("Error opening file");
-    return -1;
-  }
-  int goalresult;
-  char e[2048];
-  char line[2058];
-  int pass = 0, all = 0;
-  while (fgets(line, 2058, file)!= NULL) {
-    char *token = strtok(line, " ");
-    if (token!= NULL) {
-      goalresult = atoi(token);
-      token = strtok(NULL, "\n");
-      if (token!= NULL) {
-        strcpy(e, token);
-        bool s = true;
-        int result = expr(e, &s);
-        all++;
-        if(result == goalresult)
-          pass++;
-      }
-      else
-        printf("Invalid line format: %s", line);
-    }
-    else
-      printf("Invalid line format: %s", line);
-  }
-  printf("pass:%d all:%d\n",pass,all);
-  fclose(file);
   return 0;
 }
 
@@ -140,7 +99,7 @@ static int cmd_x(char *args) {			//扫描内存
   vaddr_t data = result;			//使用 vaddr中对传入参数的定义
   for (int i = 0; i < k; i++){
     printf("0x%08x\t", data+4*i);
-    uint32_t temp = vaddr_read(data+i*4,4);
+    uint32_t temp = pmem_read(data+i*4,4);
     for(int j = 0; j < 4; j++){
       printf("0x%02x ", temp >> (8*(3-j)) & 0xff);
     }
@@ -156,7 +115,7 @@ static int cmd_info(char *args) {		//打印寄存器，监视点
   else if (args[0] == 'w')
     watchpoint_printf();
   else
-    printf("输入有误，需要帮助可以键入‘help’");
+    printf("输入有误,需要帮助可以键入'help'\n");
   return 0;
 }
 
@@ -178,9 +137,8 @@ static int cmd_c(char *args) {
   return 0;
 }
 
-
 static int cmd_q(char *args) {
-  nemu_state.state = NEMU_QUIT;
+  exit(0);
   return -1;
 }
 
@@ -195,19 +153,14 @@ static struct {
   { "c", "继续执行程序", cmd_c },
   { "q", "退出 NEMU", cmd_q },
   { "si", "让程序单步执行[N]条指令后暂停执行,N缺省为1",cmd_si },
-  { "info", "打印寄存器状态[r]打印监视点信息[w]", cmd_info },
+  { "info", "打印寄存器状态[r]", cmd_info },
   { "x", "求出表达式EXPR的值, 将结果作为起始内存地址, 以十六进制形式输出连续的N个4字节", cmd_x },
   { "p", "求出表达式EXPR的值", cmd_p },
   { "w", "当表达式EXPR的值发生变化时, 暂停程序执行", cmd_w },
-  { "d", "删除序号为[N]的监视点", cmd_d },
-  { "ext", "测试expr的功能", cmd_ext}
-  /*
-  */
-  /* TODO: Add more commands */
-
+  { "d", "删除序号为[N]的监视点", cmd_d }
 };
 
-#define NR_CMD ARRLEN(cmd_table)
+#define NR_CMD sizeof(cmd_table) / sizeof(cmd_table[0])
 
 static int cmd_help(char *args) {
   /* extract the first argument */
@@ -237,6 +190,7 @@ void sdb_set_batch_mode() {
 }
 
 void sdb_mainloop() {
+  
   if (is_batch_mode) {
     cmd_c(NULL);
     return;
@@ -245,22 +199,13 @@ void sdb_mainloop() {
   for (char *str; (str = rl_gets()) != NULL; ) {
     char *str_end = str + strlen(str);
 
-    /* extract the first token as the command */
     char *cmd = strtok(str, " ");
     if (cmd == NULL) { continue; }
 
-    /* treat the remaining string as the arguments,
-     * which may need further parsing
-     */
     char *args = cmd + strlen(cmd) + 1;
     if (args >= str_end) {
       args = NULL;
     }
-
-#ifdef CONFIG_DEVICE
-    extern void sdl_clear_event_queue();
-    sdl_clear_event_queue();
-#endif
 
     int i;
     for (i = 0; i < NR_CMD; i ++) {
@@ -270,14 +215,6 @@ void sdb_mainloop() {
       }
     }
 
-    if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
+    if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); printf("type 'help' for some information\n"); }
   }
-}
-
-void init_sdb() {
-  /* Compile the regular expressions. */
-  init_regex();
-
-  /* Initialize the watchpoint pool. */
-  init_wp_pool();
 }

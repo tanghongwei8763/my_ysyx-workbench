@@ -2,7 +2,7 @@
 # DESCRIPTION: Verilator output: Make include file with class lists
 #
 # This file lists generated Verilated files, for including in higher level makefiles.
-# See Vexample.mk for the caller.
+# See Vysyx_25020037_cpu.mk for the caller.
 
 ### Switches...
 # C11 constructs required?  0/1 (always on now)
@@ -23,27 +23,30 @@ VM_TRACE_FST = 0
 ### Object file lists...
 # Generated module classes, fast-path, compile with highest optimization
 VM_CLASSES_FAST += \
-	Vexample \
-	Vexample___024root__DepSet_h625e39dc__0 \
-	Vexample___024root__DepSet_hcb5acca5__0 \
+	Vysyx_25020037_cpu \
+	Vysyx_25020037_cpu___024root__DepSet_hc84ee511__0 \
+	Vysyx_25020037_cpu___024root__DepSet_ha8f0ec68__0 \
 
 # Generated module classes, non-fast-path, compile with low/medium optimization
 VM_CLASSES_SLOW += \
-	Vexample___024root__Slow \
-	Vexample___024root__DepSet_hcb5acca5__0__Slow \
+	Vysyx_25020037_cpu___024root__Slow \
+	Vysyx_25020037_cpu___024root__DepSet_hc84ee511__0__Slow \
+	Vysyx_25020037_cpu___024root__DepSet_ha8f0ec68__0__Slow \
 
 # Generated support classes, fast-path, compile with highest optimization
 VM_SUPPORT_FAST += \
-	Vexample__Trace__0 \
+	Vysyx_25020037_cpu__Dpi \
+	Vysyx_25020037_cpu__Trace__0 \
 
 # Generated support classes, non-fast-path, compile with low/medium optimization
 VM_SUPPORT_SLOW += \
-	Vexample__Syms \
-	Vexample__Trace__0__Slow \
+	Vysyx_25020037_cpu__Syms \
+	Vysyx_25020037_cpu__Trace__0__Slow \
 
 # Global classes, need linked once per executable, fast-path, compile with highest optimization
 VM_GLOBAL_FAST += \
 	verilated \
+	verilated_dpi \
 	verilated_vcd_c \
 	verilated_threads \
 

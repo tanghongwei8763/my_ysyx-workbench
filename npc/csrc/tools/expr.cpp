@@ -1,52 +1,25 @@
-/***************************************************************************************
-* Copyright (c) 2014-2024 Zihao Yu, Nanjing University
-*
-* NEMU is licensed under Mulan PSL v2.
-* You can use this software according to the terms and conditions of the Mulan PSL v2.
-* You may obtain a copy of Mulan PSL v2 at:
-*          http://license.coscl.org.cn/MulanPSL2
-*
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
-* EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
-* MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
-*
-* See the Mulan PSL v2 for more details.
-***************************************************************************************/
-
-#include <isa.h>
-#include <cpu/cpu.h>
-#include "memory/vaddr.h"
-/* We use the POSIX regex functions to process regular expressions.
- * Type 'man regex' for more information about POSIX regex functions.
- */
+#include <iostream>
+#include <cstddef>
+#include <cstring>
 #include <regex.h>
-
-char *tempregs[] = {
-  "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
-  "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
-  "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
-  "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
-};
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include "../include/commen.h"
+#include "../include/monitor.h"
+#include "../include/memory.h"
 
 enum {
   TK_NOTYPE = 256, TK_DOLLAR, TK_HEX,
   TK_EQ, TK_NEQ, TK_AND, TK_P,
   TK_NUM, TK_LPAREN, TK_RPAREN
-  
-  /* TODO: Add more token types */
-
 };
 
 static struct rule {
   const char *regex;
   int token_type;
-  //int pre;
 } rules[] = {
-
-  /* TODO: Add more rules.
-   * Pay attention to the precedence level of different rules.
-   */
-
   {" +", TK_NOTYPE},    			// spaces
   {"[0-9]+", TK_NUM},				// number
   {"\\+", '+'},         			// plus
@@ -62,13 +35,10 @@ static struct rule {
   {"x", TK_HEX},                   		// hex
 };
 
-#define NR_REGEX ARRLEN(rules)
+#define NR_REGEX sizeof(rules)/sizeof(rules[0])
 
 static regex_t re[NR_REGEX] = {};
 
-/* Rules are used for many times.
- * Therefore we compile them only once before any usage.
- */
 void init_regex() {
   int i;
   char error_msg[128];
@@ -78,7 +48,7 @@ void init_regex() {
     ret = regcomp(&re[i], rules[i].regex, REG_EXTENDED);
     if (ret != 0) {
       regerror(ret, &re[i], error_msg, 128);
-      panic("regex compilation failed: %s\n%s", error_msg, rules[i].regex);
+      printf("regex compilation failed: %s\n%s", error_msg, rules[i].regex);
     }
   }
 }
@@ -93,6 +63,9 @@ static Token tokens[3200] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
+
+  init_regex();
+
   int position = 0, pos = 0;
   int i;
   regmatch_t pmatch;
@@ -105,19 +78,9 @@ static bool make_token(char *e) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
         //char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
-        /*
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            i, rules[i].regex, position, substr_len, substr_len, substr_start);
-        */
-        //printf("p+%d\n", substr_len);
-	//printf("%d\n", position);
+        
         position += substr_len;
 
-        /* TODO: Now a new token is recognized with rules[i]. Add codes
-         * to record the token in the array `tokens'. For certain types
-         * of tokens, some extra actions should be performed.
-         */
-    	//printf("当前判断rule[%d]\n", i);
         switch (rules[i].token_type) {
           case TK_NOTYPE: {		//空格
             pos += substr_len;
@@ -146,40 +109,24 @@ static bool make_token(char *e) {
               tokens[i].type = TK_P;
               tokens[i].pri = 4;		//成为指针后优先级变高
               int j = 0;
-	      pos++;
-        int is_reg = 0;
-	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z') || (e[pos]=='$')) {
-          if((e[pos]=='$')) is_reg = 1;
-	        tokens[nr_token].str[j++] = e[pos++];
-	        position++;
-	      }
-	      vaddr_t data;
-        if(is_reg) {
-          for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
-	        //printf("%s ? %s\n", tokens[nr_token].str+1, tempregs[reg]);
-	          if(strcmp(tokens[nr_token].str+1, tempregs[reg]) == 0) {
-	            data = cpu.gpr[reg];
+	            pos++;
+	            while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
+	              tokens[nr_token].str[j++] = e[pos++];
+	              position++;
+	            }
+	            vaddr_t data;
+	            sscanf(tokens[nr_token].str, "%x", &data);
+	            uint32_t dtemp = pmem_read(data,4);
+	            char stemp[32];
+	            snprintf(stemp, sizeof(stemp), "%d", dtemp);
+	            int k = 0;
+	            while(k < strlen(stemp)) {
+	              tokens[nr_token].str[k] = stemp[k];
+	              k++;
+	            }
+	            tokens[nr_token].str[k] = '\0';
+	            nr_token++;
 	            break;
-	          }
-            if(strcmp(tokens[nr_token].str+1, "pc") == 0)	{	//单独的pc寄存器
-	            data = cpu.pc;
-	          }
-	        }
-        }
-        else 
-	        sscanf(tokens[nr_token].str, "%x", &data);
-        //printf("%08x\n", data);
-	      uint32_t dtemp = vaddr_read(data,4);
-	      char stemp[32];
-	      snprintf(stemp, sizeof(stemp), "%d", dtemp);
-	      int k = 0;
-	      while(k < strlen(stemp)) {
-	        tokens[nr_token].str[k] = stemp[k];
-	        k++;
-	      }
-	      tokens[nr_token].str[k] = '\0';
-	      nr_token++;
-	      break;
             }
             else{
               tokens[nr_token].type = '*';
@@ -191,86 +138,86 @@ static bool make_token(char *e) {
           }
           case '/': tokens[nr_token].type = '/';tokens[nr_token].pri = 2;nr_token++;pos++;break;
           case TK_LPAREN: tokens[nr_token].type = TK_LPAREN;tokens[nr_token].pri = 2;nr_token++;pos++;break;
-	  case TK_RPAREN: tokens[nr_token].type = TK_RPAREN;tokens[nr_token].pri = 0;nr_token++;pos++;break;
-	  case TK_EQ: tokens[nr_token].type = TK_EQ;tokens[nr_token].pri = 3;nr_token++;pos+=2;break;
-	  case TK_NEQ: tokens[nr_token].type = TK_NEQ;tokens[nr_token].pri = 3;nr_token++;pos+=2;break;
-	  case TK_AND: tokens[nr_token].type = TK_AND;tokens[nr_token].pri = 3;nr_token++;pos+=2;break;
-	  case TK_DOLLAR: {
-	    tokens[nr_token].type = TK_DOLLAR;
-	    tokens[nr_token].pri = 0;
-	    int j = 0;
-	    pos++;
-	    memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str));	
-	    while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
-	      tokens[nr_token].str[j++] = e[pos++];
-	    }
-	    //printf("%s\n", tokens[nr_token].str);
-	    int dtemp;
-	    int judge = 0;
-	    if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
-	      dtemp = cpu.pc;
-	      judge = 1;
-	    }
-	    else {
-	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
-	        //printf("%s ? %s\n", tokens[nr_token].str, tempregs[reg]);
-	        if(strcmp(tokens[nr_token].str, tempregs[reg]) == 0) {
-	          dtemp = cpu.gpr[reg];
-	          judge = 1;
+	        case TK_RPAREN: tokens[nr_token].type = TK_RPAREN;tokens[nr_token].pri = 0;nr_token++;pos++;break;
+	        case TK_EQ: tokens[nr_token].type = TK_EQ;tokens[nr_token].pri = 3;nr_token++;pos+=2;break;
+	        case TK_NEQ: tokens[nr_token].type = TK_NEQ;tokens[nr_token].pri = 3;nr_token++;pos+=2;break;
+	        case TK_AND: tokens[nr_token].type = TK_AND;tokens[nr_token].pri = 3;nr_token++;pos+=2;break;
+	        case TK_DOLLAR: {
+	          tokens[nr_token].type = TK_DOLLAR;
+	          tokens[nr_token].pri = 0;
+	          int j = 0;
+	          pos++;
+	          memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str));	
+	          while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
+	            tokens[nr_token].str[j++] = e[pos++];
+	          }
+	          //printf("%s\n", tokens[nr_token].str);
+	          int dtemp;
+	          int judge = 0;
+	          if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
+	            dtemp = dut.pc;
+	            judge = 1;
+	          }
+	          else {
+	            for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
+	              //printf("%s ? %s\n", tokens[nr_token].str, tempregs[reg]);
+	              if(strcmp(tokens[nr_token].str, tempregs[reg]) == 0) {
+	                dtemp = dut.regs[i];
+	                judge = 1;
+	                break;
+	              }
+	            }
+	          }
+	          //printf("%d\n", judge);
+	          if(!judge) {
+	            printf("输入寄存器名称有误\n");
+	            assert(0);
+	          }
+
+            char stemp[32];
+	          snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
+	          int k = 0;
+	          while(k < strlen(stemp)) {
+	            tokens[nr_token].str[k] = stemp[k];	//重新存入str
+	            //printf("%d  %c <= %c\n", k, tokens[nr_token].str[k], stemp[k]);
+	            k++;
+	          }
+	          tokens[nr_token].str[k] = '\0';
+	          nr_token++;
 	          break;
 	        }
-	      }
-	    }
-	    //printf("%d\n", judge);
-	    if(!judge) {
-	      printf("输入寄存器名称有误\n");
-	      assert(0);
-	    }
-	    
-	    char stemp[32];
-	    snprintf(stemp, sizeof(stemp), "%d", dtemp);//转化为字符串
-	    int k = 0;
-	    while(k < strlen(stemp)) {
-	      tokens[nr_token].str[k] = stemp[k];	//重新存入str
-	      //printf("%d  %c <= %c\n", k, tokens[nr_token].str[k], stemp[k]);
-	      k++;
-	    }
-	    tokens[nr_token].str[k] = '\0';
-	    nr_token++;
-	    break;
-	  }
-	  case TK_HEX: {
-	    //printf("识别为16进制\n");
-	    if(e[position-2] == '0') {
-	      pos += 1;
-	      memset(tokens[nr_token-1].str, '\0', sizeof(tokens[nr_token].str));
-	      int j = 0;
-	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
-	        tokens[nr_token-1].str[j++] = e[pos++];
-	        position++;
-	      }
-	      //printf("存入的16进制数:%s\n", tokens[nr_token-1].str);
-	      int dtemp = strtol(tokens[nr_token-1].str, NULL, 16);
-	      //printf("转化为10进制数:%d\n", dtemp);
-	      char stemp[32];
-	      snprintf(stemp, sizeof(stemp), "%d", dtemp);
-	      //printf("最终存入stemp:%s\n", stemp);
-	      int k = 0;
-	      while(k < strlen(stemp)) {
-	        tokens[nr_token-1].str[k] = stemp[k];
-	        k++;
-	      }
-	      tokens[nr_token].str[k] = '\0';
-	      break;
-	    }
-	    else {
-	      printf("no match at position(1) %d\n%s\n%*.s^\n", position, e, position, "");
+	        case TK_HEX: {
+	          //printf("识别为16进制\n");
+	          if(e[position-2] == '0') {
+	            pos += 1;
+	            memset(tokens[nr_token-1].str, '\0', sizeof(tokens[nr_token].str));
+	            int j = 0;
+	            while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='f') || (e[pos]>='A'&&e[pos]<='F')) {
+	              tokens[nr_token-1].str[j++] = e[pos++];
+	              position++;
+	            }
+	            //printf("存入的16进制数:%s\n", tokens[nr_token-1].str);
+	            int dtemp = strtol(tokens[nr_token-1].str, NULL, 16);
+	            //printf("转化为10进制数:%d\n", dtemp);
+	            char stemp[32];
+	            snprintf(stemp, sizeof(stemp), "%d", dtemp);
+	            //printf("最终存入stemp:%s\n", stemp);
+	            int k = 0;
+	            while(k < strlen(stemp)) {
+	              tokens[nr_token-1].str[k] = stemp[k];
+	              k++;
+	            }
+	            tokens[nr_token].str[k] = '\0';
+	            break;
+	          }
+	          else {
+	            printf("no match at position(1) %d\n%s\n%*.s^\n", position, e, position, "");
               return false;
-	    }
-	  }
-          default: TODO();pos++;break;
+	          }
+	        }
+          default: pos++;break;
         }
-      break;
+        break;
       }
     }
    
@@ -279,11 +226,6 @@ static bool make_token(char *e) {
       return false;
     }
   }
-  /*
-  for(int ert = 0; ert < nr_token; ert++) {		//检测点
-    printf("%c\t%s\t%d\n", tokens[ert].type, tokens[ert].str, tokens[ert].pri);
-  }
-  */
   return true;
 }
 
@@ -319,18 +261,7 @@ int check_parentheses(int p, int q)	//需要实现判断括号匹配度和打开
   }
   else if (tokens[p].type != TK_LPAREN || tokens[q].type != TK_RPAREN)
     return 2;
-  /*
-  int stack = 0;
-    for (int i = p+1; i < q; i++) {
-      if (tokens[i].type == TK_LPAREN) 
-        stack++;
-      else if (tokens[i].type == TK_RPAREN) {
-        stack--;
-      }
-    }
-  if(stack<0)
-    return 0;	//括号部匹配
-  */
+    
   return 2;
 }
   
@@ -453,10 +384,5 @@ word_t expr(char *e, bool *success) {
   *success = true;
   
   return eval(0, nr_token-1);
-
-  // TODO: Insert codes to evaluate the expression.
-  //TODO();
-
-  //return 0;
 }
 
