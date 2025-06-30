@@ -8,23 +8,47 @@
 #include "Vysyx_25020037_cpu__Syms.h"
 #include "Vysyx_25020037_cpu___024root.h"
 
-extern "C" int pmem_read(int addr, int len);
+extern "C" void call_func(int pc, int dnpc);
 
-VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ &pmem_read__Vfuncrtn) {
+VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__call_func_TOP(IData/*31:0*/ pc, IData/*31:0*/ dnpc) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__call_func_TOP\n"); );
+    // Body
+    int pc__Vcvt;
+    for (size_t pc__Vidx = 0; pc__Vidx < 1; ++pc__Vidx) pc__Vcvt = pc;
+    int dnpc__Vcvt;
+    for (size_t dnpc__Vidx = 0; dnpc__Vidx < 1; ++dnpc__Vidx) dnpc__Vcvt = dnpc;
+    call_func(pc__Vcvt, dnpc__Vcvt);
+}
+
+extern "C" void ret_func(int pc);
+
+VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ret_func_TOP(IData/*31:0*/ pc) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ret_func_TOP\n"); );
+    // Body
+    int pc__Vcvt;
+    for (size_t pc__Vidx = 0; pc__Vidx < 1; ++pc__Vidx) pc__Vcvt = pc;
+    ret_func(pc__Vcvt);
+}
+
+extern "C" int pmem_read(int addr, int len, int trace_on);
+
+VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ trace_on, IData/*31:0*/ &pmem_read__Vfuncrtn) {
     VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read_TOP\n"); );
     // Body
     int addr__Vcvt;
     for (size_t addr__Vidx = 0; addr__Vidx < 1; ++addr__Vidx) addr__Vcvt = addr;
     int len__Vcvt;
     for (size_t len__Vidx = 0; len__Vidx < 1; ++len__Vidx) len__Vcvt = len;
+    int trace_on__Vcvt;
+    for (size_t trace_on__Vidx = 0; trace_on__Vidx < 1; ++trace_on__Vidx) trace_on__Vcvt = trace_on;
     int pmem_read__Vfuncrtn__Vcvt;
-    pmem_read__Vfuncrtn__Vcvt = pmem_read(addr__Vcvt, len__Vcvt);
+    pmem_read__Vfuncrtn__Vcvt = pmem_read(addr__Vcvt, len__Vcvt, trace_on__Vcvt);
     pmem_read__Vfuncrtn = pmem_read__Vfuncrtn__Vcvt;
 }
 
-extern "C" void pmem_write(int addr, int len, int data);
+extern "C" void pmem_write(int addr, int len, int data, int trace_on);
 
-VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__lsu_cpu__DOT__pmem_write_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ data) {
+VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__lsu_cpu__DOT__pmem_write_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ data, IData/*31:0*/ trace_on) {
     VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__lsu_cpu__DOT__pmem_write_TOP\n"); );
     // Body
     int addr__Vcvt;
@@ -33,15 +57,19 @@ VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu_
     for (size_t len__Vidx = 0; len__Vidx < 1; ++len__Vidx) len__Vcvt = len;
     int data__Vcvt;
     for (size_t data__Vidx = 0; data__Vidx < 1; ++data__Vidx) data__Vcvt = data;
-    pmem_write(addr__Vcvt, len__Vcvt, data__Vcvt);
+    int trace_on__Vcvt;
+    for (size_t trace_on__Vidx = 0; trace_on__Vidx < 1; ++trace_on__Vidx) trace_on__Vcvt = trace_on;
+    pmem_write(addr__Vcvt, len__Vcvt, data__Vcvt, trace_on__Vcvt);
 }
 
-extern "C" void hit();
+extern "C" void hit(int inst_not_realize);
 
-VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__exu_cpu__DOT__hit_TOP() {
+VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__exu_cpu__DOT__hit_TOP(IData/*31:0*/ inst_not_realize) {
     VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__exu_cpu__DOT__hit_TOP\n"); );
     // Body
-    hit();
+    int inst_not_realize__Vcvt;
+    for (size_t inst_not_realize__Vidx = 0; inst_not_realize__Vidx < 1; ++inst_not_realize__Vidx) inst_not_realize__Vcvt = inst_not_realize;
+    hit(inst_not_realize__Vcvt);
 }
 
 #ifdef VL_DEBUG

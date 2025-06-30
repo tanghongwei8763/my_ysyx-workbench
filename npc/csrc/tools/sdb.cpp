@@ -99,7 +99,7 @@ static int cmd_x(char *args) {			//扫描内存
   vaddr_t data = result;			//使用 vaddr中对传入参数的定义
   for (int i = 0; i < k; i++){
     printf("0x%08x\t", data+4*i);
-    uint32_t temp = pmem_read(data+i*4,4);
+    uint32_t temp = pmem_read(data+i*4,4,0);
     for(int j = 0; j < 4; j++){
       printf("0x%02x ", temp >> (8*(3-j)) & 0xff);
     }
@@ -138,7 +138,7 @@ static int cmd_c(char *args) {
 }
 
 static int cmd_q(char *args) {
-  exit(0);
+  NPC_STATE = NPC_QUIT;
   return -1;
 }
 

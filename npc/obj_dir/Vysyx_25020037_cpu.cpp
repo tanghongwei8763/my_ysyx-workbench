@@ -16,6 +16,10 @@ Vysyx_25020037_cpu::Vysyx_25020037_cpu(VerilatedContext* _vcontextp__, const cha
     , rst{vlSymsp->TOP.rst}
     , inst{vlSymsp->TOP.inst}
     , pc{vlSymsp->TOP.pc}
+    , mtvec{vlSymsp->TOP.mtvec}
+    , mepc{vlSymsp->TOP.mepc}
+    , mstatus{vlSymsp->TOP.mstatus}
+    , mcause{vlSymsp->TOP.mcause}
     , regs{vlSymsp->TOP.regs}
     , rootp{&(vlSymsp->TOP)}
 {

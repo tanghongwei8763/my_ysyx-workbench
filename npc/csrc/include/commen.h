@@ -15,13 +15,9 @@
 
 enum {
     NPC_END, NPC_RUNING, 
-    NPC_STOP, NPC_ABORT
+    NPC_STOP, NPC_ABORT,NPC_QUIT
 };
 
-#define RESET_VECTOR 0x80000000
-#define CONFIG_MBASE 0x80000000
-#define CONFIG_MSIZE 0x80000000
-#define PG_ALIGN __attribute((aligned(4096)))
 typedef uint32_t paddr_t;
 typedef uint32_t word_t;
 typedef uint32_t vaddr_t;
@@ -38,7 +34,7 @@ extern "C" {
 void single_cycle();
 void sdb_mainloop();
 void cpu_exec(int n);
-void hit();
+void hit(int inst_not_realize);
 void finish();
 
 #ifdef __cplusplus

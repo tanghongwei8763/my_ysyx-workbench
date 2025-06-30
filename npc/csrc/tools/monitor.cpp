@@ -10,12 +10,11 @@ void init_difftest(char *ref_so_file, long img_size, int port);
 
 
 static void welcome() {
-  if(CONFIG_ITRACE) printf("\x1B[34mIf trace is enabled, a log file will be generated "
+  if(CONFIG_ITRACE) printf("\n\x1B[34mIf trace is enabled, a log file will be generated "
         "to record the trace. This may lead to a large log file. "
-        "If it is not necessary, you can disable it in menuconfig\n");
+        "If it is not necessary, you can disable it in switch.h\n");
   printf("Welcome to \x1B[33m\x1B[41mriscv32e\x1B[0m-NPC!\n");
   printf("For help, type \"help\"\n");
-  printf("Exercise: Please remove me in the source code and compile NPC again.\n");
 }
 
 #define no_argument 0
@@ -96,7 +95,9 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Initialize differential testing. */
   init_difftest(diff_so_file, img_size, difftest_port);
-
+  
+  /* Initialize the device */
+  init_device();
 
   welcome();
 }

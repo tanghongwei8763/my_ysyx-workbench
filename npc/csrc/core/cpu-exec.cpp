@@ -33,7 +33,7 @@ void cpu_exec(int n){
         if(n < 0){
             while(true){
                 iringbuf(dut.pc, dut.inst);
-                if(NPC_STATE == NPC_END){
+                if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
                     finish();
                     break;
                 }
@@ -55,7 +55,7 @@ void cpu_exec(int n){
                     NPC_STATE = NPC_RUNING;
                     break;
                 }
-                else if(NPC_STATE == NPC_END) {
+                else if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT) {
                     finish();
                     break;
                 }

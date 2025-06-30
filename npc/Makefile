@@ -7,7 +7,7 @@ IMG ?=
 
 SIMULATOR = ./obj_dir/Vysyx_25020037_cpu
 
-VERILATOR_FLAGS += -Wall --trace -cc
+VERILATOR_FLAGS += --trace -cc --top-module ysyx_25020037_cpu
 INCLUDES = -I./csrc/include
 VERILATOR_FLAGS += $(INCLUDES)
 
@@ -15,6 +15,7 @@ CORE_SRC = $(wildcard ./csrc/core/*.cpp)
 MEMORY_SRC = $(wildcard ./csrc/memory/*.cpp)
 TOOLS_SRC = $(wildcard ./csrc/tools/*.cpp)
 VSRC = $(wildcard ./vsrc/*.v)
+VSRC += $(wildcard ./vsrc/tools/*.v)
 VERILATOR_EXE_FLAG = --exe
 
 VERILATOR_INPUT = $(VSRC) $(VERILATOR_EXE_FLAG) $(CORE_SRC) $(MEMORY_SRC) $(TOOLS_SRC)

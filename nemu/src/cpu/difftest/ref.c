@@ -18,6 +18,14 @@
 #include <difftest-def.h>
 #include <memory/paddr.h>
 
+typedef struct diff_context_t {
+  uint32_t gpr[32];
+  uint32_t pc;
+  uint32_t mtvec;
+  uint32_t mepc;
+  uint32_t mstatus;
+  uint32_t mcause;
+}diff_context_t;
 
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
   if(direction == DIFFTEST_TO_REF) {
@@ -32,18 +40,26 @@ __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction)
 }
 
 __EXPORT void difftest_regcpy(void *dut, bool direction) {
-  uint32_t *dut_temp = (uint32_t *)dut;
+  diff_context_t* ctx = (diff_context_t *)dut;
   if(direction == DIFFTEST_TO_REF) {
     for(int i = 0; i < 32; i++) {
-      cpu.gpr[i] = *(dut_temp + i);
+      cpu.gpr[i] = ctx->gpr[i];
     }
-    cpu.pc = *(dut_temp + 32);
-  } else {
-    // assert(0);
+    cpu.pc           = ctx->pc;
+    cpu.csrs.mtvec   = ctx->mtvec;
+    cpu.csrs.mepc    = ctx->mepc;
+    cpu.csrs.mstatus = ctx->mstatus;
+    cpu.csrs.mcause  = ctx->mcause;
+  } 
+  else {
     for(int i = 0; i < 32; i++) {
-      *(dut_temp + i) = cpu.gpr[i];
+      ctx->gpr[i] = cpu.gpr[i];
     }
-    *(dut_temp + 32) = cpu.pc;
+    ctx->pc      = cpu.pc;
+    ctx->mtvec   = cpu.csrs.mtvec; 
+    ctx->mepc    = cpu.csrs.mepc;
+    ctx->mstatus = cpu.csrs.mstatus;
+    ctx->mcause  = cpu.csrs.mcause;
   }
 }
 

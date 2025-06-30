@@ -30,6 +30,10 @@ class Vysyx_25020037_cpu VL_NOT_FINAL : public VerilatedModel {
     VL_IN8(&rst,0,0);
     VL_OUT(&inst,31,0);
     VL_OUT(&pc,31,0);
+    VL_OUT(&mtvec,31,0);
+    VL_OUT(&mepc,31,0);
+    VL_OUT(&mstatus,31,0);
+    VL_OUT(&mcause,31,0);
     VL_OUT((&regs)[32],31,0);
 
     // CELLS

@@ -6,6 +6,7 @@
 #include "../include/monitor.h"
 #include "../include/reg.h"
 #include "../include/trace.h"
+#include "../include/switch.h"
 
 // 定义全局变量
 VerilatedContext* contextp = nullptr;
@@ -22,51 +23,62 @@ const char *tempregs[] = {
 };
 
 extern "C" {
-    void hit() {
-        NPC_STATE = NPC_END;
+    void hit(int inst_not_realize) {
+        if(inst_not_realize)
+            NPC_STATE = NPC_ABORT;
+        else
+            NPC_STATE = NPC_END;
     }
 }
 
+int is_exit_status_bad() {
+  int good = (NPC_STATE == NPC_END) ||
+             (NPC_STATE == NPC_QUIT);
+  return !good;
+}
+
 void finish(){
+#ifdef CONFIG_WAVE
     tfp->dump(contextp->time());
     contextp->timeInc(1);
+    tfp->close();
+    delete tfp;
+    delete contextp;
+#endif
 
     /*
     printf("\033[1m\033[32mHIT GOOD TRAP\033[37m at pc=0x%08x\n",  dut.pc);
     return;
     */
 
-    if(dut.regs[10]) {
+    if (NPC_STATE == NPC_ABORT) {
         iringbuf_printf();
-        printf("\033[1m\033[31mHIT BAD TRAP\033[37m at pc=0x%08x\n",  dut.pc);
-        return;
+        printf("\033[1;34mnpc:\033[1m\033[31mHIT ABORT TRAP\033[37m at pc=0x%08x\n",  dut.pc);
     }
-    else if (NPC_STATE == NPC_ABORT) {
-        iringbuf_printf();
-        printf("\033[1m\033[31mHIT ABORT TRAP\033[37m at pc=0x%08x\n",  dut.pc);
-        return;
+    else if(dut.regs[10]) {
+        printf("\033[1;34mnpc:\033[1m\033[31mHIT BAD TRAP\033[37m at pc=0x%08x\n",  dut.pc);
     }
     else{
-        printf("\033[1m\033[32mHIT GOOD TRAP\033[37m at pc=0x%08x\n",  dut.pc);
-        return;
+        printf("\033[1;34mnpc:\033[1m\033[32mHIT GOOD TRAP\033[37m at pc=0x%08x\n",  dut.pc);
     }
 
-    tfp->close();
-    delete tfp;
-    delete contextp;
+    return;
 }
 
 // 一周期最小执行单元
 void single_cycle() {
     dut.clk=1;
     dut.eval();
+#ifdef CONFIG_WAVE
     tfp->dump(contextp->time());
     contextp->timeInc(1);
-
+#endif
     dut.clk=0;
     dut.eval();
+#ifdef CONFIG_WAVE
     tfp->dump(contextp->time());
     contextp->timeInc(1);
+#endif
 }
 
 static void reset(int n) {
@@ -86,19 +98,18 @@ int main (int argc, char** argv) {
 
     contextp = new VerilatedContext;
     contextp->commandArgs(argc, argv);
-
+#ifdef CONFIG_WAVE
     tfp = new VerilatedVcdC;
     dut.trace(tfp, 99);
     tfp->open("ysyx_25020037_cpu.vcd");
-
+#endif
+    reset(10);
+    
     init_monitor(argc, argv);
 
-    reset(10);
     NPC_STATE = true;
-    while(true){
-        sdb_mainloop();
-        //single_cycle();
-    }
+
+    sdb_mainloop();
     
-    return 0;
+    return is_exit_status_bad();
 }    

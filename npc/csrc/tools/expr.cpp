@@ -116,7 +116,7 @@ static bool make_token(char *e) {
 	            }
 	            vaddr_t data;
 	            sscanf(tokens[nr_token].str, "%x", &data);
-	            uint32_t dtemp = pmem_read(data,4);
+	            uint32_t dtemp = pmem_read(data, 4, 0);
 	            char stemp[32];
 	            snprintf(stemp, sizeof(stemp), "%d", dtemp);
 	            int k = 0;

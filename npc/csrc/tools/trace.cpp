@@ -140,16 +140,12 @@ void parse_elf(char *elf_file)
 }
 
 int depth = 1;
-void call_func(uint32_t pc, uint32_t dnpc){
+extern "C" void call_func(uint32_t pc, uint32_t dnpc){
     int i = 0;
     while(i < func_sum){
         if(dnpc >= symbol[i].addr && dnpc < (symbol[i].addr + symbol[i].size)) break;
         i++;
     }
-    /*
-    printf("0x%08x:", pc);
-    printf("%*s", depth*2, " ");        //根据函数深度缩进
-    */
     printf("\033[37m0x%08x:", pc);
     for (int k = 0; k < depth; k++) {       //彩色缩进
         if (k % 7 == 0) printf("\033[31m |"); 
@@ -162,7 +158,7 @@ void call_func(uint32_t pc, uint32_t dnpc){
     depth++;
 }
 
-void ret_func(uint32_t pc){
+extern "C" void ret_func(uint32_t pc){
     int i = 0;
     for(; i < func_sum; i++){
         if(pc >= symbol[i].addr && pc < (symbol[i].addr + symbol[i].size)) break;

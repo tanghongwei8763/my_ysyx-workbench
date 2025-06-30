@@ -29,7 +29,7 @@ override ARGS += $(ARGS_DIFF)
 
 # Command to execute NEMU
 IMG ?=
-NEMU_EXEC := $(BINARY) $(ARGS) $(IMG)
+NEMU_EXEC := $(BINARY) $(ARGS) $(IMG)	#BINARY来自build创建的可执行文件本身
 
 run-env: $(BINARY) $(DIFF_REF_SO)
 
@@ -40,7 +40,8 @@ run: run-env
 gdb: run-env
 	$(call git_commit, "gdb NEMU")
 	gdb -s $(BINARY) --args $(NEMU_EXEC)
-	
+
+# 代码统计与清理	
 count:
 	total_lines=$$(find -type f \( -name "*.c" -o -name "*.h" \) | xargs grep -v '^$$' | wc -l); \
 	echo "Total lines of.c and.h files: $${total_lines}"
@@ -51,4 +52,4 @@ $(clean-tools):
 clean-tools: $(clean-tools)
 clean-all: clean distclean clean-tools
 
-.PHONY: run gdb run-env clean-tools clean-all $(clean-tools)
+.PHONY: run gdb run-env clean-tools clean-all $(clean-tools)  # 说明那些是伪目标

@@ -14,13 +14,17 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include "../local-include/reg.h"
+#include "../include/isa-def.h"
 
 word_t isa_raise_intr(word_t NO, vaddr_t epc) {
-  /* TODO: Trigger an interrupt/exception with ``NO''.
-   * Then return the address of the interrupt/exception vector.
-   */
-
-  return 0;
+#ifdef CONFIG_ETRACE
+  printf("mepc = 0x%08x, mcause = 0x%08x, mstatus = 0x%08x\n", CSRs(MEPC), CSRs(MCAUSE), CSRs(MSTATUS));
+#endif
+  CSRs(MCAUSE) = NO;
+  CSRs(MEPC) = epc;
+  CSRs(MSTATUS) = 0x1800;
+  return CSRs(MTVEC);
 }
 
 word_t isa_query_intr() {
