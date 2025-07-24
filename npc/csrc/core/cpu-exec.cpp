@@ -69,6 +69,10 @@ void cpu_exec(int n){
 }
 
 static void exec_once() {
+    int last_pc = dut.pc;
+    do{
+        single_cycle();
+    } while (dut.pc == last_pc);
     single_cycle();
     trace_and_difftest();
 }

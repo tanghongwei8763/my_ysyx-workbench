@@ -1,36 +1,132 @@
+`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/ysyx_25020037_config.vh"
+
 module ysyx_25020037_lsu (
     input  wire         clk,
     input  wire         rst,
-    input  wire [31: 0] rlsu_addr,
-    input  wire [31: 0] rlsu_len,
-    input  wire [31: 0] wlsu_addr,
-    input  wire [31: 0] wlsu_len,
-    input  wire [31: 0] wlsu_data,
-    input  wire         rlsu_we,
-    input  wire         wlsu_we,
-    input  wire         bit_sext,
-    input  wire         half_sext,
-    output reg  [31: 0] rlsu_data
+    input  wire         exu_valid,
+    input  wire         wbu_ready,
+    output reg          lsu_ready,
+    output reg          lsu_valid,
+    input  wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
+    input  wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
+    output reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
+
+    output reg  [31:0] araddr,
+    output reg         arvalid,
+    input  wire        arready,
+
+    output reg [31:0]  awaddr,
+    output reg         awvalid,
+    input  wire        awready,
+    output reg  [31:0] wdata,
+
+    output reg  [3:0]  wstrb,
+    output reg         wvalid,
+    input  wire        wready,
+
+    input  wire  [1:0] bresp,
+    input  wire        bvalid,
+    output reg         bready,
+
+    input  wire [31:0] rdata,
+    input  wire [1:0]  rresp,
+    input  wire        rvalid,
+    output reg         rready
 );
-    import "DPI-C" function int pmem_read(input int addr, input int len, input int trace_on);
-    import "DPI-C" function void pmem_write(input int addr, input int len, int data, input int trace_on);
+    localparam IDLE    = 1'b0;
+    localparam BUSY    = 1'b1;
+    reg          state, next_state;
 
-    wire [31: 0] rlsu_temp_data;
-    wire [31: 0] sext_half_word;
-    wire [31: 0] sext_bit_word;
+    reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus_r;
 
-    always @(posedge clk) begin
-        if(~rst & wlsu_we) begin
-            pmem_write(wlsu_addr, wlsu_len, wlsu_data, {32{wlsu_we}});
+    function [3:0] generate_wstrb;
+        input [31:0] len;
+        begin
+            case (len)
+                32'd1: generate_wstrb = 4'b0001;
+                32'd2: generate_wstrb = 4'b0011;
+                default: generate_wstrb = 4'b1111;
+            endcase
+        end
+    endfunction
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            state <= IDLE;
+            lsu_ready <= 1'b1;
+            lsu_valid <= 1'b0;
+            araddr <= 32'h0;
+            arvalid <= 1'b0;
+            rready <= 1'b0;
+            awaddr <= 32'h0;
+            awvalid <= 1'b0;
+            wdata <= 32'h0;
+            wstrb <= 4'h0;
+            wvalid <= 1'b0;
+            bready <= 1'b0;
+        end else begin
+            state <= next_state;
+
+            case (state)
+                IDLE: begin
+                    if (lsu_ready & exu_valid) begin
+                        if (du_to_lu_bus[1]) begin
+                            lsu_ready <= 1'b0;
+                            araddr  <= eu_to_lu_bus[63:32];
+                            arvalid <= 1'b1;
+                            rready  <= 1'b0;
+                        end else if (du_to_lu_bus[0]) begin
+                            lsu_ready <= 1'b0;
+                            awaddr  <= eu_to_lu_bus[63:32];
+                            awvalid <= 1'b1;
+                        end else begin
+                            lsu_ready <= 1'b0;
+                        end
+                    end
+                    lsu_valid <= 1'b0;
+                    wvalid <= 1'b0;
+                end
+                BUSY: begin
+                    if (du_to_lu_bus[1]) begin
+                        if (arvalid && arready) begin
+                            arvalid <= 1'b0;
+                            rready <= 1'b1;
+                        end
+                        if (rvalid && rready && (rresp == 2'b00)) begin
+                            lu_to_wu_bus <= rdata;
+                            rready <= 1'b0;
+                            lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
+                        end
+                    end else if (du_to_lu_bus[0]) begin                            
+                        if (awvalid & wready) begin
+                            wdata   <= eu_to_lu_bus[31: 0];
+                            wstrb   <= du_to_lu_bus[ 5: 2];
+                            awvalid <= 1'b0;
+                            wvalid  <= 1'b1;
+                            bready  <= 1'b1;
+                        end
+                        if (bvalid & bready) begin
+                            bready <= 1'b0;
+                            lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
+                        end
+                    end else begin
+                        lu_to_wu_bus <= eu_to_lu_bus[63:32];
+                        lsu_valid <= 1'b1;
+                        lsu_ready <= 1'b1;
+                    end
+                end
+            endcase
         end
     end
 
-    assign rlsu_temp_data = (~rst & rlsu_we) ? {$unsigned(pmem_read(rlsu_addr, rlsu_len, {32{rlsu_we}}))} : 32'b0;
-
-    assign sext_half_word = {{16{rlsu_temp_data[15]}}, rlsu_temp_data[15:0]};
-    assign sext_bit_word  = {{24{rlsu_temp_data[ 7]}}, rlsu_temp_data[ 7:0]};
-    assign rlsu_data      = half_sext ? sext_half_word : 
-                            bit_sext  ? sext_bit_word  : 
-                            rlsu_temp_data;
+    always @(*) begin
+        case (state)
+            IDLE: next_state = (lsu_ready & exu_valid) ? BUSY : IDLE;        
+            BUSY: next_state = (lsu_valid & wbu_ready) ? IDLE : BUSY;    
+            default: next_state = IDLE;
+        endcase
+    end
 
 endmodule

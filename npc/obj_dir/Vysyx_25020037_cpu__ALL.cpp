@@ -5,6 +5,7 @@
 #include "Vysyx_25020037_cpu___024root__DepSet_ha8f0ec68__0.cpp"
 #include "Vysyx_25020037_cpu__Dpi.cpp"
 #include "Vysyx_25020037_cpu__Trace__0.cpp"
+#include "Vysyx_25020037_cpu__ConstPool_0.cpp"
 #include "Vysyx_25020037_cpu___024root__Slow.cpp"
 #include "Vysyx_25020037_cpu___024root__DepSet_hc84ee511__0__Slow.cpp"
 #include "Vysyx_25020037_cpu___024root__DepSet_ha8f0ec68__0__Slow.cpp"

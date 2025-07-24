@@ -1,38 +1,63 @@
+`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/ysyx_25020037_config.vh"
+
 module ysyx_25020037_idu (
+    input  wire         clk,
+    input  wire         rst,
+    input  wire [31: 0] pc,
     input  wire [31: 0] inst,
-    output wire [ 4: 0] rs1,
-    output wire [ 4: 0] rs2,
-    output wire [ 4: 0] rd,
-    output wire [31: 0] imm,
-    output wire [16: 0] alu_op,
-
-    output wire         gpr_we,
-    output wire         rlsu_we,
-    output wire         wlsu_we,
-    output wire         bit_sext,
-    output wire         half_sext,
-
-    output wire         rw_word_1,
-    output wire         rw_word_2,
-    output wire         rw_word_4,
-
-    output wire         src1_is_pc,
-    output wire         src2_is_imm,
-    output wire         is_pc_jump,
-    output wire         double_cal,
-    output wire         exec_is_end,
-    output wire         inst_not_realize,
-
-    output wire         csr_w_gpr_we,
-    output wire         csrrw_op,
-    output wire         csrrs_op,
-    output wire         ecall_en,
-    output wire         mret_en,
-    output wire         is_csr_op,
-
+    input  wire         ifu_rvalid,
+    input  wire         exu_ready,
+    output reg          idu_valid,
+    output reg          idu_ready,
+    output reg          inst_l,
+    output reg          inst_s,
+    output reg          gpr_we,
+    output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
+    output reg  [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
+    output reg  [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
+    output reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus,
     output wire         ftrace_jalr,
     output wire         ftrace_jal
 );
+
+    parameter MSTATUS = 32'h300;
+    parameter MTVEC   = 32'h305;
+    parameter MEPC    = 32'h341;
+    parameter MCAUSE  = 32'h342;
+
+    localparam IDLE   = 1'b0;
+    localparam BUSY   = 1'b1;
+    reg state, next_state;
+
+    reg  [31: 0] inst_r;
+    wire [ 4: 0] rs1;
+    wire [ 4: 0] rs2;
+    wire [ 4: 0] rd;
+    wire [31: 0] imm;
+    wire [16: 0] alu_op;
+    wire         gpr_we_r;
+    wire         rlsu_we;
+    wire         wlsu_we;
+    wire         bit_sext;
+    wire         half_sext;
+    wire [ 3: 0] rstrb;
+    wire [ 3: 0] wstrb;
+    wire         src1_is_pc;
+    wire         src2_is_imm;
+    wire         is_pc_jump;
+    wire         double_cal;
+    wire         ebreak;
+    wire         inst_not_realize;
+    wire         csr_w_gpr_we;
+    wire         csrrw_op;
+    wire         csrrs_op;
+    wire         ecall_en;
+    wire         mret_en;
+    wire         is_csr_op;
+    wire         csrs_mtvec_wen;
+    wire         csrs_mepc_wen;
+    wire         csrs_mstatus_wen;
+    wire         csrs_mcause_wen;
 
     wire [ 6:0] opcode_31_25;
     wire [ 5:0] opcode_31_26;
@@ -52,6 +77,9 @@ module ysyx_25020037_idu (
     wire [31:0] rs1_d;
     wire [31:0] rs2_d;
     wire [31:0] rd_d;
+    wire         rw_word_1;
+    wire         rw_word_2;
+    wire         rw_word_4;
 
     wire        inst_add;
     wire        inst_and;
@@ -105,21 +133,20 @@ module ysyx_25020037_idu (
     wire        TYPE_N;
     wire        TYPE_W;
 
+    assign opcode_31_25  = inst_r[31:25];
+    assign opcode_31_26  = inst_r[31:26];
+    assign opcode_14_12  = inst_r[14:12];
+    assign opcode_06_00  = inst_r[ 6: 0];
 
-    assign opcode_31_25  = inst[31:25];
-    assign opcode_31_26  = inst[31:26];
-    assign opcode_14_12  = inst[14:12];
-    assign opcode_06_00  = inst[ 6: 0];
+    assign rs1   = inst_r[19:15];
+    assign rs2   = inst_r[24:20];
+    assign rd    = inst_r[11: 7];
 
-    assign rs1   = inst[19:15];
-    assign rs2   = inst[24:20];
-    assign rd    = inst[11: 7];
-
-    assign immI  = {{20{inst[31]}}, inst[31:20]};
-    assign immS  = {{20{inst[31]}}, inst[31:25], inst[11:7]};
-    assign immB  = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
-    assign immU  = {inst[31:12], 12'b0};
-    assign immJ  = {{12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
+    assign immI  = {{20{inst_r[31]}}, inst_r[31:20]};
+    assign immS  = {{20{inst_r[31]}}, inst_r[31:25], inst_r[11:7]};
+    assign immB  = {{20{inst_r[31]}}, inst_r[7], inst_r[30:25], inst_r[11:8], 1'b0};
+    assign immU  = {inst_r[31:12], 12'b0};
+    assign immJ  = {{12{inst_r[31]}}, inst_r[19:12], inst_r[20], inst_r[30:21], 1'b0};
     
     decoder_7_128 u_dec0(.in(opcode_31_25 ), .out(opcode_31_25_d ));
     decoder_6_64  u_dec1(.in(opcode_31_26 ), .out(opcode_31_26_d ));
@@ -212,7 +239,12 @@ module ysyx_25020037_idu (
                | ({32{TYPE_U}} & immU)
                | ({32{TYPE_J}} & immJ);
 
-    assign gpr_we   = TYPE_R  | TYPE_I   | inst_jal | inst_auipc | inst_lui;
+    assign gpr_we_r = inst_add  | inst_and  | inst_sub  | inst_or    | inst_xor  | 
+                      inst_sra  | inst_srl  | inst_slt  | inst_sltu  | inst_sll  | 
+                      inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
+                      inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
+                      inst_csrrs| inst_jal  | inst_auipc| inst_lui   | inst_lw   |
+                      inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
     assign rlsu_we  = inst_lw | inst_lbu | inst_lh  | inst_lhu   | inst_lb;
     assign wlsu_we  = inst_sw | inst_sh  | inst_sb;
     assign bit_sext   = inst_lb;
@@ -233,9 +265,16 @@ module ysyx_25020037_idu (
     assign rw_word_2    = inst_sh  | inst_lh  | inst_lhu;
     assign rw_word_1    = inst_lbu | inst_sb  | inst_lb;
 
+    assign wstrb  = ({4{rw_word_1}} & 4'h1)
+                  | ({4{rw_word_2}} & 4'h2)
+                  | ({4{rw_word_4}} & 4'hf);
+    assign rstrb  = ({4{rw_word_1}} & 4'h1)
+                  | ({4{rw_word_2}} & 4'h2)
+                  | ({4{rw_word_4}} & 4'hf);
+                      
     assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
-    assign exec_is_end  = inst_ebreak;
+    assign ebreak       = inst_ebreak;
 
     assign csr_w_gpr_we = inst_csrrw | inst_csrrs;
     assign csrrw_op     = inst_csrrw;
@@ -243,10 +282,94 @@ module ysyx_25020037_idu (
     assign ecall_en     = inst_ecall;
     assign mret_en      = inst_mret;
     assign is_csr_op    = inst_csrrw | inst_csrrs | inst_ecall | inst_mret;
+    assign csrs_mtvec_wen   = (imm == MTVEC) & is_csr_op;
+    assign csrs_mepc_wen    = (imm == MEPC) & is_csr_op;
+    assign csrs_mstatus_wen = (imm == MSTATUS) & is_csr_op;
+    assign csrs_mcause_wen  = (imm == MCAUSE) & is_csr_op;
 
     assign ftrace_jal   = inst_jal;
     assign ftrace_jalr  = inst_jarl;
 
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | TYPE_W | inst_ecall | inst_mret);
+
+    always @(*) begin
+        case (state)
+            IDLE: next_state = (ifu_rvalid & idu_ready) ? BUSY : IDLE;
+            BUSY: next_state = (idu_valid & exu_ready) ? IDLE : BUSY;
+            default: next_state = IDLE;
+        endcase
+    end
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            state <= IDLE;
+            idu_valid <= 1'b0;
+            idu_ready <= 1'h1;
+            du_to_eu_bus <= `DU_TO_EU_BUS_WD'b0;
+            du_to_gu_bus <= `DU_TO_GU_BUS_WD'b0;
+            du_to_lu_bus <= `DU_TO_LU_BUS_WD'b0;
+            du_to_wu_bus <= `DU_TO_WU_BUS_WD'b0;
+        end else begin
+            state <= next_state;
+
+            case (state)
+                IDLE: begin
+                    if (ifu_rvalid & idu_ready) begin
+                        inst_r <= inst;
+                        idu_ready <= 1'b0;
+                    end
+                    idu_valid <= 1'b0;
+                end
+                BUSY: begin
+                    if (exu_ready) begin
+                        inst_s <= inst_sw | inst_sh | inst_sb;
+                        inst_l <= inst_lw | inst_lh | inst_lb;
+                        gpr_we <= gpr_we_r;
+                        du_to_eu_bus <= {           
+                            imm,             
+                            alu_op,             
+                            src1_is_pc,      
+                            src2_is_imm,     
+                            is_pc_jump,      
+                            double_cal,      
+                            ebreak,          
+                            inst_not_realize,
+                            ecall_en,
+                            mret_en,
+                            csrrs_op,
+                            csrrw_op
+                        };
+                        du_to_gu_bus <= {
+                            pc,
+                            rd,
+                            rs1,             
+                            rs2,
+                            csrs_mtvec_wen,
+                            csrs_mepc_wen,
+                            csrs_mstatus_wen,
+                            csrs_mcause_wen,
+                            ecall_en,
+                            mret_en       
+                        };
+                        du_to_lu_bus <= {     
+                            wstrb,
+                            rlsu_we,         
+                            wlsu_we   
+                        };
+                        du_to_wu_bus <= {
+                            rstrb,  
+                            bit_sext,        
+                            half_sext,
+                            gpr_we,
+                            rlsu_we,        
+                            csr_w_gpr_we
+                        };
+                        idu_valid <= 1'b1;
+                        idu_ready <= 1'b1;
+                    end
+                end
+            endcase
+        end
+    end
 
 endmodule

@@ -16,15 +16,15 @@ extern "C" {
 
 
     // DPI IMPORTS
-    // DPI import at vsrc/ysyx_25020037_cpu.v:14:34
+    // DPI import at vsrc/ysyx_25020037_cpu.v:21:34
     extern void call_func(int pc, int dnpc);
-    // DPI import at vsrc/ysyx_25020037_exu.v:21:34
+    // DPI import at vsrc/ysyx_25020037_exu.v:20:34
     extern void hit(int inst_not_realize);
-    // DPI import at vsrc/ysyx_25020037_ifu.v:6:33
+    // DPI import at vsrc/ysyx_25020037_sram.v:39:33
     extern int pmem_read(int addr, int len, int trace_on);
-    // DPI import at vsrc/ysyx_25020037_lsu.v:16:34
+    // DPI import at vsrc/ysyx_25020037_sram.v:40:34
     extern void pmem_write(int addr, int len, int data, int trace_on);
-    // DPI import at vsrc/ysyx_25020037_cpu.v:15:34
+    // DPI import at vsrc/ysyx_25020037_cpu.v:22:34
     extern void ret_func(int pc);
 
 #ifdef __cplusplus

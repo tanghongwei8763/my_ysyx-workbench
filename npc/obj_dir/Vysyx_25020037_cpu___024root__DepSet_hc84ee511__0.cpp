@@ -32,8 +32,8 @@ VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu_
 
 extern "C" int pmem_read(int addr, int len, int trace_on);
 
-VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ trace_on, IData/*31:0*/ &pmem_read__Vfuncrtn) {
-    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__ifu_cpu__DOT__pmem_read_TOP\n"); );
+VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__u_sram__DOT__pmem_read_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ trace_on, IData/*31:0*/ &pmem_read__Vfuncrtn) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__u_sram__DOT__pmem_read_TOP\n"); );
     // Body
     int addr__Vcvt;
     for (size_t addr__Vidx = 0; addr__Vidx < 1; ++addr__Vidx) addr__Vcvt = addr;
@@ -48,8 +48,8 @@ VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu_
 
 extern "C" void pmem_write(int addr, int len, int data, int trace_on);
 
-VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__lsu_cpu__DOT__pmem_write_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ data, IData/*31:0*/ trace_on) {
-    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__lsu_cpu__DOT__pmem_write_TOP\n"); );
+VL_INLINE_OPT void Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__u_sram__DOT__pmem_write_TOP(IData/*31:0*/ addr, IData/*31:0*/ len, IData/*31:0*/ data, IData/*31:0*/ trace_on) {
+    VL_DEBUG_IF(VL_DBG_MSGF("+    Vysyx_25020037_cpu___024root____Vdpiimwrap_ysyx_25020037_cpu__DOT__u_sram__DOT__pmem_write_TOP\n"); );
     // Body
     int addr__Vcvt;
     for (size_t addr__Vidx = 0; addr__Vidx < 1; ++addr__Vidx) addr__Vcvt = addr;
@@ -100,7 +100,16 @@ void Vysyx_25020037_cpu___024root___eval_triggers__act(Vysyx_25020037_cpu___024r
     // Body
     vlSelf->__VactTriggered.at(0U) = ((IData)(vlSelf->clk) 
                                       & (~ (IData)(vlSelf->__Vtrigrprev__TOP__clk)));
+    vlSelf->__VactTriggered.at(1U) = (((IData)(vlSelf->clk) 
+                                       & (~ (IData)(vlSelf->__Vtrigrprev__TOP__clk))) 
+                                      | ((IData)(vlSelf->rst) 
+                                         & (~ (IData)(vlSelf->__Vtrigrprev__TOP__rst))));
+    vlSelf->__VactTriggered.at(2U) = (((IData)(vlSelf->clk) 
+                                       & (~ (IData)(vlSelf->__Vtrigrprev__TOP__clk))) 
+                                      | ((~ (IData)(vlSelf->rst)) 
+                                         & (IData)(vlSelf->__Vtrigrprev__TOP__rst)));
     vlSelf->__Vtrigrprev__TOP__clk = vlSelf->clk;
+    vlSelf->__Vtrigrprev__TOP__rst = vlSelf->rst;
 #ifdef VL_DEBUG
     if (VL_UNLIKELY(vlSymsp->_vm_contextp__->debug())) {
         Vysyx_25020037_cpu___024root___dump_triggers__act(vlSelf);
