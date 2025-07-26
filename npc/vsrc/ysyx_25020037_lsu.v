@@ -106,7 +106,7 @@ module ysyx_25020037_lsu (
                             wvalid  <= 1'b1;
                             bready  <= 1'b1;
                         end
-                        if (bvalid & bready) begin
+                        if (bvalid & bready && (rresp == 2'b00)) begin
                             bready <= 1'b0;
                             lsu_valid <= 1'b1;
                             lsu_ready <= 1'b1;

@@ -1,5 +1,5 @@
 #include <elf.h>
-#include "../include/commen.h"
+#include "../include/common.h"
 #include "../include/trace.h"
 
 static int ringbuf_index = 0;

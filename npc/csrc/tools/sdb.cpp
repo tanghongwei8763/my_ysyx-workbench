@@ -1,6 +1,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
-#include "../include/commen.h"
+#include "../include/common.h"
 #include "../include/monitor.h"
 #include "../include/reg.h"
 #include "../include/memory.h"

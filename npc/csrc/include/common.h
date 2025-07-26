@@ -1,5 +1,5 @@
-#ifndef COMMEN_H
-#define COMMEN_H
+#ifndef COMMON_H
+#define COMMON_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +11,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include "Vysyx_25020037_cpu.h"
 
 enum {
     NPC_END, NPC_RUNING, 
@@ -21,8 +20,6 @@ enum {
 typedef uint32_t paddr_t;
 typedef uint32_t word_t;
 typedef uint32_t vaddr_t;
-
-extern Vysyx_25020037_cpu dut;
 
 extern int NPC_STATE;
 extern const char *tempregs[];

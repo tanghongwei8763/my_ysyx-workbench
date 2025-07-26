@@ -14,7 +14,6 @@ module ysyx_25020037_gpr (
   input  wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus,
   input  wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
   output wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus,
-  output reg  [31: 0] regs [31:0],
 
   output wire [31: 0] mtvec,
   output wire [31: 0] mepc,
@@ -25,7 +24,7 @@ module ysyx_25020037_gpr (
   localparam IDLE   = 1'b0;
   localparam BUSY   = 1'b1;
   reg state, next_state;
-
+  reg  [31: 0] regs [31:0];
   //实例化寄存器
   generate
     genvar i;

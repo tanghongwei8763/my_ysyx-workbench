@@ -1,17 +1,24 @@
-#include "Vysyx_25020037_cpu.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
-#include "../include/commen.h"
+#include "../include/common.h"
 #include "../include/memory.h"
 #include "../include/monitor.h"
 #include "../include/reg.h"
 #include "../include/trace.h"
 #include "../include/switch.h"
+#include "../include/debug.h"
+#include "../include/macro.h"
+#include "Vysyx_25020037___024root.h"
+#include "Vysyx_25020037.h"
+
+Vysyx_25020037 *top = new Vysyx_25020037("top");
+#define pc top->rootp->ysyx_25020037__DOT__pc
+#define inst top->rootp->ysyx_25020037__DOT__inst
+#define gpr top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__regs
 
 // 定义全局变量
 VerilatedContext* contextp = nullptr;
 VerilatedVcdC* tfp = nullptr;
-Vysyx_25020037_cpu dut;
 
 int NPC_STATE;
 
@@ -46,35 +53,25 @@ void finish(){
     delete contextp;
 #endif
 
-    /*
-    printf("\033[1m\033[32mHIT GOOD TRAP\033[37m at pc=0x%08x\n",  dut.pc);
-    return;
-    */
-
     if (NPC_STATE == NPC_ABORT) {
         iringbuf_printf();
-        printf("\033[1;34mnpc:\033[1m\033[31mHIT ABORT TRAP\033[37m at pc=0x%08x\n",  dut.pc);
-    }
-    else if(dut.regs[10]) {
-        printf("\033[1;34mnpc:\033[1m\033[31mHIT BAD TRAP\033[37m at pc=0x%08x\n",  dut.pc);
-    }
-    else{
-        printf("\033[1;34mnpc:\033[1m\033[32mHIT GOOD TRAP\033[37m at pc=0x%08x\n",  dut.pc);
-    }
-
+        Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT ABORT TRAP", ANSI_FG_RED), pc-4);
+    } 
+    else if(gpr[10]) Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED), pc-4);
+    else Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN), pc-4);
     return;
 }
 
 // 一周期最小执行单元
 void single_cycle() {
-    dut.clk=1;
-    dut.eval();
+    top->clock=1;
+    top->eval();
 #ifdef CONFIG_WAVE
     tfp->dump(contextp->time());
     contextp->timeInc(1);
 #endif
-    dut.clk=0;
-    dut.eval();
+    top->clock=0;
+    top->eval();
 #ifdef CONFIG_WAVE
     tfp->dump(contextp->time());
     contextp->timeInc(1);
@@ -82,26 +79,21 @@ void single_cycle() {
 }
 
 static void reset(int n) {
-    dut.rst = 1;
+    top->reset = 1;
     while (n -- > 0) single_cycle();
-    dut.rst = 0;
+    top->reset = 0;
 }
 
 int main (int argc, char** argv) {
-    /*
-    printf("argc: %d\n", argc);
-    for (int i = 0; i < argc; i++) {
-        printf("argv[%d]: %s\n", i, argv[i]);
-    }
-    */
+
     Verilated::traceEverOn(true);
 
     contextp = new VerilatedContext;
     contextp->commandArgs(argc, argv);
 #ifdef CONFIG_WAVE
     tfp = new VerilatedVcdC;
-    dut.trace(tfp, 99);
-    tfp->open("ysyx_25020037_cpu.vcd");
+    top.trace(tfp, 99);
+    tfp->open("ysyx_25020037.vcd");
 #endif
     reset(10);
     

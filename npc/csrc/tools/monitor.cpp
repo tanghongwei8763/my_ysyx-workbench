@@ -1,19 +1,27 @@
 #include <getopt.h>
 #include <cassert>
-#include "../include/commen.h"
+#include "../include/common.h"
 #include "../include/monitor.h"
 #include "../include/trace.h"
 #include "../include/switch.h"
 #include "../include/memory.h"
+#include "../include/debug.h"
+#include "../include/macro.h"
 
 void init_difftest(char *ref_so_file, long img_size, int port);
 
 
 static void welcome() {
-  if(CONFIG_ITRACE) printf("\n\x1B[34mIf trace is enabled, a log file will be generated "
+  Log("WaveTrace: %s", MUXDEF(CONFIG_WAVE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
+  Log("ITrace: %s", MUXDEF(CONFIG_ITRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
+  Log("MTrace: %s", MUXDEF(CONFIG_MTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
+  Log("FTrace: %s", MUXDEF(CONFIG_FTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
+  Log("Difftest: %s", MUXDEF(CONFIG_DIFFTEST, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
+  Log("If trace is enabled, a log file will be generated "
         "to record the trace. This may lead to a large log file. "
-        "If it is not necessary, you can disable it in switch.h\n");
-  printf("Welcome to \x1B[33m\x1B[41mriscv32e\x1B[0m-NPC!\n");
+        "If it is not necessary, you can disable it in menuconfig");
+  Log("Build time: %s, %s", __TIME__, __DATE__);
+  printf("Welcome to %s-NPC!\n", ANSI_FMT("riscv32e", ANSI_FG_YELLOW ANSI_BG_RED));
   printf("For help, type \"help\"\n");
 }
 
@@ -41,7 +49,7 @@ static long load_img() {
   fseek(fp, 0, SEEK_END);
   long size = ftell(fp);
 
-  printf("The image is %s, size = %ld", img_file, size);
+  Log("The image is \033[1;33m%s\033[0m, size = \033[1;37m%ld\033[0m",img_file, size);
 
   fseek(fp, 0, SEEK_SET);
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);

@@ -1,4 +1,4 @@
-#include "../include/commen.h"
+#include "../include/common.h"
 #include "../include/switch.h"
 #include "../include/memory.h"
 #include "../include/difftest-def.h"
@@ -89,8 +89,8 @@ extern "C" void pmem_write(paddr_t addr, uint8_t len, word_t data, int trace_on)
 #ifdef CONFIG_DIFFTEST
     difftest_skip_ref();
 #endif
-    putchar(data&0xff);
-    fflush(stdout);
+    //putchar(data&0xff);
+    //fflush(stdout);
   }
   else host_write(guest_to_host(addr), len, data);
 }

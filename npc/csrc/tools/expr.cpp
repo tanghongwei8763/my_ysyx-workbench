@@ -6,9 +6,15 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include "../include/commen.h"
+#include "../include/common.h"
 #include "../include/monitor.h"
 #include "../include/memory.h"
+#include "Vysyx_25020037___024root.h"
+#include "Vysyx_25020037.h"
+
+extern Vysyx_25020037 *top;
+#define pc top->rootp->ysyx_25020037__DOT__pc
+#define gpr top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__regs
 
 enum {
   TK_NOTYPE = 256, TK_DOLLAR, TK_HEX,
@@ -155,14 +161,14 @@ static bool make_token(char *e) {
 	          int dtemp;
 	          int judge = 0;
 	          if(strcmp(tokens[nr_token].str, "pc") == 0)	{	//单独的pc寄存器
-	            dtemp = dut.pc;
+	            dtemp = pc;
 	            judge = 1;
 	          }
 	          else {
 	            for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
 	              //printf("%s ? %s\n", tokens[nr_token].str, tempregs[reg]);
 	              if(strcmp(tokens[nr_token].str, tempregs[reg]) == 0) {
-	                dtemp = dut.regs[i];
+	                dtemp = gpr[i];
 	                judge = 1;
 	                break;
 	              }

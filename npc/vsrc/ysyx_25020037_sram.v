@@ -31,6 +31,7 @@ module ysyx_25020037_sram (
     reg  [31: 0] read_addr, write_addr, write_data;
     reg  [ 3: 0] write_strb;
     reg          is_read_req, is_write_req;
+    reg          wvalid_reg;
 
     reg [7:0] lfsr, delay_count, target_delay;
     wire lfsr_tap = lfsr[7] ^ lfsr[5] ^ lfsr[4] ^ lfsr[3];
@@ -77,7 +78,8 @@ module ysyx_25020037_sram (
             wready <= 1'b0;
             bresp <= 2'b00;
             bvalid <= 1'b0;
-            
+
+            wvalid_reg <= 1'b0;
             is_read_req <= 1'b0;
             is_write_req <= 1'b0;
         end else begin
@@ -125,12 +127,14 @@ module ysyx_25020037_sram (
                             awready <= 1'b1;
                             wready <= 1'b0;
                             write_data <= wdata;
+                            wvalid_reg <= wvalid;
                             write_strb <= wstrb;
                         end
                         if (delay_count < target_delay) begin
                             delay_count <= delay_count + 1'b1;
                             
-                            if (delay_count == target_delay - 1) begin
+                            if ((delay_count == target_delay - 1) & wvalid_reg) begin
+                                wvalid_reg <= 1'b0;
                                 pmem_write(write_addr, {28'b0,write_strb}, write_data, 1);
                                 bvalid <= 1'b1;
                                 bresp <= 2'b00;

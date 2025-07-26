@@ -43,6 +43,7 @@ module ysyx_25020037_ifu(
                 end
                 BUSY: begin
                     if (arvalid && arready) begin
+                        //araddr  <= 32'b0;
                         arvalid <= 1'b0;
                         rready <= 1'b1;
                     end

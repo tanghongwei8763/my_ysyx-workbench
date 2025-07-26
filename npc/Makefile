@@ -5,9 +5,9 @@ ARGS ?=
 IMG ?= 
 #$(info ARGS: $(ARGS))
 
-SIMULATOR = ./obj_dir/Vysyx_25020037_cpu
+SIMULATOR = ./obj_dir/Vysyx_25020037
 
-VERILATOR_FLAGS += --trace -cc --top-module ysyx_25020037_cpu
+VERILATOR_FLAGS += --trace -cc --top-module ysyx_25020037
 INCLUDES = -I./csrc/include
 VERILATOR_FLAGS += $(INCLUDES)
 
@@ -25,7 +25,7 @@ verilate:
 	$(VERILATOR) $(VERILATOR_FLAGS) $(VERILATOR_INPUT)
 
 build: verilate
-	make -C obj_dir -f Vysyx_25020037_cpu.mk Vysyx_25020037_cpu
+	make -C obj_dir -f Vysyx_25020037.mk Vysyx_25020037
 
 all: sim
 	#@echo "Write this Makefile by your self."
@@ -37,6 +37,9 @@ sim: build
 
 run: build
 	$(SIMULATOR) $(ARGS) $(IMG)
+
+gdb: build
+	gdb -s -g $(SIMULATOR) --args $(ARGS) $(IMG)
 
 clean:
 	rm -rf obj_dir

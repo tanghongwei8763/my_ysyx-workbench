@@ -1,8 +1,14 @@
-#include "../include/commen.h"
+#include "../include/common.h"
 #include "../include/monitor.h"
 #include "../include/trace.h"
 #include "../include/switch.h"
 #include "../include/difftest-def.h"
+#include "Vysyx_25020037___024root.h"
+#include "Vysyx_25020037.h"
+
+extern Vysyx_25020037 *top;
+#define pc top->rootp->ysyx_25020037__DOT__pc
+#define inst top->rootp->ysyx_25020037__DOT__inst
 
 static void exec_once();
 
@@ -32,7 +38,7 @@ void cpu_exec(int n){
     if(NPC_STATE == NPC_RUNING){
         if(n < 0){
             while(true){
-                iringbuf(dut.pc, dut.inst);
+                iringbuf(pc, inst);
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
                     finish();
                     break;
@@ -46,10 +52,10 @@ void cpu_exec(int n){
         }
         else{
             for(int i = 0; i < n; i++){
-                iringbuf(dut.pc, dut.inst);
+                iringbuf(pc, inst);
                 if(NPC_STATE == NPC_RUNING) {
                     exec_once();
-                    if(NPC_STATE == NPC_RUNING) printf("0x%08x: %08x\n", dut.pc, dut.inst);
+                    if(NPC_STATE == NPC_RUNING) printf("0x%08x: %08x\n", pc, inst);
                 }
                 else if (NPC_STATE == NPC_STOP) {
                     NPC_STATE = NPC_RUNING;
@@ -69,10 +75,10 @@ void cpu_exec(int n){
 }
 
 static void exec_once() {
-    int last_pc = dut.pc;
+    int last_pc = pc;
     do{
         single_cycle();
-    } while (dut.pc == last_pc);
+    } while (pc == last_pc);
     single_cycle();
     trace_and_difftest();
 }

@@ -1,5 +1,5 @@
 #include <dlfcn.h>
-#include "../include/commen.h"
+#include "../include/common.h"
 #include "../include/switch.h"
 #include "../include/difftest-def.h"
 #include "../include/memory.h"
@@ -12,15 +12,15 @@ void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
 
 diff_context_t* ref_r = (diff_context_t*)malloc(sizeof(diff_context_t));
 
-#ifdef CONFIG_DIFFTEST
-
 static bool is_skip_ref = false;
 static int skip_dut_nr_inst = 0;
 
-void difftest_skip_ref() {
+extern "C" void difftest_skip_ref() {
   is_skip_ref = true;
   skip_dut_nr_inst = 0;
 }
+
+#ifdef CONFIG_DIFFTEST
 
 void difftest_skip_dut(int nr_ref, int nr_dut) {
   skip_dut_nr_inst += nr_dut;
@@ -51,8 +51,6 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 
   void (*ref_difftest_init)(int) = (void (*)(int))dlsym(handle, "difftest_init");
   assert(ref_difftest_init);
-
-  printf("\n\x1B[34mDifferential testing: \x1B[1m\x1B[32mON\x1B[0m\n");
   printf("\x1B[34mThe result of every instruction will be compared with \x1B[1m\x1B[33m%s\x1B[0m. "
            "This will help you a lot for debugging, but also significantly reduce the performance. "
            "If it is not necessary, you can turn it off in switch.h\n\x1B[0m", ref_so_file);
