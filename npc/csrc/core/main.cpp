@@ -134,6 +134,7 @@ int main (int argc, char** argv) {
     while(1) {
         nvboard_update();
         single_cycle();
+        if(NPC_STATE == NPC_END) break;
     }
 #else
     Verilated::traceEverOn(true);
