@@ -12,16 +12,24 @@ extern VysyxSoCFull *top;
 #include <sys/time.h>
 
 static const uint32_t img [] = {
-  0x00100593,          	//li	a1,1
-  0x10002637,          	//lui	a2,0x10002
-  0x01000693,          	//li	a3,16
-  0x00000793,          	//li	a5,0
-  0x00f59733,          	//sll	a4,a1,a5
-  0x0ff77713,          	//andi	a4,a4
-  0x00e60023,          	//sb	a4,0(a2) # 10002000 <_sram_end+0x1000000>
-  0x00178793,          	//addi	a5,a5,1
-  0xfed798e3,          	//bne	a5,a3,a0000010 <main+0x10>
-  0xfe9ff06f           	//j	a000000c <main+0xc>
+  // 0x00100593,          	//li	a1,1
+  // 0x10002637,          	//lui	a2,0x10002
+  // 0x01000693,          	//li	a3,16
+  // 0x00000793,          	//li	a5,0
+  // 0x00f59733,          	//sll	a4,a1,a5
+  // 0x0ff77713,          	//andi	a4,a4
+  // 0x00e60023,          	//sb	a4,0(a2) # 10002000 <_sram_end+0x1000000>
+  // 0x00178793,          	//addi	a5,a5,1
+  // 0xfed798e3,          	//bne	a5,a3,a0000010 <main+0x10>
+  // 0xfe9ff06f           	//j	a000000c <main+0xc>
+
+  0x100007b7,          	// lui	a5,0x10000
+  0x04100713,          	// li	a4,65
+  0x00e78023,          	// sb	a4,0(a5) # 10000000 <_sram_end+0xffe000>
+  0x00e78023,          	// sb	a4,0(a5)
+  0x00e78023,          	// sb	a4,0(a5)
+  0x00a00713,          	// li	a4,10
+  0x00e78023          	// sb	a4,0(a5)
 };
 
 static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
