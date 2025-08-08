@@ -24,6 +24,8 @@
 #define SPI_CTRL             SPI + 0x10
 #define SPI_DIV              SPI + 0x14
 #define SPI_SS               SPI + 0x18
+#define PS2_KBD              0x10011000
+#define PS2_KBD_REG          PS2_KBD + 0x0
 
 #define PGSIZE    4096
 
