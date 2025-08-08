@@ -73,7 +73,7 @@ static const int keys[256] = {
     [0x07] = AM_KEY_F12,
 };
 
-static const int keys_[256] = {
+static const int keys_extend[256] = {
     [0x11] = AM_KEY_RALT,
     [0x14] = AM_KEY_RCTRL,
     [0x71] = AM_KEY_DELETE,
@@ -102,7 +102,7 @@ void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
   else if (k == 0xf0) is_break = true;
   else if (k != 0x0) {
     kbd->keydown = !is_break;
-    kbd->keycode = is_extend ? keys_[k] : keys[k];
+    kbd->keycode = is_extend ? keys_extend[k] : keys[k];
     is_extend = false;
     is_break = false;
   }
