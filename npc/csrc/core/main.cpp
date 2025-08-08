@@ -125,7 +125,6 @@ int main (int argc, char** argv) {
     reset(10);
     init_monitor(argc, argv);
     while(1) {
-        printf("!!\n");
         nvboard_update();
         single_cycle();
     }
