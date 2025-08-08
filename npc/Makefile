@@ -59,19 +59,7 @@ ifeq ($(nvboard), 1)
 CXXFLAGS += -DCONFIG_NVBOARD
 endif
 
-MODE_MARKER = $(BUILD_DIR)/.nvboard_mode
-
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
-	@if [ -f $(MODE_MARKER) ]; then \
-		LAST_MODE=$$(cat $(MODE_MARKER)); \
-		if [ "$$LAST_MODE" != "$(nvboard)" ]; then \
-			echo "模式切换，自动清理旧构建..."; \
-			$(MAKE) clean; \
-		fi; \
-	fi
-	# 记录当前模式到标记文件
-	@echo $(nvboard) > $(MODE_MARKER)
-	
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_FLAGS) \
 		--top-module $(TOPNAME) $^ \
