@@ -17,7 +17,7 @@ ARGS ?=
 IMG ?= 
 TOPNAME = ysyxSoCFull
 
-SIMULATOR = $(OBJ_DIR)/V$(TOPNAME)
+SIMULATOR = $(BIN)
 
 VERILATOR_FLAGS += --trace -cc --exe \
                    --timescale "1ns/1ns" --no-timing \
