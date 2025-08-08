@@ -1,5 +1,4 @@
 #include <am.h>
-#include "../riscv.h"
 #include "include/ysyxsoc.h"
 
 void __am_uart_rx(AM_UART_RX_T *cfg) {
