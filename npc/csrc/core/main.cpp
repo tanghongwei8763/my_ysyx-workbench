@@ -118,6 +118,13 @@ static void reset(int n) {
 
 int main (int argc, char** argv) {
 
+    printf("===== 命令行参数信息 =====\n");
+    printf("参数数量 (argc): %d\n", argc);
+    for (int i = 0; i < argc; i++) {
+        printf("参数 %d: %s\n", i, argv[i]);
+    }
+    printf("==========================\n\n");
+
 #ifdef CONFIG_NVBOARD
     nvboard_bind_all_pins(top);
     nvboard_init();
