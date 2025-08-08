@@ -13,6 +13,7 @@
 
 #ifdef CONFIG_NVBOARD
 #include <nvboard.h>
+extern void nvboard_bind_all_pins(VysyxSoCFull* top);
 #endif
 
 VysyxSoCFull *top = new VysyxSoCFull("top");
@@ -118,7 +119,7 @@ static void reset(int n) {
 int main (int argc, char** argv) {
 
 #ifdef CONFIG_NVBOARD
-    nvboard_bind_all_pins(&top);
+    nvboard_bind_all_pins(top);
     nvboard_init();
  
     reset(10);
