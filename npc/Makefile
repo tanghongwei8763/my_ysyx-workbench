@@ -69,7 +69,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 
 run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	@$^ $(SIMULATOR) $(ARGS) $(IMG)
+	@$^ $(ARGS) $(IMG)
 
 clean:
 	rm -rf $(BUILD_DIR)
