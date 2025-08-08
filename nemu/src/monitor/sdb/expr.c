@@ -147,12 +147,28 @@ static bool make_token(char *e) {
               tokens[i].pri = 4;		//成为指针后优先级变高
               int j = 0;
 	      pos++;
-	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z')) {
+        int is_reg = 0;
+	      while ((e[pos]>='0'&&e[pos]<='9') || (e[pos]>='a'&&e[pos]<='z') || (e[pos]>='A'&&e[pos]<='Z') || (e[pos]=='$')) {
+          if((e[pos]=='$')) is_reg = 1;
 	        tokens[nr_token].str[j++] = e[pos++];
 	        position++;
 	      }
 	      vaddr_t data;
-	      sscanf(tokens[nr_token].str, "%x", &data);
+        if(is_reg) {
+          for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
+	        //printf("%s ? %s\n", tokens[nr_token].str+1, tempregs[reg]);
+	          if(strcmp(tokens[nr_token].str+1, tempregs[reg]) == 0) {
+	            data = cpu.gpr[reg];
+	            break;
+	          }
+            if(strcmp(tokens[nr_token].str+1, "pc") == 0)	{	//单独的pc寄存器
+	            data = cpu.pc;
+	          }
+	        }
+        }
+        else 
+	        sscanf(tokens[nr_token].str, "%x", &data);
+        //printf("%08x\n", data);
 	      uint32_t dtemp = vaddr_read(data,4);
 	      char stemp[32];
 	      snprintf(stemp, sizeof(stemp), "%d", dtemp);
@@ -199,7 +215,7 @@ static bool make_token(char *e) {
 	      for(int reg = 0; reg < 32; reg++) {		//获取$处寄存器的值
 	        //printf("%s ? %s\n", tokens[nr_token].str, tempregs[reg]);
 	        if(strcmp(tokens[nr_token].str, tempregs[reg]) == 0) {
-	          dtemp = cpu.gpr[i];
+	          dtemp = cpu.gpr[reg];
 	          judge = 1;
 	          break;
 	        }

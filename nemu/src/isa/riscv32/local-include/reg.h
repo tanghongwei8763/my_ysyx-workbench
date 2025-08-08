@@ -30,4 +30,21 @@ static inline const char* reg_name(int idx) {
   return regs[check_reg_idx(idx)];
 }
 
+#define MSTATUS 0x300
+#define MTVEC   0x305
+#define MEPC    0x341
+#define MCAUSE  0x342
+
+word_t *check_csr_idx(word_t idx);
+
+#define CSRs(idx) (*check_csr_idx(idx))
+
+#define MRET() { \
+  cpu.csrs.mstatus &= ~(1<<3); \
+  cpu.csrs.mstatus |= ((cpu.csrs.mstatus&(1<<7))>>4); \
+  cpu.csrs.mstatus |= (1<<7); \
+  cpu.csrs.mstatus &= ~((1<<11)+(1<<12)); \
+  s->dnpc = CSRs(MEPC); \
+}
+
 #endif

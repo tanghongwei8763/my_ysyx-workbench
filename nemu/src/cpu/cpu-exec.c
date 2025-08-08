@@ -63,7 +63,9 @@ extern char load_or_store;
 static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
+#ifdef CONFIG_ITRACE
   iringbuf(pc);
+#endif
   isa_exec_once(s);
   cpu.pc = s->dnpc;
 #ifdef CONFIG_MTRACE

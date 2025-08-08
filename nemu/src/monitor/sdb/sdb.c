@@ -67,7 +67,7 @@ static int cmd_w(char *args) {			//添加监视点
   return 0;
 }
 
-static int cmd_t(char *args) {
+static int cmd_ext(char *args) {
   FILE *file = fopen("/home/tanghongwei/ysyx-workbench/nemu/tools/gen-expr/build/input", "r");
   if(file == NULL) {
     perror("Error opening file");
@@ -76,7 +76,7 @@ static int cmd_t(char *args) {
   int goalresult;
   char e[2048];
   char line[2058];
-  int i = 1;
+  int pass = 0, all = 0;
   while (fgets(line, 2058, file)!= NULL) {
     char *token = strtok(line, " ");
     if (token!= NULL) {
@@ -85,10 +85,10 @@ static int cmd_t(char *args) {
       if (token!= NULL) {
         strcpy(e, token);
         bool s = true;
-        printf("%d\n", i++);
         int result = expr(e, &s);
-        if(result != goalresult)
-          assert(0);
+        all++;
+        if(result == goalresult)
+          pass++;
       }
       else
         printf("Invalid line format: %s", line);
@@ -96,6 +96,7 @@ static int cmd_t(char *args) {
     else
       printf("Invalid line format: %s", line);
   }
+  printf("pass:%d all:%d\n",pass,all);
   fclose(file);
   return 0;
 }
@@ -199,7 +200,7 @@ static struct {
   { "p", "求出表达式EXPR的值", cmd_p },
   { "w", "当表达式EXPR的值发生变化时, 暂停程序执行", cmd_w },
   { "d", "删除序号为[N]的监视点", cmd_d },
-  { "t", "测试expr的功能", cmd_t}
+  { "ext", "测试expr的功能", cmd_ext}
   /*
   */
   /* TODO: Add more commands */

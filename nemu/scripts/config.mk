@@ -32,15 +32,16 @@ CONF   := $(KCONFIG_PATH)/build/conf
 MCONF  := $(KCONFIG_PATH)/build/mconf
 FIXDEP := $(FIXDEP_PATH)/build/fixdep
 
-$(CONF):
+$(CONF):		#配置解析工具
 	$(Q)$(MAKE) $(silent) -C $(KCONFIG_PATH) NAME=conf
 
-$(MCONF):
+$(MCONF):		#图形化配置界面工具
 	$(Q)$(MAKE) $(silent) -C $(KCONFIG_PATH) NAME=mconf
 
-$(FIXDEP):
+$(FIXDEP):		#依赖追踪工具
 	$(Q)$(MAKE) $(silent) -C $(FIXDEP_PATH)
 
+#配置管理目标
 menuconfig: $(MCONF) $(CONF) $(FIXDEP)
 	$(Q)$(MCONF) $(Kconfig)
 	$(Q)$(CONF) $(silent) --syncconfig $(Kconfig)
@@ -64,7 +65,7 @@ distclean: clean
 
 .PHONY: help distclean
 
-define call_fixdep
+define call_fixdep		#依赖追踪函数
 	@$(FIXDEP) $(1) $(2) unused > $(1).tmp
 	@mv $(1).tmp $(1)
 endef

@@ -18,6 +18,10 @@ void parse_elf(char *elf_file)
 
     FILE *fp;
     fp = fopen(elf_file, "rb");
+    if (fp == NULL) {
+        printf("Failed to open the ELF file: %s\n", elf_file);
+        exit(1);
+    }
 	
     Elf32_Ehdr edhr;
     
@@ -29,6 +33,7 @@ void parse_elf(char *elf_file)
 
     if(edhr.e_ident[0] != 0x7f || edhr.e_ident[1] != 'E' || edhr.e_ident[2] != 'L' ||edhr.e_ident[3] != 'F'){
         printf("The opened file isn't an elf file!\n");
+        fclose(fp);
         exit(1);
     }
     
@@ -103,20 +108,19 @@ void call_func(uint32_t pc, uint32_t dnpc){
         if(dnpc >= symbol[i].addr && dnpc < (symbol[i].addr + symbol[i].size)) break;
         i++;
     }
-
+    /*
     printf("0x%08x:", pc);
-    //printf("%*s", depth*2, " ");        //根据函数深度缩进
+    printf("%*s", depth*2, " ");        //根据函数深度缩进
+    */
+    printf("\033[37m0x%08x:", pc);
     for (int k = 0; k < depth; k++) {       //彩色缩进
-        if (k % 7 == 0) printf("\033[30m  "); 
-        else if (k % 7 == 1) printf("\033[31m  "); 
-        else if (k % 7 == 2) printf("\033[32m  "); 
-        else if (k % 7 == 3) printf("\033[33m  "); 
-        else if (k % 7 == 4) printf("\033[34m  "); 
-        else if (k % 7 == 5) printf("\033[35m  "); 
-        else if (k % 7 == 6) printf("\033[36m  "); 
+        if (k % 7 == 0) printf("\033[31m |"); 
+        else if (k % 7 == 1) printf("\033[32m |"); 
+        else if (k % 7 == 2) printf("\033[33m |"); 
+        else if (k % 7 == 3) printf("\033[34m |"); 
+        else if (k % 7 == 4) printf("\033[36m |"); 
     }
     printf("call  [%s@0x%08x]\n", symbol[i].name, dnpc);
-
     depth++;
 }
 
@@ -127,17 +131,17 @@ void ret_func(uint32_t pc){
     }
 
     depth--;
-
+    /*
     printf("0x%08x:", pc);
-    //printf("%*s", depth*2, " ");
+    printf("%*s", depth*2, " ");
+    */
+    printf("\033[37m0x%08x:", pc);
     for (int k = 0; k < depth; k++) {       //彩色缩进
-        if (k % 7 == 0) printf("\033[30m  "); 
-        else if (k % 7 == 1) printf("\033[31m  "); 
-        else if (k % 7 == 2) printf("\033[32m  "); 
-        else if (k % 7 == 3) printf("\033[33m  "); 
-        else if (k % 7 == 4) printf("\033[34m  "); 
-        else if (k % 7 == 5) printf("\033[35m  "); 
-        else if (k % 7 == 6) printf("\033[36m  "); 
+        if (k % 7 == 0) printf("\033[31m |"); 
+        else if (k % 7 == 1) printf("\033[32m |"); 
+        else if (k % 7 == 2) printf("\033[33m |"); 
+        else if (k % 7 == 3) printf("\033[34m |"); 
+        else if (k % 7 == 4) printf("\033[36m |"); 
     }
     printf("ret  [%s]\n", symbol[i].name);
 }

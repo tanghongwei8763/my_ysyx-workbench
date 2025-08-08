@@ -1,6 +1,6 @@
-.DEFAULT_GOAL = app
+.DEFAULT_GOAL = app		# 当执行make命令而不指定目标时，默认构建app目标
 
-# Add necessary options if the target is a shared library
+# Add necessary options if the target is a shared library （作为npc的ref）
 ifeq ($(SHARE),1)
 SO = -so
 CFLAGS  += -fPIC -fvisibility=hidden
@@ -25,7 +25,7 @@ INCLUDES = $(addprefix -I, $(INC_PATH))
 CFLAGS  := -O2 -MMD -Wall -Werror $(INCLUDES) $(CFLAGS)
 LDFLAGS := -O2 $(LDFLAGS)
 
-OBJS = $(SRCS:%.c=$(OBJ_DIR)/%.o) $(CXXSRC:%.cc=$(OBJ_DIR)/%.o)
+OBJS = $(SRCS:%.c=$(OBJ_DIR)/%.o) $(CXXSRC:%.cc=$(OBJ_DIR)/%.o) #源文件与目标文件映射，例如：src/main.c → build/obj-<项目名>/src/main.o
 
 # Compilation patterns
 $(OBJ_DIR)/%.o: %.c
@@ -52,6 +52,9 @@ app: $(BINARY)
 $(BINARY):: $(OBJS) $(ARCHIVES)
 	@echo + LD $@
 	@$(LD) -o $@ $(OBJS) $(LDFLAGS) $(ARCHIVES) $(LIBS)
-
+# $(OBJS)：所有目标文件（.o文件）的列表。
+# $(LDFLAGS)：链接器选项（如优化级别、共享库标志等）。
+# $(ARCHIVES)：静态库文件（.a文件）的列表。
+# $(LIBS)：动态链接库选项（如-lm、-lpthread等）。
 clean:
 	-rm -rf $(BUILD_DIR)
