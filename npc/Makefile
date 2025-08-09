@@ -43,9 +43,9 @@ include $(NVBOARD_HOME)/scripts/nvboard.mk
 CSRCS += $(SRC_AUTO_BIND)
 endif
 
-CSRCS = $(wildcard $(CURDIR)/csrc/core/*.cpp)
-CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
-CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
+CSRCS = $(wildcard ./csrc/core/*.cpp)
+CSRCS += $(wildcard ./csrc/memory/*.cpp)
+CSRCS += $(wildcard ./csrc/tools/*.cpp)
 VSRCS = $(shell find $(CURDIR) -type f -name "*.v")
 VSRCS += $(shell find $(CURDIR)/../ysyxSoC/perip -type f -name "*.v")
 VSRCS += $(shell find $(CURDIR)/../ysyxSoC/build -type f -name "*.v")
