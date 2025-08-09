@@ -1,5 +1,5 @@
 #include "verilated.h"
-#include "verilated_vcd_c.h"
+#include "verilated_fst_c.h"
 #include "../include/common.h"
 #include "../include/memory.h"
 #include "../include/monitor.h"
@@ -48,7 +48,7 @@ VysyxSoCFull *top = new VysyxSoCFull("top");
 
 // 定义全局变量
 VerilatedContext* contextp = nullptr;
-VerilatedVcdC* tfp = nullptr;
+VerilatedFstC* tfp = nullptr;
 
 int NPC_STATE;
 
@@ -142,9 +142,9 @@ int main (int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
     contextp->commandArgs(argc, argv);
 #ifdef CONFIG_WAVE
-    tfp = new VerilatedVcdC;
+    tfp = new VerilatedFstC;
     top->trace(tfp, 99);
-    tfp->open("ysyx_25020037.vcd");
+    tfp->open("wave.fst");
 #endif
     reset(10);
     
