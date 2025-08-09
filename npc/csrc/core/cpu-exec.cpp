@@ -39,7 +39,7 @@ static void inst_infomation() {
     Log("total guest instructions = %ld", inst_sum);
     Log("total guest clocks = %ld", clk_sum);
     Log("simulation frequency = %ld inst/s", inst_sum * 1000000 / g_timer);
-    Log("performance counter: ifu:%ld lsu:%ld exu:%ld idu:%ld", ifu_sum, lsu_sum, exu_sum, idu_sum);
+    Log("performance counter: ifu:%ld lsu:%ld exu:%ld idu:%ld", ifu_sum, lsu_sum, exu_sum/2, idu_sum/2);
 }
 
 static void trace_and_difftest() {
