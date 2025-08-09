@@ -26,6 +26,10 @@ static uint64_t ifu_sum = 0;
 static uint64_t lsu_sum = 0;
 static uint64_t exu_sum = 0;
 static uint64_t idu_sum = 0;
+// static uint64_t type_ = 0;
+// static uint64_t type_ = 0;
+// static uint64_t type_ = 0;
+// static uint64_t type_ = 0;
 extern "C" void performance_counter(int ifu, int lsu, int exu, int idu) {
     ifu_sum += ifu;
     lsu_sum += lsu;
