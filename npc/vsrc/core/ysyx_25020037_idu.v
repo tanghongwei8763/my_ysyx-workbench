@@ -20,7 +20,7 @@ module ysyx_25020037_idu (
 
     import "DPI-C" function void performance_counter(input int ifu, input int lsu, input int exu, input int idu, input int type_);
     always @(posedge clk) begin
-        performance_counter(32'b0, 32'b0, 32'b0, 32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N});
+        if(idu_valid) begin performance_counter(32'b0, 32'b0, 32'b0, 32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N});end
     end
 
     parameter MSTATUS   = 12'h300;
