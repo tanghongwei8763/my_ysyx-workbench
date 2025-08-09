@@ -26,6 +26,9 @@
 #define SPI_SS               SPI + 0x18
 #define PS2_KBD              0x10011000
 #define PS2_KBD_REG          PS2_KBD + 0x0
+#define VGA_FB_ADDR          0x21000000
+#define VGA_CTL_ADDR         0x211FFFF0
+#define VGA_SYNC_ADDR        VGA_CTL_ADDR + 0x4
 
 #define PGSIZE    4096
 
