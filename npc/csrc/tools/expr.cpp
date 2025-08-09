@@ -9,12 +9,12 @@
 #include "../include/common.h"
 #include "../include/monitor.h"
 #include "../include/memory.h"
-#include "Vysyx_25020037___024root.h"
-#include "Vysyx_25020037.h"
+#include "VysyxSoCFull___024root.h"
+#include "VysyxSoCFull.h"
 
-extern Vysyx_25020037 *top;
-#define pc top->rootp->ysyx_25020037__DOT__pc
-#define gpr top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__regs
+extern VysyxSoCFull *top;
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#define gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
 
 enum {
   TK_NOTYPE = 256, TK_DOLLAR, TK_HEX,

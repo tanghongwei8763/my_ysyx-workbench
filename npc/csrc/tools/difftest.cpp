@@ -4,6 +4,16 @@
 #include "../include/difftest-def.h"
 #include "../include/memory.h"
 #include "../include/reg.h"
+#include "VysyxSoCFull___024root.h"
+#include "VysyxSoCFull.h"
+
+extern VysyxSoCFull *top;
+#define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#define dut_gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
+#define dut_mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mtvec
+#define dut_mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mepc
+#define dut_mstatus top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mstatus
+#define dut_mcause top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mcause
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) = NULL;
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
@@ -56,16 +66,16 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
            "If it is not necessary, you can turn it off in switch.h\n\x1B[0m", ref_so_file);
 
   ref_difftest_init(port);
-  ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
+  ref_difftest_memcpy(FLASH_RESET_VECTOR, SoC_to_host(FLASH_RESET_VECTOR), 4*1024, DIFFTEST_TO_REF);
   diff_context_t* dut_r = (diff_context_t*)malloc(sizeof(diff_context_t));
   for(int i = 0; i < 32; i++){
-    dut_r->gpr[i] = dut.regs[i];
+    dut_r->gpr[i] = dut_gpr[i];
   }
-  dut_r->pc  = RESET_VECTOR;
-  dut_r->mtvec   = dut.mtvec;
-  dut_r->mepc    = dut.mepc;
-  dut_r->mstatus = dut.mstatus;
-  dut_r->mcause  = dut.mcause;
+  dut_r->pc  = FLASH_RESET_VECTOR;
+  dut_r->mtvec   = dut_mtvec;
+  dut_r->mepc    = dut_mepc;
+  dut_r->mstatus = dut_mstatus;
+  dut_r->mcause  = dut_mcause;
   ref_difftest_regcpy(dut_r, DIFFTEST_TO_REF);
 }
 
@@ -81,13 +91,13 @@ void difftest_step(vaddr_t pc, vaddr_t npc) {
   if (is_skip_ref) {
     diff_context_t* dut_r = (diff_context_t*)malloc(sizeof(diff_context_t));
     for(int i = 0; i < 32; i++){
-    dut_r->gpr[i] = dut.regs[i];
+    dut_r->gpr[i] = dut_gpr[i];
     }
-    dut_r->pc      = dut.pc;
-    dut_r->mtvec   = dut.mtvec;
-    dut_r->mepc    = dut.mepc;
-    dut_r->mstatus = dut.mstatus;
-    dut_r->mcause  = dut.mcause;
+    dut_r->pc      = dut_pc;
+    dut_r->mtvec   = dut_mtvec;
+    dut_r->mepc    = dut_mepc;
+    dut_r->mstatus = dut_mstatus;
+    dut_r->mcause  = dut_mcause;
     ref_difftest_regcpy(dut_r, DIFFTEST_TO_REF);
     is_skip_ref = false;
     return;

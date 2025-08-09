@@ -3,19 +3,21 @@
 #include "../include/trace.h"
 #include "../include/switch.h"
 #include "../include/difftest-def.h"
-#include "Vysyx_25020037___024root.h"
-#include "Vysyx_25020037.h"
+#include "VysyxSoCFull___024root.h"
+#include "VysyxSoCFull.h"
 
-extern Vysyx_25020037 *top;
-#define pc top->rootp->ysyx_25020037__DOT__pc
-#define inst top->rootp->ysyx_25020037__DOT__inst
+extern VysyxSoCFull *top;
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
+#define ifu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_access_fault
+#define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
 
 static void exec_once();
 
 static void trace_and_difftest() {
 
 #ifdef CONFIG_DIFFTEST
-    difftest_step(dut.pc, dut.pc);
+    difftest_step(pc, pc);
 #endif
 
 #ifdef CONFIG_WATCHPOINT			//监视点
@@ -38,7 +40,19 @@ void cpu_exec(int n){
     if(NPC_STATE == NPC_RUNING){
         if(n < 0){
             while(true){
+#ifdef CONFIG_ITRACE
                 iringbuf(pc, inst);
+#endif
+                if(ifu_access_fault) {
+                    printf("ifu_access_fault\n");
+                    finish();
+                    break;
+                }
+                if(lsu_access_fault) {
+                    printf("lsu_access_fault\n");
+                    finish();
+                    break;
+                }
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
                     finish();
                     break;
@@ -52,7 +66,19 @@ void cpu_exec(int n){
         }
         else{
             for(int i = 0; i < n; i++){
+#ifdef CONFIG_ITRACE
                 iringbuf(pc, inst);
+#endif
+                if(ifu_access_fault) {
+                    printf("ifu_access_fault\n");
+                    finish();
+                    break;
+                }
+                if(lsu_access_fault) {
+                    printf("lsu_access_fault\n");
+                    finish();
+                    break;
+                }
                 if(NPC_STATE == NPC_RUNING) {
                     exec_once();
                     if(NPC_STATE == NPC_RUNING) printf("0x%08x: %08x\n", pc, inst);
