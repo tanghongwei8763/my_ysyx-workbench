@@ -21,7 +21,8 @@ static void exec_once();
 static int inst_sum = 0;
 static uint64_t g_timer = 0;
 static void inst_infomation() {
-    Log("info: Total instructions = %d", inst_sum);
+    Log("host time spent = %ld us", g_timer);
+    Log("total guest instructions = %d", inst_sum);
 }
 static void trace_and_difftest() {
 
@@ -117,11 +118,7 @@ void cpu_exec(int n){
 
 static uint64_t us;
 
-uint64_t get_time() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
-}
+extern uint64_t get_time();
 
 static void exec_once() {
     inst_sum++;
