@@ -32,6 +32,7 @@ void single_cycle();
 void sdb_mainloop();
 void cpu_exec(int n);
 void hit(int inst_not_realize);
+void performance_counter(int ifu, int lsu, int exu, int idu);
 void finish();
 
 #ifdef __cplusplus

@@ -21,12 +21,25 @@ static void exec_once();
 static uint64_t inst_sum = 0;
 static uint64_t clk_sum = 0;
 static uint64_t g_timer = 0;
+
+static uint64_t ifu_sum = 0;
+static uint64_t lsu_sum = 0;
+static uint64_t exu_sum = 0;
+static uint64_t idu_sum = 0;
+extern "C" void performance_counter(int ifu, int lsu, int exu, int idu) {
+    ifu_sum += ifu;
+    lsu_sum += lsu;
+    exu_sum += exu;
+    idu_sum += idu;
+}
+
 static void inst_infomation() {
     Log("IPC = %.4f", (double)inst_sum / clk_sum);
     Log("host time spent = %ld us", g_timer);
     Log("total guest instructions = %ld", inst_sum);
     Log("total guest clocks = %ld", clk_sum);
     Log("simulation frequency = %ld inst/s", inst_sum * 1000000 / g_timer);
+    Log("performance counter: ifu:%ld lsu:%ld exu:%ld idu:%ld", ifu_sum, lsu_sum, exu_sum, idu_sum);
 }
 
 static void trace_and_difftest() {
