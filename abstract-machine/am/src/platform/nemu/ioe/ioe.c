@@ -1,6 +1,5 @@
 #include <am.h>
 #include <klib-macros.h>
-#include <stdio.h>
 
 void __am_timer_init();
 void __am_gpu_init();
@@ -45,11 +44,11 @@ static void *lut[128] = {
   [AM_NET_CONFIG  ] = __am_net_config,
 };
 
-static void fail(void *buf) { panic("access nonexist register"); }
+static void fail(void *buf) { }
 
 bool ioe_init() {
   for (int i = 0; i < LENGTH(lut); i++)
-    if (!lut[i]) {printf("%d\n", i);lut[i] = fail;}
+    if (!lut[i]) lut[i] = fail;
   __am_gpu_init();
   __am_timer_init();
   __am_audio_init();
