@@ -8,6 +8,9 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 
+#include <time.h>
+#include <sys/time.h>
+
 extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 #define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
@@ -16,6 +19,7 @@ extern VysyxSoCFull *top;
 
 static void exec_once();
 static int inst_sum = 0;
+static uint64_t g_timer = 0;
 static void inst_infomation() {
     Log("info: Total instructions = %d", inst_sum);
 }
@@ -111,12 +115,23 @@ void cpu_exec(int n){
     }
 }
 
+static uint64_t us;
+
+uint64_t get_time() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (uint64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+}
+
 static void exec_once() {
     inst_sum++;
     int last_pc = pc;
+    uint64_t timer_start = get_time();
     do{
         single_cycle();
     } while (pc == last_pc);
     single_cycle();
+    uint64_t timer_end = get_time();
+    g_timer += timer_end - timer_start;
     trace_and_difftest();
 }
