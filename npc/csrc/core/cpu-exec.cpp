@@ -34,7 +34,7 @@ static uint64_t type_u = 0;
 static uint64_t type_j = 0;
 static uint64_t type_n = 0;
 extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type_) {
-    printf("%08b\n", type_);
+    if(type_) printf("%08b\n", type_);
     ifu_sum += ifu;
     lsu_sum += lsu;
     exu_sum += exu;
