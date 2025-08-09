@@ -18,11 +18,12 @@ extern VysyxSoCFull *top;
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
 
 static void exec_once();
-static int inst_sum = 0;
+static uint64_t inst_sum = 0;
 static uint64_t g_timer = 0;
 static void inst_infomation() {
     Log("host time spent = %ld us", g_timer);
-    Log("total guest instructions = %d", inst_sum);
+    Log("total guest instructions = %ld", inst_sum);
+    Log("simulation frequency = %ld inst/s", inst_sum * 1000000 / g_timer);
 }
 static void trace_and_difftest() {
 
