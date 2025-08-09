@@ -26,15 +26,25 @@ static uint64_t ifu_sum = 0;
 static uint64_t lsu_sum = 0;
 static uint64_t exu_sum = 0;
 static uint64_t idu_sum = 0;
-// static uint64_t type_ = 0;
-// static uint64_t type_ = 0;
-// static uint64_t type_ = 0;
-// static uint64_t type_ = 0;
-extern "C" void performance_counter(int ifu, int lsu, int exu, int idu) {
+static uint64_t type_r = 0;
+static uint64_t type_i = 0;
+static uint64_t type_s = 0;
+static uint64_t type_b = 0;
+static uint64_t type_u = 0;
+static uint64_t type_j = 0;
+static uint64_t type_n = 0;
+extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type_) {
     ifu_sum += ifu;
     lsu_sum += lsu;
     exu_sum += exu;
     idu_sum += idu;
+    type_r  += type_ >> 6 && 0x01;
+    type_i  += type_ >> 5 && 0x01;
+    type_s  += type_ >> 4 && 0x01;
+    type_b  += type_ >> 3 && 0x01;
+    type_u  += type_ >> 2 && 0x01;
+    type_j  += type_ >> 1 && 0x01;
+    type_n  += type_      && 0x01;
 }
 
 static void inst_infomation() {
@@ -44,6 +54,7 @@ static void inst_infomation() {
     Log("total guest clocks = %ld", clk_sum);
     Log("simulation frequency = %ld inst/s", inst_sum * 1000000 / g_timer);
     Log("performance counter: ifu:%ld lsu:%ld exu:%ld idu:%ld", ifu_sum, lsu_sum, exu_sum/2, idu_sum/2);
+    Log("inst type: R:%ld I:%ld S:%ld B:%ld U:%ld J:%ld N:%ld", type_r, type_i, type_s, type_b, type_u, type_j, type_n);
 }
 
 static void trace_and_difftest() {

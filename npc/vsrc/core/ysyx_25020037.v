@@ -85,7 +85,7 @@ module ysyx_25020037 (
     parameter MVENDORID = 12'hF11;
     parameter MARCHID   = 12'hF12;
 
-    import "DPI-C" function void performance_counter(input int ifu, input int lsu, input int exu, input int idu);
+    import "DPI-C" function void performance_counter(input int ifu, input int lsu, input int exu, input int idu, input int type_);
     //parameter CONFIG_FTRACE = 1'b0;
     //import "DPI-C" function void call_func(input int pc, input int dnpc);
     //import "DPI-C" function void ret_func(input int pc);
@@ -93,7 +93,7 @@ module ysyx_25020037 (
     //wire         ftrace_jalr;
 
     always @(posedge clock) begin
-        performance_counter({31'b0, ifu_rvalid}, {31'b0, lsu_rvalid}, {31'b0, exu_valid}, {31'b0, idu_valid});
+        performance_counter({31'b0, ifu_rvalid}, {31'b0, lsu_rvalid}, {31'b0, exu_valid}, {31'b0, idu_valid}, 32'b0);
     end
 
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;

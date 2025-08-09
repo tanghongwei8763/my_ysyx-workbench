@@ -18,6 +18,11 @@ module ysyx_25020037_idu (
     output reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus
 );
 
+    import "DPI-C" function void performance_counter(input int ifu, input int lsu, input int exu, input int idu, input int type_);
+    always @(posedge clk) begin
+        performance_counter(32'b0, 32'b0, 32'b0, 32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N});
+    end
+
     parameter MSTATUS   = 12'h300;
     parameter MTVEC     = 12'h305;
     parameter MEPC      = 12'h341;
@@ -133,7 +138,6 @@ module ysyx_25020037_idu (
     wire        TYPE_U;
     wire        TYPE_J;
     wire        TYPE_N;
-    wire        TYPE_W;
 
     assign opcode_31_25  = inst_r[31:25];
     assign opcode_31_26  = inst_r[31:26];
@@ -283,7 +287,7 @@ module ysyx_25020037_idu (
     assign csrs_mvendorid_wen = (imm[11:0] == MVENDORID) & is_csr_op;
     assign csrs_marchid_wen   = (imm[11:0] == MARCHID) & is_csr_op;
 
-    assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | TYPE_W | inst_ecall | inst_mret);
+    assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
     always @(*) begin
         case (state)
