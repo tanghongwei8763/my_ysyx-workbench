@@ -2,6 +2,8 @@
 #include "../include/monitor.h"
 #include "../include/trace.h"
 #include "../include/switch.h"
+#include "../include/debug.h"
+#include "../include/macro.h"
 #include "../include/difftest-def.h"
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
@@ -13,7 +15,10 @@ extern VysyxSoCFull *top;
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
 
 static void exec_once();
-
+static int inst_sum = 0;
+static void inst_infomation() {
+    Log("info: Total instructions = %d", inst_sum);
+}
 static void trace_and_difftest() {
 
 #ifdef CONFIG_DIFFTEST
@@ -46,15 +51,18 @@ void cpu_exec(int n){
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
                     finish();
+                    inst_infomation();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
                     finish();
+                    inst_infomation();
                     break;
                 }
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
                     finish();
+                    inst_infomation();
                     break;
                 }
                 else if (NPC_STATE == NPC_STOP) {
@@ -72,11 +80,13 @@ void cpu_exec(int n){
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
                     finish();
+                    inst_infomation();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
                     finish();
+                    inst_infomation();
                     break;
                 }
                 if(NPC_STATE == NPC_RUNING) {
@@ -89,6 +99,7 @@ void cpu_exec(int n){
                 }
                 else if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT) {
                     finish();
+                    inst_infomation();
                     break;
                 }
             }
@@ -101,6 +112,7 @@ void cpu_exec(int n){
 }
 
 static void exec_once() {
+    inst_sum++;
     int last_pc = pc;
     do{
         single_cycle();
