@@ -22,7 +22,7 @@ static uint64_t inst_sum = 0;
 static uint64_t clk_sum = 0;
 static uint64_t g_timer = 0;
 static void inst_infomation() {
-    Log("IPC = %ld", inst_sum / clk_sum);
+    Log("IPC = %.4f", (double)inst_sum / clk_sum);
     Log("host time spent = %ld us", g_timer);
     Log("total guest instructions = %ld", inst_sum);
     Log("total guest clocks = %ld", clk_sum);
