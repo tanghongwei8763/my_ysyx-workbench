@@ -19,10 +19,13 @@ extern VysyxSoCFull *top;
 
 static void exec_once();
 static uint64_t inst_sum = 0;
+static uint64_t clk_sum = 0;
 static uint64_t g_timer = 0;
 static void inst_infomation() {
+    Log("IPC = %.4f us", inst_sum / clk_sum);
     Log("host time spent = %ld us", g_timer);
     Log("total guest instructions = %ld", inst_sum);
+    Log("total guest clocks = %ld", clk_sum);
     Log("simulation frequency = %ld inst/s", inst_sum * 1000000 / g_timer);
 }
 static void trace_and_difftest() {
@@ -127,9 +130,11 @@ static void exec_once() {
     uint64_t timer_start = get_time();
     do{
         single_cycle();
+        clk_sum++;
     } while (pc == last_pc);
     single_cycle();
     uint64_t timer_end = get_time();
+    clk_sum++;
     g_timer += timer_end - timer_start;
     trace_and_difftest();
 }
