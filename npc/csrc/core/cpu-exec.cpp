@@ -34,18 +34,17 @@ static uint64_t type_u = 0;
 static uint64_t type_j = 0;
 static uint64_t type_n = 0;
 extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type_) {
-    if(type_) printf("%08b\n", type_);
     ifu_sum += ifu;
     lsu_sum += lsu;
     exu_sum += exu;
     idu_sum += idu;
-    type_r  += type_ >> 6 && 0x01;
-    type_i  += type_ >> 5 && 0x01;
-    type_s  += type_ >> 4 && 0x01;
-    type_b  += type_ >> 3 && 0x01;
-    type_u  += type_ >> 2 && 0x01;
-    type_j  += type_ >> 1 && 0x01;
-    type_n  += type_      && 0x01;
+    type_r  += (type_ >> 6) & 0x01;
+    type_i  += (type_ >> 5) & 0x01;
+    type_s  += (type_ >> 4) & 0x01;
+    type_b  += (type_ >> 3) & 0x01;
+    type_u  += (type_ >> 2) & 0x01;
+    type_j  += (type_ >> 1) & 0x01;
+    type_n  += (type_ >> 0) & 0x01;
 }
 
 static void inst_infomation() {
