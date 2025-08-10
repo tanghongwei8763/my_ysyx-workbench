@@ -18,9 +18,9 @@ extern VysyxSoCFull *top;
 #define ifu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_access_fault
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
 #else
-#include "Vysyx25020037___024root.h"
-#include "Vysyx25020037.h"
-extern Vysyx25020037 *top;
+#include "Vysyx_25020037___024root.h"
+#include "Vysyx_25020037.h"
+extern Vysyx_25020037 *top;
 #define pc top->rootp->ysyx_25020037__DOT__pc
 #define inst top->rootp->ysyx_25020037__DOT__inst
 #endif
@@ -94,6 +94,7 @@ void cpu_exec(int n){
 #ifdef CONFIG_ITRACE
                 iringbuf(pc, inst);
 #endif
+#ifdef CONFIG_YSYXSOC
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
                     finish();
@@ -106,6 +107,7 @@ void cpu_exec(int n){
                     inst_infomation();
                     break;
                 }
+#endif
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
                     finish();
                     inst_infomation();
@@ -123,6 +125,7 @@ void cpu_exec(int n){
 #ifdef CONFIG_ITRACE
                 iringbuf(pc, inst);
 #endif
+#ifdef CONFIG_YSYXSOC
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
                     finish();
@@ -135,6 +138,7 @@ void cpu_exec(int n){
                     inst_infomation();
                     break;
                 }
+#endif
                 if(NPC_STATE == NPC_RUNING) {
                     exec_once();
                     if(NPC_STATE == NPC_RUNING) printf("0x%08x: %08x\n", pc, inst);

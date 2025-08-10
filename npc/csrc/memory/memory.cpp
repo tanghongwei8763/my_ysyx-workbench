@@ -12,9 +12,9 @@
 extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 #else
-#include "Vysyx25020037___024root.h"
-#include "Vysyx25020037.h"
-extern Vysyx25020037 *top;
+#include "Vysyx_25020037___024root.h"
+#include "Vysyx_25020037.h"
+extern Vysyx_25020037 *top;
 #define pc top->rootp->ysyx_25020037__DOT__pc
 #endif
 
