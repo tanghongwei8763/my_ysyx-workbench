@@ -100,7 +100,7 @@ module ysyx_25020037_exu (
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
-            exu_valid <= 1'b0;
+            exu_valid <= 0;
             exu_ready <= 1'b1;
             eu_to_lu_bus <= `EU_TO_LU_BUS_WD'b0;
             dnpc <= 32'b0;

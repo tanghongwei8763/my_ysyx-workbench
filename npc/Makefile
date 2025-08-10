@@ -78,6 +78,8 @@ yosys:
 											INCLUDE_PATH=$(NPC_HOME)/vsrc/include
 	cd $(NPC_HOME)
 
+perf:
+
 clean:
 	rm -rf $(BUILD_DIR)
 
