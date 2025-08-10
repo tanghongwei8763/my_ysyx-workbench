@@ -1,4 +1,5 @@
 TOPNAME = ysyxSoCFull
+YOSYSTOP = ysyx_25020037
 VERILATOR = verilator
 NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
@@ -15,7 +16,6 @@ endif
 ISA ?= 
 ARGS ?= 
 IMG ?= 
-TOPNAME = ysyxSoCFull
 
 SIMULATOR = $(BIN)
 
@@ -71,7 +71,20 @@ run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@$^ $(ARGS) $(IMG)
 
+yosys:
+	cd $(NPC_HOME)/../../yosys-sta && make sta DESIGN=$(YOSYSTOP) \
+											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core $(NPC_HOME)/vsrc/tools -name "*.v")" \
+											CLK_FREQ_MHZ=500 \
+											INCLUDE_PATH=$(NPC_HOME)/vsrc/include
+	cd $(NPC_HOME)
+
+perf:
+
 clean:
 	rm -rf $(BUILD_DIR)
+
+clean-yosys:
+	cd $(NPC_HOME)/../../yosys-sta && make clean
+	cd $(NPC_HOME)
 
 include ../Makefile

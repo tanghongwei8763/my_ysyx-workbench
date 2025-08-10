@@ -2,9 +2,14 @@
 #include "../include/monitor.h"
 #include "../include/trace.h"
 #include "../include/switch.h"
+#include "../include/debug.h"
+#include "../include/macro.h"
 #include "../include/difftest-def.h"
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
+
+#include <time.h>
+#include <sys/time.h>
 
 extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
@@ -13,6 +18,44 @@ extern VysyxSoCFull *top;
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
 
 static void exec_once();
+static uint64_t inst_sum = 0;
+static uint64_t clk_sum = 0;
+static uint64_t g_timer = 0;
+
+static uint64_t ifu_sum = 0;
+static uint64_t lsu_sum = 0;
+static uint64_t exu_sum = 0;
+static uint64_t idu_sum = 0;
+static uint64_t type_r = 0;
+static uint64_t type_i = 0;
+static uint64_t type_s = 0;
+static uint64_t type_b = 0;
+static uint64_t type_u = 0;
+static uint64_t type_j = 0;
+static uint64_t type_n = 0;
+extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type_) {
+    ifu_sum += ifu;
+    lsu_sum += lsu;
+    exu_sum += exu;
+    idu_sum += idu;
+    type_r  += (type_ >> 6) & 0x01;
+    type_i  += (type_ >> 5) & 0x01;
+    type_s  += (type_ >> 4) & 0x01;
+    type_b  += (type_ >> 3) & 0x01;
+    type_u  += (type_ >> 2) & 0x01;
+    type_j  += (type_ >> 1) & 0x01;
+    type_n  += (type_ >> 0) & 0x01;
+}
+
+static void inst_infomation() {
+    Log("IPC = %.4f", (double)inst_sum / clk_sum);
+    Log("host time spent = %ld us", g_timer);
+    Log("total guest instructions = %ld", inst_sum);
+    Log("total guest clocks = %ld", clk_sum);
+    Log("simulation frequency = %ld inst/s", inst_sum * 1000000 / g_timer);
+    Log("performance counter: ifu:%ld lsu:%ld exu:%ld idu:%ld", ifu_sum, lsu_sum, exu_sum/2, idu_sum/2);
+    Log("inst type: R:%ld I:%ld S:%ld B:%ld U:%ld J:%ld N:%ld", type_r/2, type_i/2, type_s/2, type_b/2, type_u/2, type_j/2, type_n/2);
+}
 
 static void trace_and_difftest() {
 
@@ -46,15 +89,18 @@ void cpu_exec(int n){
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
                     finish();
+                    inst_infomation();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
                     finish();
+                    inst_infomation();
                     break;
                 }
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
                     finish();
+                    inst_infomation();
                     break;
                 }
                 else if (NPC_STATE == NPC_STOP) {
@@ -72,11 +118,13 @@ void cpu_exec(int n){
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
                     finish();
+                    inst_infomation();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
                     finish();
+                    inst_infomation();
                     break;
                 }
                 if(NPC_STATE == NPC_RUNING) {
@@ -89,6 +137,7 @@ void cpu_exec(int n){
                 }
                 else if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT) {
                     finish();
+                    inst_infomation();
                     break;
                 }
             }
@@ -100,11 +149,21 @@ void cpu_exec(int n){
     }
 }
 
+static uint64_t us;
+
+extern uint64_t get_time();
+
 static void exec_once() {
+    inst_sum++;
     int last_pc = pc;
+    uint64_t timer_start = get_time();
     do{
         single_cycle();
+        clk_sum++;
     } while (pc == last_pc);
     single_cycle();
+    uint64_t timer_end = get_time();
+    clk_sum++;
+    g_timer += timer_end - timer_start;
     trace_and_difftest();
 }
