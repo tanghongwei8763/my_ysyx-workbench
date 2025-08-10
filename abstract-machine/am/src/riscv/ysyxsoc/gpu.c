@@ -1,7 +1,5 @@
 #include <am.h>
 #include "include/ysyxsoc.h"
-#include <stdio.h>
-#include <string.h>
 
 static uint32_t WIDE = 640;
 static uint32_t HIGHT = 480;
