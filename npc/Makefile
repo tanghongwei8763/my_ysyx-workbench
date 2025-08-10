@@ -73,16 +73,16 @@ run: $(BIN)
 
 yosys:
 	cd $(NPC_HOME)/../../yosys-sta && make sta DESIGN=$(YOSYSTOP) \
-											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core $(NPC_HOME)/vsrc/tool -name "*.v")" \
-											CLK_FREQ_MHZ=50 \
-											INCLUDE_PATH=$(NPC_HOME)/vsrc/core
+											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core $(NPC_HOME)/vsrc/tools -name "*.v")" \
+											CLK_FREQ_MHZ=500 \
+											INCLUDE_PATH=$(NPC_HOME)/vsrc/include
 	cd $(NPC_HOME)
 
 clean:
 	rm -rf $(BUILD_DIR)
 
-clean_yosys:
-	cd $(NPC_HOME)/../yosys-sta && make clean
+clean-yosys:
+	cd $(NPC_HOME)/../../yosys-sta && make clean
 	cd $(NPC_HOME)
 
 include ../Makefile

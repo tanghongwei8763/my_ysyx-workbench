@@ -1,4 +1,4 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/core/ysyx_25020037_config.vh"
+`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
 
 module ysyx_25020037_exu (
     input  wire         clk,
@@ -17,7 +17,7 @@ module ysyx_25020037_exu (
     output reg  [31: 0] dnpc
 );
 
-    import "DPI-C" function void hit(input int inst_not_realize);
+    //import "DPI-C" function void hit(input int inst_not_realize);
 
     localparam IDLE  = 1'b0;
     localparam BUSY  = 1'b1;
@@ -97,12 +97,13 @@ module ysyx_25020037_exu (
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
     assign snpc   = pc + 32'h4;
-    always @(posedge clk or negedge rst) begin
+    always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
             exu_valid <= 1'b0;
             exu_ready <= 1'b1;
             eu_to_lu_bus <= `EU_TO_LU_BUS_WD'b0;
+            dnpc <= 32'b0;
         end else begin
             state <= next_state;
             
@@ -138,8 +139,8 @@ module ysyx_25020037_exu (
         endcase
     end
 
-    always @(*) begin
-        if(ebreak | inst_not_realize) begin hit({32{inst_not_realize}}); end
-    end
+    //always @(*) begin
+    //    if(ebreak | inst_not_realize) begin hit({32{inst_not_realize}}); end
+    //end
 
 endmodule

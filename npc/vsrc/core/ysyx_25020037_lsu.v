@@ -1,4 +1,4 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/core/ysyx_25020037_config.vh"
+`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
 module ysyx_25020037_lsu (
     input  wire          clk,
     input  wire          rst,
