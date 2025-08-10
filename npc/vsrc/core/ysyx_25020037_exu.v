@@ -17,7 +17,7 @@ module ysyx_25020037_exu (
     output reg  [31: 0] dnpc
 );
 
-    //import "DPI-C" function void hit(input int inst_not_realize);
+    import "DPI-C" function void hit(input int inst_not_realize);
 
     localparam IDLE  = 1'b0;
     localparam BUSY  = 1'b1;
@@ -139,8 +139,8 @@ module ysyx_25020037_exu (
         endcase
     end
 
-    //always @(*) begin
-    //    if(ebreak | inst_not_realize) begin hit({32{inst_not_realize}}); end
-    //end
+    always @(*) begin
+       if(ebreak | inst_not_realize) begin hit({32{inst_not_realize}}); end
+    end
 
 endmodule

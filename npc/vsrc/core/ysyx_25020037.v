@@ -91,10 +91,10 @@ module ysyx_25020037 (
     //wire         ftrace_jal;
     //wire         ftrace_jalr;
 
-    //import "DPI-C" function void performance_counter(input int ifu, input int lsu, input int exu, input int idu, input int type_);
-    //always @(posedge clock) begin
-    //    performance_counter({31'b0, ifu_rvalid}, {31'b0, lsu_rvalid}, {31'b0, exu_valid}, {31'b0, idu_valid}, 32'b0);
-    //end
+    import "DPI-C" function void performance_counter(input int ifu, input int lsu, input int exu, input int idu, input int type_);
+    always @(posedge clock) begin
+       performance_counter({31'b0, ifu_rvalid}, {31'b0, lsu_rvalid}, {31'b0, exu_valid}, {31'b0, idu_valid}, 32'b0);
+    end
 
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
