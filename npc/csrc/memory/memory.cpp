@@ -2,14 +2,21 @@
 #include "../include/switch.h"
 #include "../include/memory.h"
 #include "../include/difftest-def.h"
-#include "VysyxSoCFull___024root.h"
-#include "VysyxSoCFull.h"
-
-extern VysyxSoCFull *top;
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 
 #include <time.h>
 #include <sys/time.h>
+
+#ifdef CONFIG_YSYXSOC
+#include "VysyxSoCFull___024root.h"
+#include "VysyxSoCFull.h"
+extern VysyxSoCFull *top;
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#else
+#include "Vysyx25020037___024root.h"
+#include "Vysyx25020037.h"
+extern Vysyx25020037 *top;
+#define pc top->rootp->ysyx_25020037__DOT__pc
+#endif
 
 static const uint32_t img [] = {
   0x00000413,
