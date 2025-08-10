@@ -43,7 +43,12 @@ static uint8_t clk[CLK_SIZE] PG_ALIGN = {};
 
 extern "C" uint8_t* guest_to_host(uint32_t paddr) {
   if(paddr >= CLK_BASE) return clk + paddr - CLK_BASE;
-  return pmem + paddr - CONFIG_MBASE; 
+  else if (paddr >= RESET_VECTOR && paddr <= CONFIG_END) {
+    return pmem + paddr - CONFIG_MBASE;
+  } else {
+    printf("Invalid Address: 0x%0x\n", paddr);
+    assert(0);
+  }
 }
 
 extern "C" {

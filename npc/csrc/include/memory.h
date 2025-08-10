@@ -4,6 +4,7 @@
 
 #define RESET_VECTOR 0x80000000
 #define CONFIG_MBASE 0x80000000
+#define CONFIG_END   0x8fffffff
 
 #define MROM_RESET_VECTOR 0x20000000
 #define MROM_BASE_END     0x20000fff
