@@ -114,7 +114,7 @@ static long load_img() {
 #ifdef CONFIG_YSYXSOC
   int ret = fread(SoC_to_host(FLASH_RESET_VECTOR), size, 1, fp);
 #else
-  int ret = fread(SoC_to_host(FLASH_RESET_VECTOR), size, 1, fp);
+  int ret = fread(SoC_to_host(RESET_VECTOR), size, 1, fp);
 #endif
   assert(ret == 1);
 
