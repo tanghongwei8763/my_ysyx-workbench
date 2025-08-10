@@ -111,7 +111,11 @@ static long load_img() {
   Log("The image is \033[1;33m%s\033[0m, size = \033[1;37m%ld\033[0m",img_file, size);
 
   fseek(fp, 0, SEEK_SET);
+#ifdef CONFIG_YSYXSOC
   int ret = fread(SoC_to_host(FLASH_RESET_VECTOR), size, 1, fp);
+#else
+  int ret = fread(SoC_to_host(FLASH_RESET_VECTOR), size, 1, fp);
+#endif
   assert(ret == 1);
 
   fclose(fp);

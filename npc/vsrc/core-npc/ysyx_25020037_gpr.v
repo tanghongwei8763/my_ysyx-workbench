@@ -1,4 +1,4 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/ysyx_25020037_config.vh"
+`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/core-npc/ysyx_25020037_config.vh"
 
 //寄存器堆
 module ysyx_25020037_gpr (
