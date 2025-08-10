@@ -26,6 +26,7 @@ static const uint32_t img [] = {
 0x00e78023,          	//sb	a4,0(a5)
 0x00a00713,          	//li	a4,10
 0x00e78023,          	//sb	a4,0(a5)
+0x00100073
 };
 
 static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
