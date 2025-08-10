@@ -143,6 +143,7 @@ extern "C" void pmem_write(paddr_t addr, uint8_t len, word_t data, int trace_on)
   if(trace_on) printf("0x%08x: w\t%08x   %d   0x%08x\n", pc, addr, len, data);
 #endif
   if(addr < 0x80000000) { printf("waddr 0x%08x is error\n", addr);assert(0);}
+  uint8_t strb = (len == 0xf) ? 4 : len;
   if((addr & ~0x3u) == UART_BASE) {
 #ifdef CONFIG_DIFFTEST
     difftest_skip_ref();
@@ -150,7 +151,7 @@ extern "C" void pmem_write(paddr_t addr, uint8_t len, word_t data, int trace_on)
     //putchar(data&0xff);
     //fflush(stdout);
   }
-  else host_write(guest_to_host(addr), len, data);
+  else host_write(guest_to_host(addr), strb, data);
 }
 
 #ifdef CONFIG_YSYXSOC
