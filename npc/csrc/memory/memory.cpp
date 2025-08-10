@@ -44,7 +44,7 @@ extern "C" uint8_t* guest_to_host(uint32_t paddr) {
     assert(0);
   }
 }
-
+#ifdef CONFIG_YSYXSOC
 extern "C" {
   word_t host_read(uint8_t *addr, uint8_t len) {
     switch (len) {
@@ -65,7 +65,28 @@ extern "C" {
     }
   }
 }
+#else
+extern "C" {
+  word_t host_read(void *addr, uint8_t len) {
+    switch (len) {
+      case 1: return *(uint8_t*)addr; break;
+      case 2: return *(uint16_t*)addr; break;
+      case 4: return *(uint32_t*)addr; break;
+      default: return 0x00100073; break;
+    }
+  }
+}
 
+extern "C" {
+  static inline void host_write(void *addr, int len, word_t data) {
+    switch (len) {
+      case 0x1: *(uint8_t  *)addr = data; return;
+      case 0x2: *(uint16_t *)addr = data; return;
+      case 0xf: *(uint32_t *)addr = data; return;
+    }
+  }
+}
+#endif
 extern "C" uint8_t* SoC_to_host(uint32_t paddr) {
   if(paddr >= MROM_RESET_VECTOR && paddr <= MROM_BASE_END) {
     return mrom + paddr - MROM_RESET_VECTOR;
@@ -142,7 +163,6 @@ extern "C" void pmem_write(paddr_t addr, uint8_t len, word_t data, int trace_on)
   if(trace_on) printf("0x%08x: w\t%08x   %d   0x%08x\n", pc, addr, len, data);
 #endif
   if(addr < 0x80000000) { printf("waddr 0x%08x is error\n", addr);assert(0);}
-  uint8_t strb = (len == 0xf) ? 4 : len;
   if((addr & ~0x3u) == UART_BASE) {
 #ifdef CONFIG_DIFFTEST
     difftest_skip_ref();
@@ -150,7 +170,7 @@ extern "C" void pmem_write(paddr_t addr, uint8_t len, word_t data, int trace_on)
     //putchar(data&0xff);
     //fflush(stdout);
   }
-  else host_write(guest_to_host(addr), strb, data);
+  else host_write(guest_to_host(addr), len, data);
 }
 
 #ifdef CONFIG_YSYXSOC

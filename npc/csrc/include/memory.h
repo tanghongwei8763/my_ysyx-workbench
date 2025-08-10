@@ -31,9 +31,7 @@ extern "C" {
 uint8_t* guest_to_host(uint32_t paddr);
 uint8_t* SoC_to_host(uint32_t paddr);
 word_t pmem_read(paddr_t addr, uint8_t len, int trace_on);
-word_t host_read(uint8_t *addr, uint8_t len);
 void pmem_write(paddr_t addr, uint8_t len, word_t data, int trace_on);
-void host_write(uint8_t *addr, word_t data, int len);
 void init_isa();
 void init_device();
 
