@@ -2,7 +2,7 @@
 #include "../riscv.h"
 #include <stdio.h>
 
-#define RTC_ADDR 0x20000000
+#define RTC_ADDR 0x02000000
 
 static uint64_t start_time = 0;
 
