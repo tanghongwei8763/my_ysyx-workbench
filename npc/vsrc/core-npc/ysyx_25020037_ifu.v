@@ -36,7 +36,7 @@ module ysyx_25020037_ifu(
     always @(*) begin
         case (state)
             IDLE: begin next_state = (pc != last_pc) ? CHECK : IDLE; end
-            CHECK: begin next_state = mem_req ? BUSY : IDLE; end
+            CHECK: begin next_state = mem_req ? BUSY : icache_hit ? IDLE : CHECK; end
             BUSY: begin next_state = (rvalid && rready && (rresp == 2'b00)) ? WAIT : BUSY; end
             WAIT: begin next_state = icache_ready ? IDLE : WAIT; end
             default: next_state = IDLE;
