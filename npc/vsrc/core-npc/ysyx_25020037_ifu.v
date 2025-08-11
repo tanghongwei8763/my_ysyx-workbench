@@ -27,7 +27,6 @@ module ysyx_25020037_ifu(
     localparam IDLE    = 2'b00;
     localparam CHECK   = 2'b01;
     localparam BUSY    = 2'b10;
-    localparam WAIT    = 2'b11;
     
     reg  [ 1:0] state, next_state;
     reg  [31:0] last_pc;
@@ -38,8 +37,7 @@ module ysyx_25020037_ifu(
         case (state)
             IDLE: begin next_state = (pc != last_pc) ? CHECK : IDLE; end
             CHECK: begin next_state = mem_req ? BUSY : icache_hit ? IDLE : CHECK; end
-            BUSY: begin next_state = (rvalid && rready && (rresp == 2'b00)) ? WAIT : BUSY; end
-            WAIT: begin next_state = icache_ready ? IDLE : WAIT; end
+            BUSY: begin next_state = (icache_ready && rvalid && rready && (rresp == 2'b00)) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
