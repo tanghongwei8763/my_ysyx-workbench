@@ -72,6 +72,7 @@ module ysyx_25020037_ifu(
                     if (icache_hit) begin
                         inst <= icache_data;
                         ifu_valid <= 1'b1;
+                        arvalid <= 1'b0;
                     end else begin
                         araddr <= pc;
                         arvalid <= 1'b1;
