@@ -80,7 +80,7 @@ static void inst_infomation() {
     Log("total guest instructions = %ld", stats.inst_sum);
     Log("total guest clocks = %ld", stats.clk_sum);
     Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
-    
+#ifdef CONFIG_YSYXSOC
     printf("+----------------+-------------------+\n");
     printf("| 性能计数器     |                   |\n");
     printf("+----------------+-------------------+\n");
@@ -110,6 +110,7 @@ static void inst_infomation() {
                time_ratio);
     }
     printf("+---------------------------------------------------------------+\n");
+#endif
 }
 
 static void trace_and_difftest() {
@@ -157,9 +158,7 @@ void cpu_exec(int n){
 #endif
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
                     finish();
-#ifdef CONFIG_YSYXSOC
                     inst_infomation();
-#endif
                     break;
                 }
                 else if (NPC_STATE == NPC_STOP) {
@@ -198,9 +197,7 @@ void cpu_exec(int n){
                 }
                 else if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT) {
                     finish();
-#ifdef CONFIG_YSYXSOC
                     inst_infomation();
-#endif
                     break;
                 }
             }
