@@ -88,11 +88,11 @@ static void inst_infomation() {
     printf("| - lsu          | %-17ld |\n", stats.perf.lsu);
     printf("| - exu          | %-17ld |\n", stats.perf.exu / 2);
     printf("| - idu          | %-17ld |\n", stats.perf.idu / 2);
-    printf("+----------------+--------------------------------------+\n");
+    printf("+---------------------------------------------------------------+\n");
     
     // 打印指令类型统计表格
-    printf("| 指令类型统计   | 时钟占比            时间占比              |\n");
-    printf("+-------------------------------------------------------+\n");
+    printf("| 指令类型统计   | 时钟占比            时间占比\t\t|\n");
+    printf("+---------------------------------------------------------------+\n");
     
     const char* type_names[INST_TYPE_COUNT] = {"R", "I", "S", "B", "U", "J", "N"};
     for (int i = 0; i < INST_TYPE_COUNT; i++) {
@@ -109,7 +109,7 @@ static void inst_infomation() {
                stats.types[i].time,
                time_ratio);
     }
-    printf("+-----------------------------------------------------------+\n");
+    printf("+---------------------------------------------------------------+\n");
 }
 
 static void trace_and_difftest() {
