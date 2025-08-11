@@ -34,7 +34,7 @@ assign offset = cpu_addr[OFFSET_WIDTH-1 : 0];
 reg [   TAG_WIDTH-1:0]    tag_array  [CACHE_BLOCKS-1:0];
 reg [  DATA_WIDTH-1:0]    data_array [CACHE_BLOCKS-1:0];
 reg [CACHE_BLOCKS-1:0]    valid_array;
-
+reg                       cache_hit;
 localparam IDLE      = 2'b00;
 localparam COMPARE   = 2'b01;
 localparam REFILL    = 2'b10;
@@ -50,13 +50,11 @@ always @(*) begin
     endcase
 end
 
-always @(posedge clk or posedge rst) begin
-    if (rst) begin
-        cpu_hit <= 1'b0;
+always @(*) begin
+    if (valid_array[index] && (tag_array[index] == tag)) begin
+        cache_hit = 1'b1;
     end else begin
-        if ((current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag)) begin
-            cpu_hit <= 1'b1;
-        end else begin cpu_hit <= 1'b0; end
+        cache_hit = 1'b0;
     end
 end
 
@@ -65,12 +63,17 @@ always @(posedge clk or posedge rst) begin
         current_state <= IDLE;
         cpu_data  <= 'b0;
         cpu_ready <= 1'b0;
+        cpu_hit <= 1'b0;
     end else begin
         current_state <= next_state;
 
+        if ((current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag)) begin
+            cpu_hit <= 1'b1;
+        end else begin cpu_hit <= 1'b0; end
+
         case (current_state)
             COMPARE: begin
-                if (cpu_hit) begin
+                if (cache_hit) begin
                     cpu_data  <= data_array[index];
                     cpu_ready <= 1'b1;
                 end else begin
@@ -102,7 +105,7 @@ always @(posedge clk or posedge rst) begin
     end else begin
         case (current_state)
             COMPARE: begin
-                if (!cpu_hit) begin
+                if (!cache_hit) begin
                     mem_addr <= cpu_addr;
                     mem_req  <= 1'b1;
                 end else begin
