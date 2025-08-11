@@ -52,9 +52,9 @@ end
 
 always @(*) begin
     if (valid_array[index] && (tag_array[index] == tag)) begin
-        cpu_hit = 1'b1;
+        cache_hit = 1'b1;
     end else begin
-        cpu_hit = 1'b0;
+        cache_hit = 1'b0;
     end
 end
 
@@ -63,12 +63,13 @@ always @(posedge clk or posedge rst) begin
         current_state <= IDLE;
         cpu_data  <= 'b0;
         cpu_ready <= 1'b0;
+        cpu_hit <= 1'b0;
     end else begin
         current_state <= next_state;
 
-        if ((current_state != COMPARE) && valid_array[index] && (tag_array[index] == tag)) begin
-            cache_hit <= 1'b1;
-        end else begin cache_hit <= 1'b0; end
+        if ((current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag)) begin
+            cpu_hit <= 1'b1;
+        end else begin cpu_hit <= 1'b0; end
 
         case (current_state)
             COMPARE: begin
