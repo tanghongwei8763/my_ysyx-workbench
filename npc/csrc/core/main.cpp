@@ -9,14 +9,14 @@
 #include "../include/debug.h"
 #include "../include/macro.h"
 
+#ifdef CONFIG_YSYXSOC
+#include "VysyxSoCFull___024root.h"
+#include "VysyxSoCFull.h"
 #ifdef CONFIG_NVBOARD
 #include <nvboard.h>
 extern void nvboard_bind_all_pins(VysyxSoCFull* top);
 #endif
 
-#ifdef CONFIG_YSYXSOC
-#include "VysyxSoCFull___024root.h"
-#include "VysyxSoCFull.h"
 VysyxSoCFull *top = new VysyxSoCFull("top");
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 #define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
