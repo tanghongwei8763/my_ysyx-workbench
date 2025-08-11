@@ -11,10 +11,17 @@ module ysyx_25020037_ifu(
     output reg          arvalid,
     input  wire         arready,
 
-    input  wire [31: 0] rdata,
     input  wire [ 1: 0] rresp,
     input  wire         rvalid,
-    output reg          rready
+    output reg          rready,
+
+    input  wire [31: 0] icache_data,
+    input  wire         icache_hit,
+    input  wire         icache_ready,
+    input  wire         mem_req,
+    output reg          icache_req,
+    output reg          mem_ready
+
 );
     localparam IDLE    = 2'b00;
     localparam CHECK   = 2'b01;
@@ -23,39 +30,13 @@ module ysyx_25020037_ifu(
     
     reg  [ 1:0] state, next_state;
     reg  [31:0] last_pc;
-    wire [31:0] icache_data;
-    wire        icache_hit;
-    wire        icache_ready;
-    reg         icache_req;
-    reg  [31:0] mem_addr_to_cache;
-    reg         mem_req_to_cache;
-    wire [31:0] mem_data_from_cache;
-    wire        mem_ready_from_cache;
 
-    ysyx_25020037_icache #(
-        .ADDR_WIDTH    (32),
-        .DATA_WIDTH    (32),
-        .CACHE_BLOCKS  (16),
-        .BLOCK_SIZE    (4 )
-    ) u_icache (
-        .clk           (clk         ),
-        .rst           (rst         ),
-        .cpu_addr      (pc          ),
-        .cpu_req       (icache_req  ),
-        .cpu_data      (icache_data ),
-        .cpu_hit       (icache_hit  ),
-        .cpu_ready     (icache_ready),
-        .mem_addr      (mem_addr_to_cache   ),
-        .mem_req       (mem_req_to_cache    ),
-        .mem_data      (rdata               ),
-        .mem_ready     (mem_ready_from_cache)
-    );
-    assign mem_ready_from_cache = rvalid && (rresp == 2'b00);
+    assign mem_ready = rvalid && (rresp == 2'b00);
 
     always @(*) begin
         case (state)
             IDLE: begin next_state = (pc != last_pc) ? CHECK : IDLE; end
-            CHECK: begin next_state = icache_hit ? IDLE : BUSY; end
+            CHECK: begin next_state = mem_req ? BUSY : IDLE; end
             BUSY: begin next_state = (rvalid && rready && (rresp == 2'b00)) ? WAIT : BUSY; end
             WAIT: begin next_state = icache_ready ? IDLE : WAIT; end
             default: next_state = IDLE;
@@ -70,9 +51,6 @@ module ysyx_25020037_ifu(
             arvalid <= 1'b0;
             rready <= 1'b0;
             last_pc <= 32'h0;
-            icache_req <= 1'b0;
-            mem_req_to_cache <= 1'b0;
-            mem_addr_to_cache <= 32'h0;
         end else begin
             state <= next_state;
             
@@ -94,8 +72,6 @@ module ysyx_25020037_ifu(
                     end else begin
                         araddr <= pc;
                         arvalid <= 1'b1;
-                        mem_addr_to_cache <= pc;
-                        mem_req_to_cache <= 1'b1;
                     end
                 end
                 BUSY: begin
@@ -105,7 +81,6 @@ module ysyx_25020037_ifu(
                     end
                     if (rvalid && rready && (rresp == 2'b00)) begin
                         rready <= 1'b0;
-                        mem_req_to_cache <= 1'b0;
                     end
                 end
                 WAIT: begin

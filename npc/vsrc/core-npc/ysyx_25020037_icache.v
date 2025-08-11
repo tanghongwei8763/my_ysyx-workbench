@@ -14,7 +14,6 @@ module ysyx_25020037_icache #(
     output reg                   cpu_hit,
     output reg                   cpu_ready,
     
-    output reg  [ADDR_WIDTH-1:0] mem_addr,
     output reg                   mem_req,
     input  wire [DATA_WIDTH-1:0] mem_data,
     input  wire                  mem_ready
@@ -100,27 +99,22 @@ end
 
 always @(posedge clk or posedge rst) begin
     if (rst) begin
-        mem_addr <= 'b0;
         mem_req  <= 1'b0;
     end else begin
         case (current_state)
             COMPARE: begin
                 if (!cache_hit) begin
-                    mem_addr <= cpu_addr;
                     mem_req  <= 1'b1;
                 end else begin
-                    mem_addr <= 'b0;
                     mem_req  <= 1'b0;
                 end
             end
             REFILL: begin
                 if (mem_ready) begin
-                    mem_addr <= 'b0;
                     mem_req  <= 1'b0;
                 end
             end
             default: begin
-                mem_addr <= 'b0;
                 mem_req  <= 1'b0;
             end
         endcase

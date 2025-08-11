@@ -116,6 +116,13 @@ module ysyx_25020037 (
     wire         clint_rvalid;  
     wire         clint_rready;
 
+    wire [31: 0] icache_data;
+    wire         icache_hit;      
+    wire         icache_ready;    
+    wire         icache_mem_req;  
+    wire         icache_req;      
+    wire         icache_mem_ready;
+
     wire [31: 0] csr_wgpr_data;
     wire [31: 0] csr_wcsr_data;
     wire         inst_s;
@@ -156,20 +163,42 @@ module ysyx_25020037 (
     );          
     
     ysyx_25020037_ifu ifu_cpu(
-        .clk        (clock        ),
-        .rst        (reset        ),
-        .pc         (pc           ),
-        .idu_ready  (idu_ready    ),
-        .inst       (inst         ),
-        .araddr     (ifu_araddr   ),
-        .arvalid    (ifu_arvalid  ),
-        .arready    (ifu_arready  ),
-
-        .rdata      (ifu_rdata    ),
-        .rresp      (ifu_rresp    ),
-        .rvalid     (ifu_rvalid   ),
-        .rready     (ifu_rready   )
+        .clk            (clock           ),
+        .rst            (reset           ),
+        .pc             (pc              ),
+        .idu_ready      (idu_ready       ),
+        .inst           (inst            ),
+        .araddr         (ifu_araddr      ),
+        .arvalid        (ifu_arvalid     ),
+        .arready        (ifu_arready     ),
+        .rresp          (ifu_rresp       ),
+        .rvalid         (ifu_rvalid      ),
+        .rready         (ifu_rready      ),
+        .icache_data    (icache_data     ),
+        .icache_hit     (icache_hit      ),
+        .icache_ready   (icache_ready    ),
+        .mem_req        (icache_mem_req  ),
+        .icache_req     (icache_req      ),
+        .mem_ready      (icache_mem_ready)
         );
+
+    ysyx_25020037_icache #(
+        .ADDR_WIDTH    (32),
+        .DATA_WIDTH    (32),
+        .CACHE_BLOCKS  (16),
+        .BLOCK_SIZE    (4 )
+    ) u_icache (
+        .clk           (clock               ),
+        .rst           (reset               ),
+        .cpu_addr      (pc                  ),
+        .cpu_req       (icache_req          ),
+        .cpu_data      (icache_data         ),
+        .cpu_hit       (icache_hit          ),
+        .cpu_ready     (icache_ready        ),
+        .mem_req       (icache_mem_req      ),
+        .mem_data      (ifu_rdata           ),
+        .mem_ready     (icache_mem_ready    )
+    );
 
     ysyx_25020037_idu idu_cpu(
         .clk         (clock       ),
