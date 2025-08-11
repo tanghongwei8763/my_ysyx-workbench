@@ -11,6 +11,7 @@ module ysyx_25020037_ifu(
     output reg          arvalid,
     input  wire         arready,
 
+    input  wire [31: 0] rdata,
     input  wire [ 1: 0] rresp,
     input  wire         rvalid,
     output reg          rready,
@@ -80,14 +81,11 @@ module ysyx_25020037_ifu(
                         rready <= 1'b1;
                     end
                     if (rvalid && rready && (rresp == 2'b00)) begin
+                        inst <= rdata;
                         rready <= 1'b0;
                     end
                 end
-                WAIT: begin
-                    if (icache_ready) begin
-                        inst <= icache_data;
-                    end
-                end
+                default: begin  end
             endcase
         end
     end

@@ -171,6 +171,7 @@ module ysyx_25020037 (
         .araddr         (ifu_araddr      ),
         .arvalid        (ifu_arvalid     ),
         .arready        (ifu_arready     ),
+        .rdata          (ifu_rdata       ),
         .rresp          (ifu_rresp       ),
         .rvalid         (ifu_rvalid      ),
         .rready         (ifu_rready      ),
