@@ -56,30 +56,33 @@ extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type
 }
 
 static void inst_infomation() {
-    Log("+-------------------------+---------------------+");
-    Log("| 项目                    | 数值                |");
-    Log("+-------------------------+---------------------+");
-    Log("| IPC                     | %.4f                |", (double)inst_sum / clk_sum);
-    Log("| host time spent         | %-19ld us |", g_timer);
-    Log("| total guest instructions| %-19ld |", inst_sum);
-    Log("| total guest clocks      | %-19ld |", clk_sum);
-    Log("| simulation frequency    | %-19ld inst/s |", inst_sum * 1000000 / g_timer);
-    Log("+-------------------------+---------------------+");
-    Log("| performance counter:    |                     |");
-    Log("| - ifu                   | %-19ld |", ifu_sum);
-    Log("| - lsu                   | %-19ld |", lsu_sum);
-    Log("| - exu                   | %-19ld |", exu_sum/2);
-    Log("| - idu                   | %-19ld |", idu_sum/2);
-    Log("+-------------------------+---------------------+");
-    Log("| inst type:              |                     |");
-    Log("| - R                     | %-19ld |", type_r/2);
-    Log("| - I                     | %-19ld |", type_i/2);
-    Log("| - S                     | %-19ld |", type_s/2);
-    Log("| - B                     | %-19ld |", type_b/2);
-    Log("| - U                     | %-19ld |", type_u/2);
-    Log("| - J                     | %-19ld |", type_j/2);
-    Log("| - N                     | %-19ld |", type_n/2);
-    Log("+-------------------------+---------------------+");
+    Log("IPC = %.4f", (double)inst_sum / clk_sum);
+    Log("host time spent = %ld us", g_timer);
+    Log("total guest instructions = %ld", inst_sum);
+    Log("total guest clocks = %ld", clk_sum);
+    Log("simulation frequency = %ld inst/s", inst_sum * 1000000 / g_timer);
+    // Log("performance counter: ifu:%ld lsu:%ld exu:%ld idu:%ld", ifu_sum, lsu_sum, exu_sum/2, idu_sum/2);
+    // Log("inst type: R:%ld I:%ld S:%ld B:%ld U:%ld J:%ld N:%ld", type_r/2, type_i/2, type_s/2, type_b/2, type_u/2, type_j/2, type_n/2);
+    // 打印表格标题
+    printf("+-------------------------+---------------------+");
+    printf("| 项目                    | 数值                |");
+    printf("+-------------------------+---------------------+");
+    printf("+-------------------------+---------------------+");
+    printf("| performance counter:    |                     |");
+    printf("| - ifu                   | %-19ld |", ifu_sum);
+    printf("| - lsu                   | %-19ld |", lsu_sum);
+    printf("| - exu                   | %-19ld |", exu_sum/2);
+    printf("| - idu                   | %-19ld |", idu_sum/2);
+    printf("+-------------------------+---------------------+");
+    printf("| inst type:              |                     |");
+    printf("| - R                     | %-19ld |", type_r/2);
+    printf("| - I                     | %-19ld |", type_i/2);
+    printf("| - S                     | %-19ld |", type_s/2);
+    printf("| - B                     | %-19ld |", type_b/2);
+    printf("| - U                     | %-19ld |", type_u/2);
+    printf("| - J                     | %-19ld |", type_j/2);
+    printf("| - N                     | %-19ld |", type_n/2);
+    printf("+-------------------------+---------------------+");
 }
 
 static void trace_and_difftest() {
