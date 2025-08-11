@@ -101,7 +101,7 @@ static void inst_infomation() {
         double time_ratio = stats.g_timer > 0 ? 
             (double)stats.types[i].time / stats.g_timer * 100 : 0;
         
-        printf("| %-9s %-4ld | %-13ld(%.1f%%)  %-13ld(%.1f%%) |\n",
+        printf("| %-9s %-4ld | %-10ld(%.1f%%)\t%-10ld(%.1f%%)\t|\n",
                type_names[i],
                stats.types[i].count / 2,
                stats.types[i].clk,
