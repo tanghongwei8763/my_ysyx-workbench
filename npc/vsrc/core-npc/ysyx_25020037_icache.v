@@ -50,11 +50,13 @@ always @(*) begin
     endcase
 end
 
-always @(*) begin
-    if (valid_array[index] && (tag_array[index] == tag)) begin
-        cpu_hit = 1'b1;
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        cpu_hit <= 1'b0;
     end else begin
-        cpu_hit = 1'b0;
+        if ((current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag)) begin
+            cpu_hit <= 1'b1;
+        end else begin cpu_hit <= 1'b0; end
     end
 end
 
