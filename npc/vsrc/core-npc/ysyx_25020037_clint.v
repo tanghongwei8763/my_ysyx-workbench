@@ -26,7 +26,7 @@ module ysyx_25020037_clint(
 );
 `ifdef VERILATOR
     import "DPI-C" function void difftest_skip_ref();
-`endif VERILATOR
+`endif
     reg  [31: 0] mtimel, mtimeh;
     wire [31: 0] clint_offset;
     localparam CLINT_BASE   = 32'h02000000;
@@ -92,7 +92,7 @@ module ysyx_25020037_clint(
                         arready <= 1'b1;
 `ifdef VERILATOR
                         difftest_skip_ref();
-`endif VERILATOR
+`endif
                         rdata <= (clint_offset == 32'h0) ? mtimel :
                                  (clint_offset == 32'h4) ? mtimeh :
                                  32'b0;
@@ -109,7 +109,7 @@ module ysyx_25020037_clint(
                             wvalid_reg <= 1'b0;
 `ifdef VERILATOR
                             difftest_skip_ref();
-`endif VERILATOR
+`endif
                             bvalid <= 1'b1;
                             bresp <= 2'b00;
                         end

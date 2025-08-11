@@ -16,7 +16,7 @@ module ysyx_25020037 (
     import "DPI-C" function void ret_func(input int pc);
     wire         ftrace_jal;
     wire         ftrace_jalr;
-`endif VERILATOR
+`endif
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
@@ -390,16 +390,16 @@ ysyx_25020037_clint u_clint (
         .wu_to_gu_bus (wu_to_gu_bus )
         );
 `ifdef VERILATOR
-    always @(posedge clock) begin
-       if(CONFIG_FTRACE) begin
-           if(ftrace_jalr) begin
-               if(rd == 5'h1) begin call_func(pc, dnpc); end
-               else if(rd == 5'h0 && src1 == regs[1]) begin ret_func(pc); end
-           end
-           if(ftrace_jal) begin
-               if(rd == 5'h1) begin call_func(pc, dnpc); end
-           end
-       end
-    end
-`endif VERILATOR
+    // always @(posedge clock) begin
+    //    if(CONFIG_FTRACE) begin
+    //        if(ftrace_jalr) begin
+    //            if(rd == 5'h1) begin call_func(pc, dnpc); end
+    //            else if(rd == 5'h0 && src1 == regs[1]) begin ret_func(pc); end
+    //        end
+    //        if(ftrace_jal) begin
+    //            if(rd == 5'h1) begin call_func(pc, dnpc); end
+    //        end
+    //    end
+    // end
+`endif
 endmodule

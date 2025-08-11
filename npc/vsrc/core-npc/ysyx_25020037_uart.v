@@ -26,7 +26,7 @@ module ysyx_25020037_uart(
 );
 `ifdef VERILATOR
     import "DPI-C" function void difftest_skip_ref();
-`endif VERILATOR
+`endif
     localparam IDLE         = 1'b0;
     localparam BUSY         = 1'b1;
     reg          state, next_state;
@@ -80,7 +80,7 @@ module ysyx_25020037_uart(
                         arready <= 1'b1;
 `ifdef VERILATOR
                         difftest_skip_ref();
-`endif VERILATOR
+`endif
                         rdata <= 32'b0;
                         rvalid <= 1'b1;
                         rresp <= 2'b00;
@@ -95,7 +95,7 @@ module ysyx_25020037_uart(
                             wvalid_reg <= 1'b0;
 `ifdef VERILATOR
                             difftest_skip_ref();
-`endif VERILATOR
+`endif
                             $write("%c", wdata[7:0]);
                             $fflush();
                             bvalid <= 1'b1;

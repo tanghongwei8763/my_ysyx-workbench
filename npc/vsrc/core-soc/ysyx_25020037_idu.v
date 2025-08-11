@@ -22,7 +22,7 @@ module ysyx_25020037_idu (
     always @(posedge clk) begin
        if(idu_valid & ~rst) begin performance_counter(32'b0, 32'b0, 32'b0, 32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N});end
     end
-`endif VERILATOR
+`endif
     parameter MSTATUS   = 12'h300;
     parameter MTVEC     = 12'h305;
     parameter MEPC      = 12'h341;

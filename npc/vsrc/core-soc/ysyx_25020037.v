@@ -95,7 +95,7 @@ module ysyx_25020037 (
     always @(posedge clock) begin
        performance_counter({31'b0, ifu_rvalid}, {31'b0, lsu_rvalid}, {31'b0, exu_valid}, {31'b0, idu_valid}, 32'b0);
     end
-`endif VERILATOR
+`endif
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
