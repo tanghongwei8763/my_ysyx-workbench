@@ -189,13 +189,15 @@ static void exec_once() {
     inst_sum++;
     int last_pc = pc;
     uint64_t timer_start = get_time();
+    uint64_t clk_sum_reg = 0;
     do{
         single_cycle();
-        clk_sum++;
+        clk_sum_reg++;
     } while (pc == last_pc);
     single_cycle();
     uint64_t timer_end = get_time();
-    clk_sum++;
+    clk_sum_reg++;
+    clk_sum += clk_sum_reg;
     g_timer += timer_end - timer_start;
     trace_and_difftest();
 }
