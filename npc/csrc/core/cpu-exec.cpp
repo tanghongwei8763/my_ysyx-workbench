@@ -70,7 +70,7 @@ extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type
     //     if (i != INST_N) stats.types[i].count -= (stats.types[i].count > 0);
     // }
 
-    stats.current_type = INST_N; // 默认类型
+    //stats.current_type = INST_N; // 默认类型
     if ((type_ >> 6) & 0x01) { stats.types[INST_R].count++; stats.current_type = INST_R; }
     if ((type_ >> 5) & 0x01) { stats.types[INST_I].count++; stats.current_type = INST_I; }
     if ((type_ >> 4) & 0x01) { stats.types[INST_S].count++; stats.current_type = INST_S; }
@@ -78,7 +78,6 @@ extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type
     if ((type_ >> 2) & 0x01) { stats.types[INST_U].count++; stats.current_type = INST_U; }
     if ((type_ >> 1) & 0x01) { stats.types[INST_J].count++; stats.current_type = INST_J; }
     if ((type_ >> 0) & 0x01) { stats.types[INST_N].count++; stats.current_type = INST_N; }
-
     printf("%d\n", stats.current_type);
 }
 
