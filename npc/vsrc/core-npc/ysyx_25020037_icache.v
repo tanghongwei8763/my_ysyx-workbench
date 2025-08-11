@@ -50,7 +50,7 @@ always @(*) begin
 end
 
 always @(*) begin
-    if (valid_array[index] && (tag_array[index] == tag)) begin
+    if ((current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag)) begin
         cache_hit = 1'b1;
     end else begin
         cache_hit = 1'b0;
