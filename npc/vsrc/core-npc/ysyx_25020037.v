@@ -207,7 +207,7 @@ module ysyx_25020037 (
         .clk         (clock       ),
         .rst         (reset       ),
         .pc          (pc          ),
-        .inst        (ifu_rdata   ),
+        .inst        (inst        ),
         .ifu_valid   (ifu_valid   ),
         .exu_ready   (exu_ready   ),
         .idu_valid   (idu_valid   ),
