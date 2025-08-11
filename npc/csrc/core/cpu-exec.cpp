@@ -60,10 +60,6 @@ typedef struct {
 static Stats stats = {0};
 static void exec_once();
 
-static InstType get_current_inst_type() {
-    return stats.current_type;
-}
-
 extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type_) {
     stats.perf.ifu += ifu;
     stats.perf.lsu += lsu;
@@ -243,10 +239,10 @@ static void exec_once() {
     
     stats.clk_sum += clk_sum_reg;
     stats.g_timer += time_spent;
-    InstType current_type = get_current_inst_type();
-    printf("%d\n", current_type);
-    stats.types[current_type].clk += clk_sum_reg;
-    stats.types[current_type].time += time_spent;
+    InstType Current_type = stats.current_type;
+    printf("%d\n", Current_type);
+    stats.types[Current_type].clk += clk_sum_reg;
+    stats.types[Current_type].time += time_spent;
 
     trace_and_difftest();
 }
