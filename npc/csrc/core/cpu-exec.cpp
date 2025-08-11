@@ -70,9 +70,9 @@ extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type
     stats.perf.exu += exu;
     stats.perf.idu += idu;
 
-    for (int i = 0; i < INST_TYPE_COUNT; i++) {
-        if (i != INST_N) stats.types[i].count -= (stats.types[i].count > 0);
-    }
+    // for (int i = 0; i < INST_TYPE_COUNT; i++) {
+    //     if (i != INST_N) stats.types[i].count -= (stats.types[i].count > 0);
+    // }
 
     stats.current_type = INST_N; // 默认类型
     if ((type_ >> 6) & 0x01) { stats.types[INST_R].count++; stats.current_type = INST_R; }
@@ -91,6 +91,7 @@ static void inst_infomation() {
     Log("total guest clocks = %ld", stats.clk_sum);
     Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
     
+    printf("+----------------+-------------------+\n");
     printf("| 性能计数器     |                   |\n");
     printf("+----------------+-------------------+\n");
     printf("| - ifu          | %-17ld |\n", stats.perf.ifu);
@@ -100,7 +101,7 @@ static void inst_infomation() {
     printf("+----------------+-------------------+\n");
     
     // 打印指令类型统计表格
-    printf("| 指令类型统计   | 数量  时钟数(占比)  时间(us/占比) |\n");
+    printf("| 指令类型统计   | 数量  时钟占比  时间占比)|\n");
     printf("+------------------------------------------------+\n");
     
     const char* type_names[INST_TYPE_COUNT] = {"R", "I", "S", "B", "U", "J", "N"};
