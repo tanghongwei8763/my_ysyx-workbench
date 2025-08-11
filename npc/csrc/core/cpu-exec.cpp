@@ -101,7 +101,7 @@ static void inst_infomation() {
     printf("+----------------+-------------------+\n");
     
     // 打印指令类型统计表格
-    printf("| 指令类型统计   | 数量  时钟占比  时间占比)|\n");
+    printf("| 指令类型统计   | 时钟占比  时间占比)|\n");
     printf("+------------------------------------------------+\n");
     
     const char* type_names[INST_TYPE_COUNT] = {"R", "I", "S", "B", "U", "J", "N"};
@@ -111,7 +111,7 @@ static void inst_infomation() {
         double time_ratio = stats.g_timer > 0 ? 
             (double)stats.types[i].time / stats.g_timer * 100 : 0;
         
-        printf("| %-4s | %-5ld  %-8ld(%.1f%%)  %-8ld(%.1f%%) |\n",
+        printf("| %-4s %-5ld | %ld(%.1f%%)  %ld(%.1f%%) |\n",
                type_names[i],
                stats.types[i].count,
                stats.types[i].clk,
