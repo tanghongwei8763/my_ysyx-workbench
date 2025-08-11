@@ -25,64 +25,100 @@ extern Vysyx_25020037 *top;
 #define inst top->rootp->ysyx_25020037__DOT__inst
 #endif
 
-static void exec_once();
-static uint64_t inst_sum = 0;
-static uint64_t clk_sum = 0;
-static uint64_t g_timer = 0;
+typedef enum {
+    INST_R,
+    INST_I,
+    INST_S,
+    INST_B,
+    INST_U,
+    INST_J,
+    INST_N,
+    INST_TYPE_COUNT
+} InstType;
 
-static uint64_t ifu_sum = 0;
-static uint64_t lsu_sum = 0;
-static uint64_t exu_sum = 0;
-static uint64_t idu_sum = 0;
-static uint64_t type_r = 0;
-static uint64_t type_i = 0;
-static uint64_t type_s = 0;
-static uint64_t type_b = 0;
-static uint64_t type_u = 0;
-static uint64_t type_j = 0;
-static uint64_t type_n = 0;
+typedef struct {
+    uint64_t count;      // 指令数量
+    uint64_t clk;        // 消耗的时钟数
+    uint64_t time;       // 消耗的时间(us)
+} InstTypeStats;
+
+typedef struct {
+    uint64_t ifu;
+    uint64_t lsu;
+    uint64_t exu;
+    uint64_t idu;
+} PerfCounter;
+
+typedef struct {
+    uint64_t inst_sum;   // 总指令数
+    uint64_t clk_sum;    // 总时钟数
+    uint64_t g_timer;    // 总时间(us)
+    PerfCounter perf;    // 性能计数器
+    InstTypeStats types[INST_TYPE_COUNT];  // 各类型指令统计
+    InstType current_type;  // 当前执行的指令类型
+} Stats;
+static Stats stats = {0};
+static void exec_once();
+
+static InstType get_current_inst_type() {
+    return stats.current_type;
+}
+
 extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type_) {
-    ifu_sum += ifu;
-    lsu_sum += lsu;
-    exu_sum += exu;
-    idu_sum += idu;
-    type_r  += (type_ >> 6) & 0x01;
-    type_i  += (type_ >> 5) & 0x01;
-    type_s  += (type_ >> 4) & 0x01;
-    type_b  += (type_ >> 3) & 0x01;
-    type_u  += (type_ >> 2) & 0x01;
-    type_j  += (type_ >> 1) & 0x01;
-    type_n  += (type_ >> 0) & 0x01;
+    stats.perf.ifu += ifu;
+    stats.perf.lsu += lsu;
+    stats.perf.exu += exu;
+    stats.perf.idu += idu;
+
+    for (int i = 0; i < INST_TYPE_COUNT; i++) {
+        if (i != INST_N) stats.types[i].count -= (stats.types[i].count > 0);
+    }
+
+    stats.current_type = INST_N; // 默认类型
+    if ((type_ >> 6) & 0x01) { stats.types[INST_R].count++; stats.current_type = INST_R; }
+    if ((type_ >> 5) & 0x01) { stats.types[INST_I].count++; stats.current_type = INST_I; }
+    if ((type_ >> 4) & 0x01) { stats.types[INST_S].count++; stats.current_type = INST_S; }
+    if ((type_ >> 3) & 0x01) { stats.types[INST_B].count++; stats.current_type = INST_B; }
+    if ((type_ >> 2) & 0x01) { stats.types[INST_U].count++; stats.current_type = INST_U; }
+    if ((type_ >> 1) & 0x01) { stats.types[INST_J].count++; stats.current_type = INST_J; }
+    if ((type_ >> 0) & 0x01) { stats.types[INST_N].count++; stats.current_type = INST_N; }
 }
 
 static void inst_infomation() {
-    Log("IPC = %.4f", (double)inst_sum / clk_sum);
-    Log("host time spent = %ld us", g_timer);
-    Log("total guest instructions = %ld", inst_sum);
-    Log("total guest clocks = %ld", clk_sum);
-    Log("simulation frequency = %ld inst/s", inst_sum * 1000000 / g_timer);
-    // Log("performance counter: ifu:%ld lsu:%ld exu:%ld idu:%ld", ifu_sum, lsu_sum, exu_sum/2, idu_sum/2);
-    // Log("inst type: R:%ld I:%ld S:%ld B:%ld U:%ld J:%ld N:%ld", type_r/2, type_i/2, type_s/2, type_b/2, type_u/2, type_j/2, type_n/2);
-    // 打印表格标题
-    printf("+-------------------------+---------------------+\n");
-    printf("| 项目                    | 数值                |\n");
-    printf("+-------------------------+---------------------+\n");
-    printf("+-------------------------+---------------------+\n");
-    printf("| performance counter:    |                     |\n");
-    printf("| - ifu                   | %-19ld |\n", ifu_sum);
-    printf("| - lsu                   | %-19ld |\n", lsu_sum);
-    printf("| - exu                   | %-19ld |\n", exu_sum/2);
-    printf("| - idu                   | %-19ld |\n", idu_sum/2);
-    printf("+-------------------------+---------------------+\n");
-    printf("| inst type:              |                     |\n");
-    printf("| - R                     | %-19ld |\n", type_r/2);
-    printf("| - I                     | %-19ld |\n", type_i/2);
-    printf("| - S                     | %-19ld |\n", type_s/2);
-    printf("| - B                     | %-19ld |\n", type_b/2);
-    printf("| - U                     | %-19ld |\n", type_u/2);
-    printf("| - J                     | %-19ld |\n", type_j/2);
-    printf("| - N                     | %-19ld |\n", type_n/2);
-    printf("+-------------------------+---------------------+\n");
+    Log("IPC = %.4f", (double)stats.inst_sum / stats.clk_sum);
+    Log("host time spent = %ld us", stats.g_timer);
+    Log("total guest instructions = %ld", stats.inst_sum);
+    Log("total guest clocks = %ld", stats.clk_sum);
+    Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
+    
+    printf("| 性能计数器     |                   |\n");
+    printf("+----------------+-------------------+\n");
+    printf("| - ifu          | %-17ld |\n", stats.perf.ifu);
+    printf("| - lsu          | %-17ld |\n", stats.perf.lsu);
+    printf("| - exu          | %-17ld |\n", stats.perf.exu / 2);
+    printf("| - idu          | %-17ld |\n", stats.perf.idu / 2);
+    printf("+----------------+-------------------+\n");
+    
+    // 打印指令类型统计表格
+    printf("| 指令类型统计   | 数量  时钟数(占比)  时间(us/占比) |\n");
+    printf("+------------------------------------------------+\n");
+    
+    const char* type_names[INST_TYPE_COUNT] = {"R", "I", "S", "B", "U", "J", "N"};
+    for (int i = 0; i < INST_TYPE_COUNT; i++) {
+        double clk_ratio = stats.clk_sum > 0 ? 
+            (double)stats.types[i].clk / stats.clk_sum * 100 : 0;
+        double time_ratio = stats.g_timer > 0 ? 
+            (double)stats.types[i].time / stats.g_timer * 100 : 0;
+        
+        printf("| %-4s | %-5ld  %-8ld(%.1f%%)  %-8ld(%.1f%%) |\n",
+               type_names[i],
+               stats.types[i].count,
+               stats.types[i].clk,
+               clk_ratio,
+               stats.types[i].time,
+               time_ratio);
+    }
+    printf("+------------------------------------------------+\n");
 }
 
 static void trace_and_difftest() {
@@ -130,7 +166,9 @@ void cpu_exec(int n){
 #endif
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
                     finish();
+#ifdef CONFIG_YSYXSOC
                     inst_infomation();
+#endif
                     break;
                 }
                 else if (NPC_STATE == NPC_STOP) {
@@ -169,7 +207,9 @@ void cpu_exec(int n){
                 }
                 else if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT) {
                     finish();
+#ifdef CONFIG_YSYXSOC
                     inst_infomation();
+#endif
                     break;
                 }
             }
@@ -186,8 +226,9 @@ static uint64_t us;
 extern uint64_t get_time();
 
 static void exec_once() {
-    inst_sum++;
+    stats.inst_sum++;
     int last_pc = pc;
+
     uint64_t timer_start = get_time();
     uint64_t clk_sum_reg = 0;
     do{
@@ -195,9 +236,15 @@ static void exec_once() {
         clk_sum_reg++;
     } while (pc == last_pc);
     single_cycle();
-    uint64_t timer_end = get_time();
     clk_sum_reg++;
-    clk_sum += clk_sum_reg;
-    g_timer += timer_end - timer_start;
+    uint64_t timer_end = get_time();
+    uint64_t time_spent = timer_end - timer_start;
+    
+    stats.clk_sum += clk_sum_reg;
+    stats.g_timer += time_spent;
+    InstType current_type = get_current_inst_type();
+    stats.types[current_type].clk += clk_sum_reg;
+    stats.types[current_type].time += time_spent;
+
     trace_and_difftest();
 }
