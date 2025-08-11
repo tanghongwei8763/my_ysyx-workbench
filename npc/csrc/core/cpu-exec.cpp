@@ -64,25 +64,25 @@ static void inst_infomation() {
     // Log("performance counter: ifu:%ld lsu:%ld exu:%ld idu:%ld", ifu_sum, lsu_sum, exu_sum/2, idu_sum/2);
     // Log("inst type: R:%ld I:%ld S:%ld B:%ld U:%ld J:%ld N:%ld", type_r/2, type_i/2, type_s/2, type_b/2, type_u/2, type_j/2, type_n/2);
     // 打印表格标题
-    printf("+-------------------------+---------------------+");
-    printf("| 项目                    | 数值                |");
-    printf("+-------------------------+---------------------+");
-    printf("+-------------------------+---------------------+");
-    printf("| performance counter:    |                     |");
-    printf("| - ifu                   | %-19ld |", ifu_sum);
-    printf("| - lsu                   | %-19ld |", lsu_sum);
-    printf("| - exu                   | %-19ld |", exu_sum/2);
-    printf("| - idu                   | %-19ld |", idu_sum/2);
-    printf("+-------------------------+---------------------+");
-    printf("| inst type:              |                     |");
-    printf("| - R                     | %-19ld |", type_r/2);
-    printf("| - I                     | %-19ld |", type_i/2);
-    printf("| - S                     | %-19ld |", type_s/2);
-    printf("| - B                     | %-19ld |", type_b/2);
-    printf("| - U                     | %-19ld |", type_u/2);
-    printf("| - J                     | %-19ld |", type_j/2);
-    printf("| - N                     | %-19ld |", type_n/2);
-    printf("+-------------------------+---------------------+");
+    printf("+-------------------------+---------------------+\n");
+    printf("| 项目                    | 数值                |\n");
+    printf("+-------------------------+---------------------+\n");
+    printf("+-------------------------+---------------------+\n");
+    printf("| performance counter:    |                     |\n");
+    printf("| - ifu                   | %-19ld |\n", ifu_sum);
+    printf("| - lsu                   | %-19ld |\n", lsu_sum);
+    printf("| - exu                   | %-19ld |\n", exu_sum/2);
+    printf("| - idu                   | %-19ld |\n", idu_sum/2);
+    printf("+-------------------------+---------------------+\n");
+    printf("| inst type:              |                     |\n");
+    printf("| - R                     | %-19ld |\n", type_r/2);
+    printf("| - I                     | %-19ld |\n", type_i/2);
+    printf("| - S                     | %-19ld |\n", type_s/2);
+    printf("| - B                     | %-19ld |\n", type_b/2);
+    printf("| - U                     | %-19ld |\n", type_u/2);
+    printf("| - J                     | %-19ld |\n", type_j/2);
+    printf("| - N                     | %-19ld |\n", type_n/2);
+    printf("+-------------------------+---------------------+\n");
 }
 
 static void trace_and_difftest() {
