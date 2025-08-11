@@ -43,7 +43,7 @@ reg [1:0] current_state, next_state;
 always @(*) begin
     case (current_state)
         IDLE: begin next_state = cpu_req ? COMPARE : IDLE; end
-        COMPARE: begin next_state = cpu_hit ? IDLE : REFILL; end
+        COMPARE: begin next_state = cache_hit ? IDLE : REFILL; end
         REFILL: begin next_state = mem_ready ? IDLE : REFILL; end
         default: next_state = IDLE;
     endcase
