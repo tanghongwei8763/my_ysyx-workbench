@@ -43,6 +43,7 @@ module ysyx_25020037 (
     wire         ifu_rvalid;   
     wire         ifu_rready;
 
+    wire         ifu_valid;
     wire         idu_valid;
     wire         idu_ready;
     wire         exu_valid;
@@ -167,6 +168,7 @@ module ysyx_25020037 (
         .rst            (reset           ),
         .pc             (pc              ),
         .idu_ready      (idu_ready       ),
+        .ifu_valid      (ifu_valid       ),
         .inst           (inst            ),
         .araddr         (ifu_araddr      ),
         .arvalid        (ifu_arvalid     ),
@@ -189,16 +191,16 @@ module ysyx_25020037 (
         .CACHE_BLOCKS  (16),
         .BLOCK_SIZE    (4 )
     ) u_icache (
-        .clk           (clock               ),
-        .rst           (reset               ),
-        .cpu_addr      (pc                  ),
-        .cpu_req       (icache_req          ),
-        .cpu_data      (icache_data         ),
-        .cpu_hit       (icache_hit          ),
-        .cpu_ready     (icache_ready        ),
-        .mem_req       (icache_mem_req      ),
-        .mem_data      (ifu_rdata           ),
-        .mem_ready     (icache_mem_ready    )
+        .clk           (clock           ),
+        .rst           (reset           ),
+        .cpu_addr      (pc              ),
+        .cpu_req       (icache_req      ),
+        .cpu_data      (icache_data     ),
+        .cpu_hit       (icache_hit      ),
+        .cpu_ready     (icache_ready    ),
+        .mem_req       (icache_mem_req  ),
+        .mem_data      (ifu_rdata       ),
+        .mem_ready     (icache_mem_ready)
     );
 
     ysyx_25020037_idu idu_cpu(
@@ -206,7 +208,7 @@ module ysyx_25020037 (
         .rst         (reset       ),
         .pc          (pc          ),
         .inst        (ifu_rdata   ),
-        .ifu_rvalid  (ifu_rvalid  ),
+        .ifu_valid   (ifu_valid   ),
         .exu_ready   (exu_ready   ),
         .idu_valid   (idu_valid   ),
         .idu_ready   (idu_ready   ),

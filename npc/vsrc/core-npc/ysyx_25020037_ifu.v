@@ -5,6 +5,7 @@ module ysyx_25020037_ifu(
     input  wire         rst,
     input  wire [31: 0] pc,
     input  wire         idu_ready,
+    output reg          ifu_valid,
     output reg  [31: 0] inst,
 
     output reg  [31: 0] araddr,
@@ -50,6 +51,7 @@ module ysyx_25020037_ifu(
             arvalid <= 1'b0;
             rready <= 1'b0;
             last_pc <= 32'h0;
+            ifu_valid <= 1'b0;
         end else begin
             state <= next_state;
             
@@ -68,6 +70,7 @@ module ysyx_25020037_ifu(
                     icache_req <= 1'b0;
                     if (icache_hit) begin
                         inst <= icache_data;
+                        ifu_valid <= 1'b1;
                     end else begin
                         araddr <= pc;
                         arvalid <= 1'b1;
@@ -80,6 +83,7 @@ module ysyx_25020037_ifu(
                     end
                     if (rvalid && rready && (rresp == 2'b00)) begin
                         inst <= rdata;
+                        ifu_valid <= 1'b1;
                         rready <= 1'b0;
                     end
                 end
