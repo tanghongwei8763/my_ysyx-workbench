@@ -78,6 +78,8 @@ extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type
     if ((type_ >> 2) & 0x01) { stats.types[INST_U].count++; stats.current_type = INST_U; }
     if ((type_ >> 1) & 0x01) { stats.types[INST_J].count++; stats.current_type = INST_J; }
     if ((type_ >> 0) & 0x01) { stats.types[INST_N].count++; stats.current_type = INST_N; }
+
+    printf("%d\n", stats.current_type);
 }
 
 static void inst_infomation() {
@@ -239,10 +241,8 @@ static void exec_once() {
     
     stats.clk_sum += clk_sum_reg;
     stats.g_timer += time_spent;
-    InstType Current_type = stats.current_type;
-    printf("%d\n", Current_type);
-    stats.types[Current_type].clk += clk_sum_reg;
-    stats.types[Current_type].time += time_spent;
+    stats.types[stats.current_type].clk += clk_sum_reg;
+    stats.types[stats.current_type].time += time_spent;
 
     trace_and_difftest();
 }
