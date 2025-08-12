@@ -81,6 +81,7 @@ static int valid_to_module(int valid) {
 }
 
 static void update_module_stats(int valid, uint64_t current_total_clk) {
+    printf("0x%02x  %d\n", valid, current_total_clk);
     int module = valid_to_module(valid);
     if (module == -1) return;
 
@@ -285,9 +286,12 @@ static void exec_once() {
 
     uint64_t timer_start, timer_end, time_spent = 0;
     uint64_t clk_sum_reg = 0;
-    uint64_t initial_total_clk = stats.clk_sum;
+    int prev_valid_reg = 0x10;
     do{
-        update_module_stats(prev_valid, initial_total_clk + clk_sum_reg);
+        if(prev_valid_reg != prev_valid){
+            prev_valid_reg = prev_valid;
+            update_module_stats(prev_valid_reg, clk_sum_reg);
+        }
         timer_start = get_time();
         single_cycle();
         timer_end = get_time();
