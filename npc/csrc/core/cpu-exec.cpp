@@ -85,10 +85,11 @@ static void update_module_stats(int valid, uint64_t current_total_clk) {
         case 0x01:stats.perf.wbu.clk += 2          ; break;
     }
 }
-
-extern "C" void performance_counter(int valid,int type_) {
+static uint64_t icache_hit = 0;
+extern "C" void performance_counter(int valid, int type_, int cache_hit) {
     if((prev_valid != valid) && (valid != 0)) prev_valid = valid;
 
+    icache_hit += ((cache_hit >> 0) & 0x01);
     stats.perf.ifu.count += ((valid >> 4) & 0x01);
     stats.perf.idu.count += ((valid >> 3) & 0x01);
     stats.perf.exu.count += ((valid >> 2) & 0x01);
@@ -109,6 +110,11 @@ static void inst_infomation() {
     Log("total guest instructions = %ld", stats.inst_sum);
     Log("total guest clocks = %ld", stats.clk_sum);
     Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
+    printf("+----------------+----------------------+\n");
+    printf("| cache      | 命中率\t\t|\n");
+    printf("+----------------+----------------------+\n");
+    printf("| icache\t| %-16d\t|\n", (double)icache_hit / stats.inst_sum);
+    printf("+----------------+----------------------+\n");
 #ifdef CONFIG_YSYXSOC
     printf("+----------------+----------------------+\n");
     printf("| 模块耗时统计   | 时钟占比\t\t|\n");

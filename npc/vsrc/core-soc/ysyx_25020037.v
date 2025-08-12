@@ -91,9 +91,9 @@ module ysyx_25020037 (
     //wire         ftrace_jal;
     //wire         ftrace_jalr;
 `ifdef VERILATOR
-    import "DPI-C" function void performance_counter(input int valid, input int type_);
+    import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
     always @(posedge clock) begin
-       performance_counter({27'b0, ifu_valid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0);
+       performance_counter({27'b0, ifu_valid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0, {31'b0, icache_hit});
     end
 `endif
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
