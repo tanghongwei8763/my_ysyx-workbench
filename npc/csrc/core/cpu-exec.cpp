@@ -65,7 +65,10 @@ static Stats stats = {0};
 static int prev_valid = 0;
 static void exec_once();
 
-static void update_module_stats(int valid, uint64_t current_clk, uint64_t current_time) {
+static uint64_t us;
+extern uint64_t get_time();
+
+static void update_module_stats(int valid, uint64_t current_clk) {
     if(valid == 0) return;
     // 模块顺序：0:ifu, 1:idu, 2:exu, 3:lsu, 4:wbu
     for (int i = 0; i < 5; i++) {
@@ -76,12 +79,12 @@ static void update_module_stats(int valid, uint64_t current_clk, uint64_t curren
         // 模块开始工作
         if (current_active && !prev_active) {
             stats.module_clk_start[i] = current_clk;
-            stats.module_time_start[i] = current_time;
+            stats.module_time_start[i] = get_time();
         }
         // 模块结束工作
         else if (!current_active && prev_active) {
             uint64_t clk_diff = current_clk - stats.module_clk_start[i];
-            uint64_t time_diff = current_time - stats.module_time_start[i];
+            uint64_t time_diff = get_time() - stats.module_time_start[i];
             
             // 根据调整后的模块索引更新对应统计
             switch (i) {
@@ -263,10 +266,6 @@ void cpu_exec(int n){
     }
 }
 
-static uint64_t us;
-
-extern uint64_t get_time();
-
 static void exec_once() {
     stats.inst_sum++;
     int last_pc = pc;
@@ -274,17 +273,14 @@ static void exec_once() {
     uint64_t timer_start = get_time();
     uint64_t clk_sum_reg = 0;
     do{
-        printf("0x%02x\n", prev_valid);
-        update_module_stats(prev_valid, stats.clk_sum + clk_sum_reg, timer_start);
+        // printf("0x%02x\n", prev_valid);
+        update_module_stats(prev_valid, clk_sum_reg);
         single_cycle();
         clk_sum_reg++;
     } while (pc == last_pc);
 
-    int final_valid = 0x10;
-    uint64_t final_clk = stats.clk_sum + clk_sum_reg;
     single_cycle();
-    uint64_t final_time = get_time();
-    update_module_stats(final_valid, final_clk, final_time);
+    update_module_stats(0x10,clk_sum_reg);
     clk_sum_reg++;
     uint64_t timer_end = get_time();
     uint64_t time_spent = timer_end - timer_start;
