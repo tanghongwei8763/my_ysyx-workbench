@@ -60,11 +60,11 @@ typedef struct {
 static Stats stats = {0};
 static void exec_once();
 
-extern "C" void performance_counter(int ifu, int lsu, int exu, int idu, int type_) {
-    stats.perf.ifu += ifu;
-    stats.perf.lsu += lsu;
-    stats.perf.exu += exu;
-    stats.perf.idu += idu;
+extern "C" void performance_counter(int u,int type_) {
+    stats.perf.ifu += ((u >> 3) & 0x01);
+    stats.perf.lsu += ((u >> 2) & 0x01);
+    stats.perf.exu += ((u >> 1) & 0x01);
+    stats.perf.idu += ((u >> 0) & 0x01);
     if ((type_ >> 6) & 0x01) { stats.types[INST_R].count++; stats.current_type = INST_R; }
     if ((type_ >> 5) & 0x01) { stats.types[INST_I].count++; stats.current_type = INST_I; }
     if ((type_ >> 4) & 0x01) { stats.types[INST_S].count++; stats.current_type = INST_S; }
