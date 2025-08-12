@@ -70,13 +70,15 @@ module ysyx_25020037_ifu(
                 end
                 CHECK: begin
                     icache_req <= 1'b0;
-                    if (icache_hit_reg) begin
-                        inst <= icache_data;
-                        ifu_valid <= 1'b1;
-                        arvalid <= 1'b0;
-                    end else begin
-                        araddr <= pc;
-                        arvalid <= (~icache_hit_reg & ~icache_hit);
+                    if(!icache_req) begin
+                        if (icache_hit_reg) begin
+                            inst <= icache_data;
+                            ifu_valid <= 1'b1;
+                            arvalid <= 1'b0;
+                        end else begin
+                            araddr <= pc;
+                            arvalid <= (~icache_hit_reg & ~icache_hit);
+                        end
                     end
                 end
                 BUSY: begin
