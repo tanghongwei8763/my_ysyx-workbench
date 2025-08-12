@@ -133,7 +133,7 @@ static void inst_infomation() {
         double time_ratio = stats.g_timer > 0 ? 
             (double)modules[i]->time / stats.g_timer * 100 : 0;
         
-        printf("| - %-5s %-8ld | %-10ld(%.1f%%)\t%-10ld(%.1f%%)\t|\n",
+        printf("| - %-5s %-5ld | %-10ld(%.1f%%)\t%-10ld(%.1f%%)\t|\n",
                module_names[i],
                modules[i]->count / 2,
                modules[i]->clk,
