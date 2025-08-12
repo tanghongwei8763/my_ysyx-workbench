@@ -15,20 +15,15 @@ module ysyx_25020037_idu (
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
     output reg  [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
-    output reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus
+    output reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus,
+    output wire         ftrace_jalr,
+    output wire         ftrace_jal
 );
-`ifdef VERILATOR
-    import "DPI-C" function void performance_counter(input int valid, input int type_);
-    always @(posedge clk) begin
-       if(idu_valid & ~rst) begin performance_counter(32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N});end
-    end
-`endif
-    parameter MSTATUS   = 12'h300;
-    parameter MTVEC     = 12'h305;
-    parameter MEPC      = 12'h341;
-    parameter MCAUSE    = 12'h342;
-    parameter MVENDORID = 12'hF11;
-    parameter MARCHID   = 12'hF12;
+
+    parameter MSTATUS = 32'h300;
+    parameter MTVEC   = 32'h305;
+    parameter MEPC    = 32'h341;
+    parameter MCAUSE  = 32'h342;
 
     localparam IDLE   = 1'b0;
     localparam BUSY   = 1'b1;
@@ -45,8 +40,8 @@ module ysyx_25020037_idu (
     wire         wlsu_we;
     wire         bit_sext;
     wire         half_sext;
-    wire [ 2: 0] lw_lh_lb;
-    wire [ 2: 0] sw_sh_sb;
+    wire [ 3: 0] rstrb;
+    wire [ 3: 0] wstrb;
     wire         src1_is_pc;
     wire         src2_is_imm;
     wire         is_pc_jump;
@@ -63,8 +58,6 @@ module ysyx_25020037_idu (
     wire         csrs_mepc_wen;
     wire         csrs_mstatus_wen;
     wire         csrs_mcause_wen;
-    wire         csrs_mvendorid_wen;
-    wire         csrs_marchid_wen;
 
     wire [ 6:0] opcode_31_25;
     wire [ 5:0] opcode_31_26;
@@ -76,14 +69,14 @@ module ysyx_25020037_idu (
     wire [31:0] immU;
     wire [31:0] immJ;
 
-    wire [127:0] opcode_31_25_d;
-    wire [63:0]  opcode_31_26_d;
-    wire [ 7:0]  opcode_14_12_d;
-    wire [127:0] opcode_06_00_d;
+    wire [127:0]opcode_31_25_d;
+    wire [63:0] opcode_31_26_d;
+    wire [ 7:0] opcode_14_12_d;
+    wire [127:0]opcode_06_00_d;
 
-    wire [31:0]  rs1_d;
-    wire [31:0]  rs2_d;
-    wire [31:0]  rd_d;
+    wire [31:0] rs1_d;
+    wire [31:0] rs2_d;
+    wire [31:0] rd_d;
     wire         rw_word_1;
     wire         rw_word_2;
     wire         rw_word_4;
@@ -138,6 +131,7 @@ module ysyx_25020037_idu (
     wire        TYPE_U;
     wire        TYPE_J;
     wire        TYPE_N;
+    wire        TYPE_W;
 
     assign opcode_31_25  = inst_r[31:25];
     assign opcode_31_26  = inst_r[31:26];
@@ -267,8 +261,16 @@ module ysyx_25020037_idu (
                            TYPE_B     |   //B型指令使用参数类型都一致
                            inst_jarl  ;
 
-    assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
-    assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
+    assign rw_word_4    = inst_sw  | inst_lw;
+    assign rw_word_2    = inst_sh  | inst_lh  | inst_lhu;
+    assign rw_word_1    = inst_lbu | inst_sb  | inst_lb;
+
+    assign wstrb  = ({4{rw_word_1}} & 4'h1)
+                  | ({4{rw_word_2}} & 4'h2)
+                  | ({4{rw_word_4}} & 4'hf);
+    assign rstrb  = ({4{rw_word_1}} & 4'h1)
+                  | ({4{rw_word_2}} & 4'h2)
+                  | ({4{rw_word_4}} & 4'hf);
                       
     assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
@@ -280,14 +282,15 @@ module ysyx_25020037_idu (
     assign ecall_en     = inst_ecall;
     assign mret_en      = inst_mret;
     assign is_csr_op    = inst_csrrw | inst_csrrs | inst_ecall | inst_mret;
-    assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & is_csr_op;
-    assign csrs_mepc_wen      = (imm[11:0] == MEPC) & is_csr_op;
-    assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & is_csr_op;
-    assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & is_csr_op;
-    assign csrs_mvendorid_wen = (imm[11:0] == MVENDORID) & is_csr_op;
-    assign csrs_marchid_wen   = (imm[11:0] == MARCHID) & is_csr_op;
+    assign csrs_mtvec_wen   = (imm == MTVEC) & is_csr_op;
+    assign csrs_mepc_wen    = (imm == MEPC) & is_csr_op;
+    assign csrs_mstatus_wen = (imm == MSTATUS) & is_csr_op;
+    assign csrs_mcause_wen  = (imm == MCAUSE) & is_csr_op;
 
-    assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
+    assign ftrace_jal   = inst_jal;
+    assign ftrace_jalr  = inst_jarl;
+
+    assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | TYPE_W | inst_ecall | inst_mret);
 
     always @(*) begin
         case (state)
@@ -320,7 +323,7 @@ module ysyx_25020037_idu (
                 BUSY: begin
                     if (exu_ready) begin
                         inst_s <= inst_sw | inst_sh | inst_sb;
-                        inst_l <= inst_lw | inst_lh | inst_lb | inst_lhu | inst_lbu;
+                        inst_l <= inst_lw | inst_lh | inst_lb;
                         gpr_we <= gpr_we_r;
                         du_to_eu_bus <= {           
                             imm,             
@@ -345,18 +348,16 @@ module ysyx_25020037_idu (
                             csrs_mepc_wen,
                             csrs_mstatus_wen,
                             csrs_mcause_wen,
-                            csrs_mvendorid_wen,
-                            csrs_marchid_wen,
                             ecall_en,
                             mret_en       
                         };
                         du_to_lu_bus <= {     
-                            sw_sh_sb,
+                            wstrb,
                             rlsu_we,         
                             wlsu_we   
                         };
                         du_to_wu_bus <= {
-                            lw_lh_lb,  
+                            rstrb,  
                             bit_sext,        
                             half_sext,
                             gpr_we,
