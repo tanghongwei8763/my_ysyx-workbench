@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #define TRACE_FILE "itrace.bin"
-#define COMPRESSED_FILE "itrace.bin.bz2"
+#define COMPRESSED_FILE "/home/tanghongwei/ysyx-workbench/npc/csrc/itrace.bin.bz2"
 
 static int ringbuf_index = 0;
 char ringbuf[RINGBUF_MAX][128];
