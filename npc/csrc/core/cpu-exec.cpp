@@ -111,9 +111,9 @@ static void inst_infomation() {
     Log("total guest clocks = %ld", stats.clk_sum);
     Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
     printf("+----------------+----------------------+\n");
-    printf("| cache      | 命中率\t\t|\n");
+    printf("| cache\t | 命中率\t\t|\n");
     printf("+----------------+----------------------+\n");
-    printf("| icache\t| %-16.4f\t|\n", (double)icache_hit / stats.inst_sum);
+    printf("| icache\t | %-15.4f\t|\n", (double)icache_hit / stats.inst_sum);
     printf("+----------------+----------------------+\n");
 #ifdef CONFIG_YSYXSOC
     printf("+----------------+----------------------+\n");
