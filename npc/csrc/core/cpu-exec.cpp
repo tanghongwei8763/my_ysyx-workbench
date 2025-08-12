@@ -105,11 +105,6 @@ extern "C" void performance_counter(int valid, int type_, int cache_hit) {
 }
 
 static void inst_infomation() {
-    Log("IPC = %.4f", (double)stats.inst_sum / stats.clk_sum);
-    Log("host time spent = %ld us", stats.g_timer);
-    Log("total guest instructions = %ld", stats.inst_sum);
-    Log("total guest clocks = %ld", stats.clk_sum);
-    Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
     printf("+----------------+----------------------+\n");
     printf("| cache\t\t | 命中率\t\t|\n");
     printf("+----------------+----------------------+\n");
@@ -158,6 +153,11 @@ static void inst_infomation() {
     }
     printf("+---------------------------------------------------------------+\n");
 #endif
+    Log("IPC = %.4f", (double)stats.inst_sum / stats.clk_sum);
+    Log("host time spent = %ld us", stats.g_timer);
+    Log("total guest instructions = %ld", stats.inst_sum);
+    Log("total guest clocks = %ld", stats.clk_sum);
+    Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
 }
 
 static void trace_and_difftest() {
@@ -192,20 +192,20 @@ void cpu_exec(int n){
 #ifdef CONFIG_YSYXSOC
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
-                    finish();
                     inst_infomation();
+                    finish();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
-                    finish();
                     inst_infomation();
+                    finish();
                     break;
                 }
 #endif
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
-                    finish();
                     inst_infomation();
+                    finish();
                     break;
                 }
                 else if (NPC_STATE == NPC_STOP) {
@@ -223,14 +223,14 @@ void cpu_exec(int n){
 #ifdef CONFIG_YSYXSOC
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
-                    finish();
                     inst_infomation();
+                    finish();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
-                    finish();
                     inst_infomation();
+                    finish();
                     break;
                 }
 #endif
@@ -243,8 +243,8 @@ void cpu_exec(int n){
                     break;
                 }
                 else if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT) {
-                    finish();
                     inst_infomation();
+                    finish();
                     break;
                 }
             }
