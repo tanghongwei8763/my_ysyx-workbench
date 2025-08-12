@@ -69,50 +69,20 @@ static void exec_once();
 static uint64_t us;
 extern uint64_t get_time();
 
-static int valid_to_module(int valid) {
-    switch(valid) {
-        case 0x10: return 0; // ifu
-        case 0x08: return 1; // idu
-        case 0x04: return 2; // exu
-        case 0x02: return 3; // lsu
-        case 0x01: return 4; // wbu
-        default: return -1;
-    }
-}
-
 static void update_module_stats(int valid, uint64_t current_total_clk) {
-    printf("0x%02x  %d\n", valid, current_total_clk);
-    int module = valid_to_module(valid);
-    if (module == -1) return;
+    if(valid == 0) return;
+    printf("0x%02x  %ld\n", valid, current_total_clk);
+    uint64_t current_total_clk_reg = 0;
+    uint64_t clock_spend = current_total_clk - current_total_clk_reg;
+    current_total_clk_reg = current_total_clk;
 
-    // 首次记录模块启动时间
-    if (stats.current_module == -1) {
-        stats.current_module = module;
-        stats.module_clk_start[module] = current_total_clk;
-        return;
+    switch(valid) {
+        case 0x10:stats.perf.ifu.clk += clock_spend; break;
+        case 0x08:stats.perf.idu.clk += clock_spend; break;
+        case 0x04:stats.perf.exu.clk += clock_spend; break;
+        case 0x02:stats.perf.lsu.clk += clock_spend; break;
+        case 0x01:stats.perf.wbu.clk += clock_spend; break;
     }
-
-    // 信号切换时，记录上一模块的结束时间
-    if (module != stats.current_module) {
-        // 计算上一模块的耗时
-        uint64_t clk_diff = current_total_clk - stats.module_clk_start[stats.current_module];
-
-        // 更新上一模块统计
-        switch(stats.current_module) {
-            case 0: stats.perf.ifu.clk += clk_diff;break;
-            case 1: stats.perf.idu.clk += clk_diff;break;
-            case 2: stats.perf.exu.clk += clk_diff;break;
-            case 3: stats.perf.lsu.clk += clk_diff;break;
-            case 4: stats.perf.wbu.clk += clk_diff;break;
-        }
-
-        // 记录新模块启动时间
-        stats.current_module = module;
-        stats.module_clk_start[module] = current_total_clk;
-        stats.module_time_start[module] = get_time();
-    }
-
-    stats.prev_valid = valid;
 }
 
 extern "C" void performance_counter(int valid,int type_) {
