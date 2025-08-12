@@ -6,5 +6,6 @@
 void init_ringbuf();
 void iringbuf(uint32_t thispc);
 void iringbuf_printf();
+void close_ringbuf();
 
 #endif
