@@ -71,9 +71,10 @@ extern uint64_t get_time();
 
 static void update_module_stats(int valid, uint64_t current_total_clk) {
     if(valid == 0) return;
-    printf("0x%02x  %ld\n", valid, current_total_clk);
+    printf("0x%02x  %ld", valid, current_total_clk);
     uint64_t current_total_clk_reg = 0;
     uint64_t clock_spend = current_total_clk - current_total_clk_reg;
+    printf("%ld\n", clock_spend);
     current_total_clk_reg = current_total_clk;
 
     switch(valid) {
