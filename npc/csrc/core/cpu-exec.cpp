@@ -97,7 +97,7 @@ static void update_module_stats(int valid, uint64_t current_clk, uint64_t curren
 }
 
 extern "C" void performance_counter(int valid,int type_) {
-    if(prev_valid != valid) {
+    if((prev_valid != valid) && (valid != 0)) {
         printf("0x%02x\n", valid);
         prev_valid = valid;
     }
