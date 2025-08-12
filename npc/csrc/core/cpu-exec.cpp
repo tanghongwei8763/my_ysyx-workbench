@@ -40,13 +40,14 @@ typedef struct {
     uint64_t count;      // 指令数量
     uint64_t clk;        // 消耗的时钟数
     uint64_t time;       // 消耗的时间(us)
-} InstTypeStats;
+} TypeStats;
 
 typedef struct {
-    uint64_t ifu;
-    uint64_t lsu;
-    uint64_t exu;
-    uint64_t idu;
+    TypeStats ifu;
+    TypeStats lsu;
+    TypeStats exu;
+    TypeStats idu;
+    TypeStats wbu;
 } PerfCounter;
 
 typedef struct {
@@ -54,17 +55,53 @@ typedef struct {
     uint64_t clk_sum;    // 总时钟数
     uint64_t g_timer;    // 总时间(us)
     PerfCounter perf;    // 性能计数器
-    InstTypeStats types[INST_TYPE_COUNT];  // 各类型指令统计
+    TypeStats types[INST_TYPE_COUNT];  // 各类型指令统计
     InstType current_type;  // 当前执行的指令类型
+    int prev_valid;
+    uint64_t module_clk_start[5];  // 0:ifu, 1:idu, 2:exu, 3:lsu, 4:wbu
+    uint64_t module_time_start[5];
 } Stats;
 static Stats stats = {0};
+static int prev_valid = 0;
 static void exec_once();
 
-extern "C" void performance_counter(int u,int type_) {
-    stats.perf.ifu += ((u >> 3) & 0x01);
-    stats.perf.lsu += ((u >> 2) & 0x01);
-    stats.perf.exu += ((u >> 1) & 0x01);
-    stats.perf.idu += ((u >> 0) & 0x01);
+static void update_module_stats(int valid, uint64_t current_clk, uint64_t current_time) {
+    // 模块顺序：0:ifu, 1:idu, 2:exu, 3:lsu, 4:wbu
+    for (int i = 0; i < 5; i++) {
+        // 位对应关系调整：4-ifu, 3-idu, 2-exu, 1-lsu, 0-wbu
+        int current_active = (valid >> (4 - i)) & 0x1;
+        int prev_active = (stats.prev_valid >> (4 - i)) & 0x1;
+        
+        // 模块开始工作
+        if (current_active && !prev_active) {
+            stats.module_clk_start[i] = current_clk;
+            stats.module_time_start[i] = current_time;
+        }
+        // 模块结束工作
+        else if (!current_active && prev_active) {
+            uint64_t clk_diff = current_clk - stats.module_clk_start[i];
+            uint64_t time_diff = current_time - stats.module_time_start[i];
+            
+            // 根据调整后的模块索引更新对应统计
+            switch (i) {
+                case 0: stats.perf.ifu.clk += clk_diff; stats.perf.ifu.time += time_diff; break;
+                case 1: stats.perf.idu.clk += clk_diff; stats.perf.idu.time += time_diff; break;
+                case 2: stats.perf.exu.clk += clk_diff; stats.perf.exu.time += time_diff; break;
+                case 3: stats.perf.lsu.clk += clk_diff; stats.perf.lsu.time += time_diff; break;
+                case 4: stats.perf.wbu.clk += clk_diff; stats.perf.wbu.time += time_diff; break;
+            }
+        }
+    }
+    stats.prev_valid = valid;
+}
+
+extern "C" void performance_counter(int valid,int type_) {
+    prev_valid = valid;
+    stats.perf.ifu.count += ((valid >> 4) & 0x01);
+    stats.perf.idu.count += ((valid >> 3) & 0x01);
+    stats.perf.exu.count += ((valid >> 2) & 0x01);
+    stats.perf.lsu.count += ((valid >> 1) & 0x01);
+    stats.perf.wbu.count += ((valid >> 0) & 0x01);
     if ((type_ >> 6) & 0x01) { stats.types[INST_R].count++; stats.current_type = INST_R; }
     if ((type_ >> 5) & 0x01) { stats.types[INST_I].count++; stats.current_type = INST_I; }
     if ((type_ >> 4) & 0x01) { stats.types[INST_S].count++; stats.current_type = INST_S; }
@@ -81,14 +118,28 @@ static void inst_infomation() {
     Log("total guest clocks = %ld", stats.clk_sum);
     Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
 #ifdef CONFIG_YSYXSOC
-    printf("+----------------+-------------------+\n");
-    printf("| 性能计数器     |                   |\n");
-    printf("+----------------+-------------------+\n");
-    printf("| - ifu          | %-17ld |\n", stats.perf.ifu);
-    printf("| - lsu          | %-17ld |\n", stats.perf.lsu);
-    printf("| - exu          | %-17ld |\n", stats.perf.exu / 2);
-    printf("| - idu          | %-17ld |\n", stats.perf.idu / 2);
-    printf("+---------------------------------------------------------------+\n");
+    printf("+----------------+-------------------+-------------------+-------------------+\n");
+    printf("| 模块耗时统计    | 有效次数          | 时钟占比          | 时间占比          |\n");
+    printf("+----------------+-------------------+-------------------+-------------------+\n");
+    const char* module_names[5] = {"ifu", "idu", "exu", "lsu", "wbu"};
+    TypeStats* modules[5] = {
+        &stats.perf.ifu, &stats.perf.idu, 
+        &stats.perf.exu, &stats.perf.lsu, &stats.perf.wbu
+    };
+    
+    for (int i = 0; i < 5; i++) {
+        double clk_ratio = stats.clk_sum > 0 ? 
+            (double)modules[i]->clk / stats.clk_sum * 100 : 0;
+        double time_ratio = stats.g_timer > 0 ? 
+            (double)modules[i]->time / stats.g_timer * 100 : 0;
+        
+        printf("| - %-8s | %-17ld | %-15.1f%% | %-15.1f%% |\n",
+               module_names[i],
+               modules[i]->count,
+               clk_ratio,
+               time_ratio);
+    }
+    printf("+----------------+-------------------+-------------------+-------------------+\n");
     
     // 打印指令类型统计表格
     printf("| 指令类型统计   | 时钟占比             时间占比\t\t|\n");
@@ -220,9 +271,17 @@ static void exec_once() {
     uint64_t timer_start = get_time();
     uint64_t clk_sum_reg = 0;
     do{
+        int current_valid = prev_valid;
+        update_module_stats(current_valid, stats.clk_sum + clk_sum_reg, timer_start);
         single_cycle();
         clk_sum_reg++;
+        prev_valid = current_valid;
     } while (pc == last_pc);
+
+    int final_valid = 0x10;
+    uint64_t final_clk = stats.clk_sum + clk_sum_reg;
+    uint64_t final_time = get_time();
+    update_module_stats(final_valid, final_clk, final_time);
     single_cycle();
     clk_sum_reg++;
     uint64_t timer_end = get_time();
