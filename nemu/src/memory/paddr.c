@@ -80,6 +80,7 @@
 static uint8_t mrom[4*1024] PG_ALIGN = {};
 static uint8_t sram[8*1024] PG_ALIGN = {};
 static uint8_t flash[16*1024*1024] PG_ALIGN = {};
+static uint8_t sdram[64*1024*1024] PG_ALIGN = {};
 
 static void out_of_bound(paddr_t addr) {
   panic("address = " FMT_PADDR " is out of bound of pmem [" FMT_PADDR ", " FMT_PADDR "] at pc = " FMT_WORD,
@@ -93,6 +94,8 @@ uint8_t* guest_to_host(paddr_t paddr) {
     return mrom + paddr - 0x20000000;
   } else if(paddr >= 0x30000000 && paddr <= 0x3fffffff) {
     return flash + paddr - 0x30000000;
+  } else if(paddr >= 0xa0000000 && paddr <= 0xbfffffff) {
+    return sdram + paddr - 0xa0000000;
   } else {
     out_of_bound(paddr);
     assert(0);
