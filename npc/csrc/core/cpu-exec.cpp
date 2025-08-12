@@ -113,7 +113,7 @@ static void inst_infomation() {
     printf("+----------------+----------------------+\n");
     printf("| cache      | 命中率\t\t|\n");
     printf("+----------------+----------------------+\n");
-    printf("| icache\t| %-16d\t|\n", (double)icache_hit / stats.inst_sum);
+    printf("| icache\t| %-16.4f\t|\n", (double)icache_hit / stats.inst_sum);
     printf("+----------------+----------------------+\n");
 #ifdef CONFIG_YSYXSOC
     printf("+----------------+----------------------+\n");
