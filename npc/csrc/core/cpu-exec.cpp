@@ -287,19 +287,13 @@ static void exec_once() {
     uint64_t clk_sum_reg = 0;
     uint64_t initial_total_clk = stats.clk_sum;
     do{
-        int prev_valid_reg = 0;
-        if(prev_valid_reg != prev_valid){
-            prev_valid_reg = prev_valid;
-            printf("0x%02x\n", prev_valid_reg);
-            update_module_stats(prev_valid, initial_total_clk + clk_sum_reg);
-        }
+        update_module_stats(prev_valid, initial_total_clk + clk_sum_reg);
         single_cycle();
         clk_sum_reg++;
     } while (pc == last_pc);
 
     single_cycle();
     clk_sum_reg++;
-    // update_module_stats(0x10, initial_total_clk + clk_sum_reg);
     uint64_t timer_end = get_time();
     uint64_t time_spent = timer_end - timer_start;
     
