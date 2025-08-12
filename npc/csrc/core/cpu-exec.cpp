@@ -72,9 +72,9 @@ static uint64_t current_total_clk_reg = 0;
 
 static void update_module_stats(int valid, uint64_t current_total_clk) {
     if(valid == 0) return;
-    printf("0x%02x  %ld  ", valid, current_total_clk);
+    // printf("0x%02x  %ld  ", valid, current_total_clk);
     uint64_t clock_spend = current_total_clk - current_total_clk_reg;
-    printf("%ld\n", clock_spend);
+    // printf("%ld\n", clock_spend);
     current_total_clk_reg = current_total_clk;
 
     switch(valid) {
@@ -82,7 +82,7 @@ static void update_module_stats(int valid, uint64_t current_total_clk) {
         case 0x08:stats.perf.idu.clk += clock_spend; break;
         case 0x04:stats.perf.exu.clk += clock_spend; break;
         case 0x02:stats.perf.lsu.clk += clock_spend; break;
-        case 0x01:stats.perf.wbu.clk += clock_spend; break;
+        case 0x01:stats.perf.wbu.clk += 2          ; break;
     }
 }
 
