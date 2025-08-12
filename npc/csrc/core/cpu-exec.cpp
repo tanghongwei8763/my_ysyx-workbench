@@ -58,6 +58,7 @@ typedef struct {
     TypeStats types[INST_TYPE_COUNT];  // 各类型指令统计
     InstType current_type;  // 当前执行的指令类型
     int prev_valid;
+    int current_module;
     uint64_t module_clk_start[5];  // 0:ifu, 1:idu, 2:exu, 3:lsu, 4:wbu
     uint64_t module_time_start[5];
 } Stats;
@@ -68,34 +69,50 @@ static void exec_once();
 static uint64_t us;
 extern uint64_t get_time();
 
-static void update_module_stats(int valid, uint64_t current_clk) {
-    if(valid == 0) return;
-    // 模块顺序：0:ifu, 1:idu, 2:exu, 3:lsu, 4:wbu
-    for (int i = 0; i < 5; i++) {
-        // 位对应关系调整：4-ifu, 3-idu, 2-exu, 1-lsu, 0-wbu
-        int current_active = (valid >> (4 - i)) & 0x1;
-        int prev_active = (stats.prev_valid >> (4 - i)) & 0x1;
-        
-        // 模块开始工作
-        if (current_active && !prev_active) {
-            stats.module_clk_start[i] = current_clk;
-            stats.module_time_start[i] = get_time();
-        }
-        // 模块结束工作
-        else if (!current_active && prev_active) {
-            uint64_t clk_diff = current_clk - stats.module_clk_start[i];
-            uint64_t time_diff = get_time() - stats.module_time_start[i];
-            
-            // 根据调整后的模块索引更新对应统计
-            switch (i) {
-                case 0: stats.perf.ifu.clk += clk_diff; stats.perf.ifu.time += time_diff; break;
-                case 1: stats.perf.idu.clk += clk_diff; stats.perf.idu.time += time_diff; break;
-                case 2: stats.perf.exu.clk += clk_diff; stats.perf.exu.time += time_diff; break;
-                case 3: stats.perf.lsu.clk += clk_diff; stats.perf.lsu.time += time_diff; break;
-                case 4: stats.perf.wbu.clk += clk_diff; stats.perf.wbu.time += time_diff; break;
-            }
-        }
+static int valid_to_module(int valid) {
+    switch(valid) {
+        case 0x10: return 0; // ifu
+        case 0x08: return 1; // idu
+        case 0x04: return 2; // exu
+        case 0x02: return 3; // lsu
+        case 0x01: return 4; // wbu
+        default: return -1;
     }
+}
+
+static void update_module_stats(int valid, uint64_t current_total_clk) {
+    int module = valid_to_module(valid);
+    if (module == -1) return;
+
+    // 首次记录模块启动时间
+    if (stats.current_module == -1) {
+        stats.current_module = module;
+        stats.module_clk_start[module] = current_total_clk;
+        stats.module_time_start[module] = get_time();
+        return;
+    }
+
+    // 信号切换时，记录上一模块的结束时间
+    if (module != stats.current_module) {
+        // 计算上一模块的耗时
+        uint64_t clk_diff = current_total_clk - stats.module_clk_start[stats.current_module];
+        uint64_t time_diff = get_time() - stats.module_time_start[stats.current_module];
+
+        // 更新上一模块统计
+        switch(stats.current_module) {
+            case 0: stats.perf.ifu.clk += clk_diff; stats.perf.ifu.time += time_diff; break;
+            case 1: stats.perf.idu.clk += clk_diff; stats.perf.idu.time += time_diff; break;
+            case 2: stats.perf.exu.clk += clk_diff; stats.perf.exu.time += time_diff; break;
+            case 3: stats.perf.lsu.clk += clk_diff; stats.perf.lsu.time += time_diff; break;
+            case 4: stats.perf.wbu.clk += clk_diff; stats.perf.wbu.time += time_diff; break;
+        }
+
+        // 记录新模块启动时间
+        stats.current_module = module;
+        stats.module_clk_start[module] = current_total_clk;
+        stats.module_time_start[module] = get_time();
+    }
+
     stats.prev_valid = valid;
 }
 
@@ -272,16 +289,17 @@ static void exec_once() {
 
     uint64_t timer_start = get_time();
     uint64_t clk_sum_reg = 0;
+    uint64_t initial_total_clk = stats.clk_sum;
     do{
         // printf("0x%02x\n", prev_valid);
-        update_module_stats(prev_valid, clk_sum_reg);
+        update_module_stats(prev_valid, initial_total_clk + clk_sum_reg);
         single_cycle();
         clk_sum_reg++;
     } while (pc == last_pc);
 
     single_cycle();
-    update_module_stats(0x10,clk_sum_reg);
     clk_sum_reg++;
+    update_module_stats(0x10, initial_total_clk + clk_sum_reg);
     uint64_t timer_end = get_time();
     uint64_t time_spent = timer_end - timer_start;
     
