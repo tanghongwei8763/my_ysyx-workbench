@@ -97,10 +97,8 @@ static void update_module_stats(int valid, uint64_t current_clk, uint64_t curren
 }
 
 extern "C" void performance_counter(int valid,int type_) {
-    if((prev_valid != valid) && (valid != 0)) {
-        printf("0x%02x\n", valid);
-        prev_valid = valid;
-    }
+    if((prev_valid != valid) && (valid != 0)) prev_valid = valid;
+
     stats.perf.ifu.count += ((valid >> 4) & 0x01);
     stats.perf.idu.count += ((valid >> 3) & 0x01);
     stats.perf.exu.count += ((valid >> 2) & 0x01);
@@ -276,6 +274,7 @@ static void exec_once() {
     uint64_t timer_start = get_time();
     uint64_t clk_sum_reg = 0;
     do{
+        printf("0x%02x\n", prev_valid);
         update_module_stats(prev_valid, stats.clk_sum + clk_sum_reg, timer_start);
         single_cycle();
         clk_sum_reg++;
