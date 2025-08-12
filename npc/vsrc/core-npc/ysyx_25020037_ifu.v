@@ -73,7 +73,7 @@ module ysyx_25020037_ifu(
                         inst <= icache_data;
                         ifu_valid <= 1'b1;
                         arvalid <= 1'b0;
-                    end else begin
+                    end else if(next_state == BUSY) begin
                         araddr <= pc;
                         arvalid <= 1'b1;
                     end
