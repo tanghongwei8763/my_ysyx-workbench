@@ -290,7 +290,7 @@ module ysyx_25020037 (
         .rst         (reset       ),
         .pc          (pc          ),
         .inst        (ifu_rdata   ),
-        .ifu_rvalid  (ifu_rvalid  ),
+        .ifu_valid   (ifu_valid   ),
         .exu_ready   (exu_ready   ),
         .idu_valid   (idu_valid   ),
         .idu_ready   (idu_ready   ),

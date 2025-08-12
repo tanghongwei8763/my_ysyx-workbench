@@ -5,7 +5,7 @@ module ysyx_25020037_idu (
     input  wire         rst,
     input  wire [31: 0] pc,
     input  wire [31: 0] inst,
-    input  wire         ifu_rvalid,
+    input  wire         ifu_valid,
     input  wire         exu_ready,
     output reg          idu_valid,
     output reg          idu_ready,
@@ -291,7 +291,7 @@ module ysyx_25020037_idu (
 
     always @(*) begin
         case (state)
-            IDLE: next_state = (ifu_rvalid & idu_ready) ? BUSY : IDLE;
+            IDLE: next_state = (ifu_valid & idu_ready) ? BUSY : IDLE;
             BUSY: next_state = (idu_valid & exu_ready) ? IDLE : BUSY;
             default: next_state = IDLE;
         endcase
@@ -311,7 +311,7 @@ module ysyx_25020037_idu (
 
             case (state)
                 IDLE: begin
-                    if (ifu_rvalid & idu_ready) begin
+                    if (ifu_valid & idu_ready) begin
                         inst_r <= inst;
                         idu_ready <= 1'b0;
                     end
