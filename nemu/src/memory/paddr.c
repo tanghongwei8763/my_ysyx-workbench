@@ -110,7 +110,11 @@ static word_t pmem_read(paddr_t addr, int len) {
 }
 
 static void pmem_write(paddr_t addr, int len, word_t data) {
-  host_write(guest_to_host(addr), len, data);
+  if(addr == 0x10000000) {
+    putchar(data&0xff);
+    fflush(stdout);
+  } else if(addr > 0x10000000 && addr < 0x10000fff) {}
+  else host_write(guest_to_host(addr), len, data);
 }
 
 word_t paddr_read(paddr_t addr, int len) {
