@@ -31,8 +31,7 @@ int main(int argc, char *argv[]) {
 
   /* Start engine. */
   engine_start();
-#ifdef CONFIG_ITRACE
+  
   close_ringbuf();
-#endif
   return is_exit_status_bad();
 }
