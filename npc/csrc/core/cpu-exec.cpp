@@ -283,19 +283,23 @@ static void exec_once() {
     stats.inst_sum++;
     int last_pc = pc;
 
-    uint64_t timer_start = get_time();
+    uint64_t timer_start, timer_end, time_spent = 0;
     uint64_t clk_sum_reg = 0;
     uint64_t initial_total_clk = stats.clk_sum;
     do{
         update_module_stats(prev_valid, initial_total_clk + clk_sum_reg);
+        timer_start = get_time();
         single_cycle();
+        timer_end = get_time();
+        time_spent += timer_end - timer_start;
         clk_sum_reg++;
     } while (pc == last_pc);
 
+    timer_start = get_time();
     single_cycle();
+    timer_end = get_time();
+    time_spent += timer_end - timer_start;
     clk_sum_reg++;
-    uint64_t timer_end = get_time();
-    uint64_t time_spent = timer_end - timer_start;
     
     stats.clk_sum += clk_sum_reg;
     stats.g_timer += time_spent;
