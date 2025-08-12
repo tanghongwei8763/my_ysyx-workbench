@@ -119,7 +119,7 @@ static void inst_infomation() {
     Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
 #ifdef CONFIG_YSYXSOC
     printf("+----------------+-------------------+-------------------+-------------------+\n");
-    printf("| 模块耗时统计    | 有效次数          | 时钟占比          | 时间占比          |\n");
+    printf("| 模块耗时统计   | 时钟占比             时间占比\t\t|\n");
     printf("+----------------+-------------------+-------------------+-------------------+\n");
     const char* module_names[5] = {"ifu", "idu", "exu", "lsu", "wbu"};
     TypeStats* modules[5] = {
@@ -133,17 +133,19 @@ static void inst_infomation() {
         double time_ratio = stats.g_timer > 0 ? 
             (double)modules[i]->time / stats.g_timer * 100 : 0;
         
-        printf("| - %-8s | %-17ld | %-15.1f%% | %-15.1f%% |\n",
+        printf("| - %-5s %-8ld | %-10ld(%.1f%%)\t%-10ld(%.1f%%)\t|\n",
                module_names[i],
                modules[i]->count / 2,
+               modules[i]->clk,
                clk_ratio,
+               modules[i]->time,
                time_ratio);
     }
     printf("+----------------+-------------------+-------------------+-------------------+\n");
     
     // 打印指令类型统计表格
     printf("| 指令类型统计   | 时钟占比             时间占比\t\t|\n");
-    printf("+---------------------------------------------------------------+\n");
+    printf("+----------------+----------------------------------------------+\n");
     
     const char* type_names[INST_TYPE_COUNT] = {"R", "I", "S", "B", "U", "J", "N"};
     for (int i = 0; i < INST_TYPE_COUNT; i++) {
