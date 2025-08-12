@@ -273,19 +273,16 @@ static void exec_once() {
     uint64_t timer_start = get_time();
     uint64_t clk_sum_reg = 0;
     do{
-        int current_valid = prev_valid;
-        printf("0x%02x\n", prev_valid);
-        update_module_stats(current_valid, stats.clk_sum + clk_sum_reg, timer_start);
+        update_module_stats(prev_valid, stats.clk_sum + clk_sum_reg, timer_start);
         single_cycle();
         clk_sum_reg++;
-        prev_valid = current_valid;
     } while (pc == last_pc);
 
     int final_valid = 0x10;
     uint64_t final_clk = stats.clk_sum + clk_sum_reg;
+    single_cycle();
     uint64_t final_time = get_time();
     update_module_stats(final_valid, final_clk, final_time);
-    single_cycle();
     clk_sum_reg++;
     uint64_t timer_end = get_time();
     uint64_t time_spent = timer_end - timer_start;
