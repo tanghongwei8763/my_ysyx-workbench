@@ -76,7 +76,7 @@ module ysyx_25020037_ifu(
                         arvalid <= 1'b0;
                     end else begin
                         araddr <= pc;
-                        arvalid <= 1'b1;
+                        arvalid <= (~icache_hit_reg & ~icache_hit);
                     end
                 end
                 BUSY: begin
