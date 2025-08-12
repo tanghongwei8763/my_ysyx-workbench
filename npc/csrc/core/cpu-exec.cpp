@@ -66,6 +66,7 @@ static int prev_valid = 0;
 static void exec_once();
 
 static void update_module_stats(int valid, uint64_t current_clk, uint64_t current_time) {
+    if(valid == 0) return;
     // 模块顺序：0:ifu, 1:idu, 2:exu, 3:lsu, 4:wbu
     for (int i = 0; i < 5; i++) {
         // 位对应关系调整：4-ifu, 3-idu, 2-exu, 1-lsu, 0-wbu
@@ -273,6 +274,7 @@ static void exec_once() {
     uint64_t clk_sum_reg = 0;
     do{
         int current_valid = prev_valid;
+        printf("0x%02x\n", prev_valid);
         update_module_stats(current_valid, stats.clk_sum + clk_sum_reg, timer_start);
         single_cycle();
         clk_sum_reg++;
