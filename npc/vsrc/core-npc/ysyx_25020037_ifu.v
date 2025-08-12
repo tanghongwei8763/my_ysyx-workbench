@@ -39,7 +39,7 @@ module ysyx_25020037_ifu(
         case (state)
             IDLE: begin next_state = (pc != last_pc) ? CHECK : IDLE; end
             CHECK: begin next_state = mem_req ? BUSY : icache_hit_reg ? IDLE : CHECK; end
-            BUSY: begin next_state = (icache_ready && rvalid && rready && (rresp == 2'b00)) ? IDLE : BUSY; end
+            BUSY: begin next_state = (icache_ready && rvalid && (rresp == 2'b00)) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
