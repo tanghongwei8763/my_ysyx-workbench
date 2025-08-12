@@ -78,7 +78,7 @@ static void update_module_stats(int valid, uint64_t current_total_clk) {
     current_total_clk_reg = current_total_clk;
 
     switch(valid) {
-        case 0x10:stats.perf.ifu.clk += clock_spend; break;
+        case 0x10:stats.perf.ifu.clk += clock_spend + 1; break;
         case 0x08:stats.perf.idu.clk += clock_spend; break;
         case 0x04:stats.perf.exu.clk += clock_spend; break;
         case 0x02:stats.perf.lsu.clk += clock_spend; break;
