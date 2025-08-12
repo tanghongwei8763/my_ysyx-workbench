@@ -31,13 +31,14 @@ module ysyx_25020037_ifu(
     
     reg  [ 1:0] state, next_state;
     reg  [31:0] last_pc;
+    reg         icache_hit_reg;
 
     assign mem_ready = rvalid && (rresp == 2'b00);
 
     always @(*) begin
         case (state)
             IDLE: begin next_state = (pc != last_pc) ? CHECK : IDLE; end
-            CHECK: begin next_state = mem_req ? BUSY : icache_hit ? IDLE : CHECK; end
+            CHECK: begin next_state = mem_req ? BUSY : icache_hit_reg ? IDLE : CHECK; end
             BUSY: begin next_state = (icache_ready && rvalid && rready && (rresp == 2'b00)) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
@@ -54,7 +55,7 @@ module ysyx_25020037_ifu(
             ifu_valid <= 1'b0;
         end else begin
             state <= next_state;
-            
+            icache_hit_reg <= icache_hit;
             case (state)
                 IDLE: begin
                     if (pc != last_pc) begin
@@ -69,7 +70,7 @@ module ysyx_25020037_ifu(
                 end
                 CHECK: begin
                     icache_req <= 1'b0;
-                    if (icache_hit) begin
+                    if (icache_hit_reg) begin
                         inst <= icache_data;
                         ifu_valid <= 1'b1;
                         arvalid <= 1'b0;
