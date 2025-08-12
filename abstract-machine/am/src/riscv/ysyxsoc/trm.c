@@ -72,7 +72,7 @@ void ysyx_show(){
 
 void _trm_init() {
 
-  init_uart(115200);
+  //init_uart(115200);
   //ysyx_show();
   //printf("0x%08x  0x%08x\n", &_data_end, &_data_start);
   int ret = main(mainargs);
