@@ -135,7 +135,7 @@ static void inst_infomation() {
         
         printf("| - %-8s | %-17ld | %-15.1f%% | %-15.1f%% |\n",
                module_names[i],
-               modules[i]->count,
+               modules[i]->count / 2,
                clk_ratio,
                time_ratio);
     }
