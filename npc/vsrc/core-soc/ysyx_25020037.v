@@ -93,7 +93,7 @@ module ysyx_25020037 (
 `ifdef VERILATOR
     import "DPI-C" function void performance_counter(input int valid, input int type_);
     always @(posedge clock) begin
-       performance_counter({27'b0, ifu_rvalid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0);
+       performance_counter({27'b0, ifu_valid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0);
     end
 `endif
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
