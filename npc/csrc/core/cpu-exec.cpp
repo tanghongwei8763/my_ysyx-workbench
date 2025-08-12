@@ -138,9 +138,9 @@ static void inst_infomation() {
     Log("total guest clocks = %ld", stats.clk_sum);
     Log("simulation frequency = %ld inst/s", stats.inst_sum * 1000000 / stats.g_timer);
 #ifdef CONFIG_YSYXSOC
-    printf("+----------------+----------------------------------------------+\n");
+    printf("+----------------+----------------------+\n");
     printf("| 模块耗时统计   | 时钟占比\t\t|\n");
-    printf("+----------------+----------------------------------------------+\n");
+    printf("+----------------+----------------------+\n");
     const char* module_names[5] = {"ifu", "idu", "exu", "lsu", "wbu"};
     TypeStats* modules[5] = {
         &stats.perf.ifu, &stats.perf.idu, 
