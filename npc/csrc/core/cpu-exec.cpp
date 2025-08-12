@@ -97,7 +97,10 @@ static void update_module_stats(int valid, uint64_t current_clk, uint64_t curren
 }
 
 extern "C" void performance_counter(int valid,int type_) {
-    prev_valid = valid;
+    if(prev_valid != valid) {
+        printf("0x%02x\n", valid);
+        prev_valid = valid;
+    }
     stats.perf.ifu.count += ((valid >> 4) & 0x01);
     stats.perf.idu.count += ((valid >> 3) & 0x01);
     stats.perf.exu.count += ((valid >> 2) & 0x01);
