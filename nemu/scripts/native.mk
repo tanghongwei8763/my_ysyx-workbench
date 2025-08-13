@@ -28,7 +28,7 @@ override ARGS ?= --log=$(BUILD_DIR)/nemu-log.txt
 override ARGS += $(ARGS_DIFF)
 
 # Command to execute NEMU
-IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/dummy-riscv32e-ysyxsoc.bin
+IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/string-riscv32e-ysyxsoc.bin
 NEMU_EXEC := $(BINARY) $(ARGS) $(IMG)	#BINARY来自build创建的可执行文件本身
 
 run-env: $(BINARY) $(DIFF_REF_SO)
