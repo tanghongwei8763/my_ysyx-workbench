@@ -3,19 +3,19 @@
 #include <string.h>
 #include <math.h>
 #include <stdbool.h>
-#include <stdint.h>  // 添加此头文件以支持uint32_t, uint64_t等类型
+#include <stdint.h>
 
-// gcc -o cachesim cachesim.cpp -lm
+// gcc -o cachesim cachesim.c -lm
 // ./cachesim itrace.bin.bz2
 
-// 缓存配置参数范围（可根据需要调整）
+// 缓存配置参数范围
 #define SIZE_OPTIONS 4
 #define ASSOC_OPTIONS 3
 #define LINE_OPTIONS 3
 
-const int cache_sizes[SIZE_OPTIONS] = {1024, 2048, 4096, 8192};  // 1KB, 2KB, 4KB, 8KB
-const int associativities[ASSOC_OPTIONS] = {1, 2, 4};             // 1路, 2路, 4路
-const int line_sizes[LINE_OPTIONS] = {16, 32, 64};                // 块大小: 16B, 32B, 64B
+const int cache_sizes[SIZE_OPTIONS] = {64, 1024, 2048, 4096};  // 缓存大小(字节)
+const int associativities[ASSOC_OPTIONS] = {1, 2, 4};             // 相联度
+const int line_sizes[LINE_OPTIONS] = {4, 16, 32};                // 块大小(字节)
 
 // 指令跟踪记录结构
 typedef struct {
@@ -77,18 +77,42 @@ static Cache* cache_init(int size, int assoc, int line_size) {
     cache->associativity = assoc;
     cache->line_size = line_size;
     
-    // 计算地址划分位数
-    cache->offset_bits = log2_int(line_size);
+    // 计算总块数和组数（添加校验）
     int total_lines = size / line_size;
+    if (total_lines <= 0) {
+        fprintf(stderr, "错误：缓存大小%dB 小于块大小%dB，无法初始化缓存\n", size, line_size);
+        free(cache);
+        return NULL;
+    }
+    
+    // 确保组数至少为1
     cache->num_sets = total_lines / assoc;
+    if (cache->num_sets <= 0) {
+        cache->num_sets = 1;
+    }
+
+    // 计算组索引位数并确保是2的幂次
     cache->index_bits = log2_int(cache->num_sets);
+    // 如果组数不是2的幂次，调整为最接近的2的幂次
+    if ((1 << cache->index_bits) != cache->num_sets) {
+        cache->index_bits = log2_int(cache->num_sets) + 1;
+        cache->num_sets = 1 << cache->index_bits;  // 强制为2的幂次
+    }
+
+    // 计算块内偏移位数
+    cache->offset_bits = log2_int(line_size);
+    if (cache->offset_bits < 0) {
+        fprintf(stderr, "错误：块大小%d不是2的幂次\n", line_size);
+        free(cache);
+        return NULL;
+    }
 
     // 初始化缓存组和块
     cache->sets = (CacheSet*)malloc(sizeof(CacheSet) * cache->num_sets);
     if (!cache->sets) {
         fprintf(stderr, "内存分配失败\n");
         free(cache);
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     for (int i = 0; i < cache->num_sets; i++) {
@@ -99,7 +123,7 @@ static Cache* cache_init(int size, int assoc, int line_size) {
             for (int j = 0; j < i; j++) free(cache->sets[j].lines);
             free(cache->sets);
             free(cache);
-            exit(EXIT_FAILURE);
+            return NULL;
         }
         // 初始化缓存块
         for (int j = 0; j < assoc; j++) {
@@ -135,6 +159,12 @@ static void cache_access(Cache *cache, uint32_t pc) {
     // 地址划分
     uint32_t offset = pc & ((1 << cache->offset_bits) - 1);
     uint32_t index = (pc >> cache->offset_bits) & ((1 << cache->index_bits) - 1);
+    
+    // 关键：检查index是否超出有效范围，防止越界访问
+    if (index >= cache->num_sets) {
+        index = index % cache->num_sets;
+    }
+
     uint32_t tag = pc >> (cache->offset_bits + cache->index_bits);
 
     CacheSet *set = &cache->sets[index];
@@ -190,10 +220,26 @@ static void cache_access(Cache *cache, uint32_t pc) {
 }
 
 // 从压缩文件读取指令流并模拟缓存
-static double simulate_cache(int size, int assoc, int line_size, const char *trace_file) {
+static double simulate_cache(int size, int assoc, int line_size, const char *trace_file, double *hit_rate) {
+    // 检查配置合理性
+    if (size < line_size) {
+        fprintf(stderr, "警告：缓存大小%dB 小于块大小%dB，跳过此配置\n", size, line_size);
+        *hit_rate = 0;
+        return 0;
+    }
+    
+    if (size / line_size < assoc) {
+        fprintf(stderr, "警告：缓存块数量不足，无法满足相联度%d的配置，跳过此配置\n", assoc);
+        *hit_rate = 0;
+        return 0;
+    }
+
     // 初始化缓存
     Cache *cache = cache_init(size, assoc, line_size);
-    if (!cache) return -1;
+    if (!cache) {
+        *hit_rate = 0;
+        return 0;
+    }
 
     // 打开压缩的跟踪文件
     char cmd[256];
@@ -202,7 +248,8 @@ static double simulate_cache(int size, int assoc, int line_size, const char *tra
     if (!fp) {
         fprintf(stderr, "无法打开跟踪文件: %s\n", trace_file);
         cache_free(cache);
-        return -1;
+        *hit_rate = 0;
+        return 0;
     }
 
     // 读取并处理所有指令
@@ -214,16 +261,19 @@ static double simulate_cache(int size, int assoc, int line_size, const char *tra
     // 关闭文件并清理
     pclose(fp);
 
+    // 计算命中率
+    *hit_rate = (cache->total_accesses > 0) ? 
+        (double)cache->hits / cache->total_accesses * 100 : 0;
+
     // 计算IPC (假设缓存命中延迟为1周期，失效延迟为20周期)
-    const int hit_latency = 1;
-    const int miss_latency = 20;
+    const int hit_latency = 13;
+    const int miss_latency = 871;
     uint64_t total_cycles = (cache->hits * hit_latency) + (cache->misses * miss_latency);
     double ipc = (total_cycles > 0) ? (double)cache->total_accesses / total_cycles : 0;
 
     // 输出当前配置的结果
     printf("配置: 大小=%dkB, 相联度=%d, 块大小=%dB | 命中率=%.2f%% | IPC=%.4f\n",
-           size / 1024, assoc, line_size,
-           (double)cache->hits / cache->total_accesses * 100, ipc);
+           size / 1024, assoc, line_size, *hit_rate, ipc);
 
     // 释放资源
     cache_free(cache);
@@ -238,6 +288,7 @@ int main(int argc, char *argv[]) {
 
     const char *trace_file = argv[1];
     double max_ipc = 0;
+    double best_hit_rate = 0;
     int best_size = 0, best_assoc = 0, best_line = 0;
 
     printf("开始缓存参数探索...\n\n");
@@ -246,16 +297,19 @@ int main(int argc, char *argv[]) {
     for (int s = 0; s < SIZE_OPTIONS; s++) {
         for (int a = 0; a < ASSOC_OPTIONS; a++) {
             for (int l = 0; l < LINE_OPTIONS; l++) {
+                double current_hit_rate;
                 double ipc = simulate_cache(
                     cache_sizes[s], 
                     associativities[a], 
                     line_sizes[l], 
-                    trace_file
+                    trace_file,
+                    &current_hit_rate
                 );
 
-                // 更新最优配置
-                if (ipc > max_ipc) {
+                // 更新最优配置（只考虑有效配置）
+                if (ipc > max_ipc && current_hit_rate > 0) {
                     max_ipc = ipc;
+                    best_hit_rate = current_hit_rate;
                     best_size = cache_sizes[s];
                     best_assoc = associativities[a];
                     best_line = line_sizes[l];
@@ -264,10 +318,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // 输出最优结果
+    // 输出最优结果（包含命中率）
     printf("\n探索完成! 最优配置:\n");
-    printf("缓存大小: %dkB, 相联度: %d, 块大小: %dB | 最大IPC=%.4f\n",
-           best_size / 1024, best_assoc, best_line, max_ipc);
+    printf("缓存大小: %dkB, 相联度: %d, 块大小: %dB | 命中率=%.2f%% | 最大IPC=%.4f\n",
+           best_size / 1024, best_assoc, best_line, best_hit_rate, max_ipc);
 
     return EXIT_SUCCESS;
 }
