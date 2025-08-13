@@ -9,8 +9,8 @@
 #include <zlib.h>
 #include <unistd.h>
 
-#define TRACE_FILE "/home/tanghongwei/ysyx-workbench/npc/csrc/itrace.bin"
-#define COMPRESSED_FILE "/home/tanghongwei/ysyx-workbench/npc/csrc/itrace.bin.bz2"
+#define TRACE_FILE "/home/tanghongwei/ysyx-workbench/npc/csrc/tools/itrace.bin"
+#define COMPRESSED_FILE "/home/tanghongwei/ysyx-workbench/npc/csrc/tools/itrace.bin.bz2"
 
 static int ringbuf_index = 0;
 char ringbuf[RINGBUF_MAX][128];
