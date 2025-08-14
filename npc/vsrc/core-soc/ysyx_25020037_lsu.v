@@ -47,49 +47,76 @@ module ysyx_25020037_lsu (
 
     reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus_r;
 
+    localparam AXI_ID       = 4'h0;
+    localparam AXI_BURST    = 2'b00;
+    localparam AXI_LEN      = 8'h0;
+
+    wire [31:0] addr = eu_to_lu_bus[63:32];
+    wire [1:0]  addr_off = addr[1:0];
+    wire [31:0] aligned_wdata = eu_to_lu_bus[31:0] << (addr_off << 3);
+
+    always @(*) begin
+        case (state)
+            IDLE: next_state = (lsu_ready & exu_valid) ? BUSY : IDLE;        
+            BUSY: next_state = (lsu_valid & wbu_ready) ? IDLE : BUSY;    
+            default: next_state = IDLE;
+        endcase
+    end
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
             lsu_ready <= 1'b1;
             lsu_valid <= 1'b0;
-            araddr <= 32'h0;
-            arvalid <= 1'b0;
-            rready <= 1'b0;
-            awaddr <= 32'h0;
+            access_fault <= 1'b0;
+            lu_to_wu_bus <= 'b0;
             awvalid <= 1'b0;
+            awaddr <= 32'h0;
+            awid <= AXI_ID;
+            awlen <= AXI_LEN;
+            awsize <= 3'h2;
+            awburst <= AXI_BURST;
+            wvalid <= 1'b0;
             wdata <= 32'h0;
             wstrb <= 4'h0;
-            wvalid <= 1'b0;
+            wlast <= 1'b1;
             bready <= 1'b0;
-            access_fault <= 1'b0;
+            arvalid <= 1'b0;
+            araddr <= 32'h0;
+            arid <= AXI_ID;
+            arlen <= AXI_LEN;
+            arsize <= 3'h2;
+            arburst <= AXI_BURST;
+            rready <= 1'b0;
+            eu_to_lu_bus_r <= 'b0;
         end else begin
             state <= next_state;
 
             case (state)
                 IDLE: begin
+                    lsu_valid <= 1'b0;
+                    bready <= 1'b0;
+                    rready <= 1'b0;
+                    awvalid <= 1'b0;
+                    wvalid <= 1'b0;
+                    arvalid <= 1'b0;
                     if (lsu_ready & exu_valid) begin
+                        lsu_ready <= 1'b0;
                         if (du_to_lu_bus[1]) begin
-                            lsu_ready <= 1'b0;
-                            araddr  <= eu_to_lu_bus[63:32];
+                            araddr  <= addr;
                             arvalid <= 1'b1;
-                            rready  <= 1'b0;
                         end else if (du_to_lu_bus[0]) begin
-                            lsu_ready <= 1'b0;
-                            awaddr  <= eu_to_lu_bus[63:32];
-                            wdata   <= eu_to_lu_bus[31: 0] << ((eu_to_lu_bus[63:32] & 32'b11) << 3);
-                                case (du_to_lu_bus[ 4: 2])
-                                    3'b001: begin wstrb <= (4'b0001 << eu_to_lu_bus[33:32]); end
-                                    3'b010: begin wstrb <= (4'b0011 << eu_to_lu_bus[33:32]); end
-                                    3'b100: begin wstrb <= (4'b1111 << eu_to_lu_bus[33:32]); end
-                                    default: wstrb <= 4'b0000;
-                                endcase
                             awvalid <= 1'b1;
-                        end else begin
-                            lsu_ready <= 1'b0;
+                            awaddr  <= addr;
+                            wdata   <= aligned_wdata;
+                            case (du_to_lu_bus[ 4: 2])
+                                3'b001: begin wstrb <= (4'b0001 << addr_off); end
+                                3'b010: begin wstrb <= (4'b0011 << addr_off); end
+                                3'b100: begin wstrb <= (4'b1111 << addr_off); end
+                                default: wstrb <= 4'b0000;
+                            endcase
                         end
                     end
-                    lsu_valid <= 1'b0;
                 end
                 BUSY: begin
                     if (du_to_lu_bus[1]) begin
@@ -97,14 +124,12 @@ module ysyx_25020037_lsu (
                             arvalid <= 1'b0;
                             rready <= 1'b1;
                         end
-                        if (rvalid && rready && (rresp == 2'b00)) begin
+                        if (rvalid && rready) begin
                             lu_to_wu_bus <= {eu_to_lu_bus[63:32], rdata};
                             rready <= 1'b0;
                             lsu_valid <= 1'b1;
                             lsu_ready <= 1'b1;
-                        end 
-                        if (rresp != 2'b00) begin
-                            access_fault <= 1'b1;
+                            access_fault <= (rresp != 2'b00);  
                         end
                     end else if (du_to_lu_bus[0]) begin 
                         if (awready & awvalid) begin
@@ -115,13 +140,11 @@ module ysyx_25020037_lsu (
                             wvalid  <= 1'b0;
                             bready  <= 1'b1;
                         end
-                        if (bvalid & bready && (bresp == 2'b00)) begin
+                        if (bvalid & bready) begin
                             bready <= 1'b0;
                             lsu_valid <= 1'b1;
                             lsu_ready <= 1'b1;
-                        end 
-                        if (bresp != 2'b00) begin
-                            access_fault <= 1'b1;
+                            access_fault <= (bresp != 2'b00); 
                         end
                     end else begin
                         lu_to_wu_bus <= {eu_to_lu_bus[63:32], eu_to_lu_bus[63:32]};
@@ -131,14 +154,6 @@ module ysyx_25020037_lsu (
                 end
             endcase
         end
-    end
-
-    always @(*) begin
-        case (state)
-            IDLE: next_state = (lsu_ready & exu_valid) ? BUSY : IDLE;        
-            BUSY: next_state = (lsu_valid & wbu_ready) ? IDLE : BUSY;    
-            default: next_state = IDLE;
-        endcase
     end
 
 endmodule
