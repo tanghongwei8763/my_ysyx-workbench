@@ -106,7 +106,7 @@ module ysyx_25020037_ifu #(
                         read_len <= read_len + 4;
                         if (read_len + 4 == BLOCK_SIZE) begin
                             mem_ready <= 1'b1;
-                            inst <= rdata;
+                            inst <= icache_data;
                             ifu_valid <= 1'b1;
                             rready <= 1'b0;
                         end else begin
