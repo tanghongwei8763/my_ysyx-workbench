@@ -53,7 +53,7 @@ module ysyx_25020037_ifu #(
             IDLE:  begin next_state = (pc != last_pc && idu_ready) ? CHECK : IDLE; end
             CHECK: begin next_state = (icache_hit_reg) ? IDLE : (mem_req) ? BUSY : CHECK; end
             BUSY:  begin next_state = (mem_ready) ? READ : BUSY; end
-            READ:  begin next_state = (ifu_valid && idu_ready) ? IDLE : READ; end
+            READ:  begin next_state = (idu_ready) ? IDLE : READ; end
             default: next_state = IDLE;
         endcase
     end
