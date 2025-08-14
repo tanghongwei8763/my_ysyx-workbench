@@ -11,7 +11,7 @@ module ysyx_25020037 (
     parameter MEPC    = 32'h341;
     parameter MCAUSE  = 32'h342;
 
-    parameter BLOCK_SIZE = 32'd4;
+    parameter BLOCK_SIZE = 32'd16;
 `ifdef VERILATOR
     parameter CONFIG_FTRACE = 1'b0;
     import "DPI-C" function void call_func(input int pc, input int dnpc);
