@@ -2,8 +2,10 @@ module ysyx_25020037_icache #(
     parameter ADDR_WIDTH    = 32,
     parameter DATA_WIDTH    = 32,
     parameter CACHE_BLOCKS  = 16,
-    parameter BLOCK_SIZE    = 4,
-    parameter TAG_WIDTH     = ADDR_WIDTH - $clog2(CACHE_BLOCKS) - $clog2(BLOCK_SIZE)
+    parameter BLOCK_SIZE    = 16,
+    parameter OFFSET_WIDTH  = $clog2(BLOCK_SIZE),
+    parameter INDEX_WIDTH   = $clog2(CACHE_BLOCKS),
+    parameter TAG_WIDTH     = ADDR_WIDTH - INDEX_WIDTH - OFFSET_WIDTH
 ) (
     input                           clk,
     input                           rst,
@@ -15,25 +17,25 @@ module ysyx_25020037_icache #(
     output reg                   cpu_ready,
     
     output reg                   mem_req,
-    input  wire [DATA_WIDTH-1:0] mem_data,
+    output reg  [ADDR_WIDTH-1:0] mem_addr,
+    input  wire [BLOCK_SIZE*8-1:0] mem_data,
     input  wire                  mem_ready
 );
 
-localparam INDEX_WIDTH  = $clog2(CACHE_BLOCKS);
-localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);
-
-wire [   TAG_WIDTH-1:0]   tag;
-wire [ INDEX_WIDTH-1:0]   index;
 wire [OFFSET_WIDTH-1:0]   offset;
+wire [ INDEX_WIDTH-1:0]   index;
+wire [   TAG_WIDTH-1:0]   tag;
 
-assign tag    = cpu_addr[ADDR_WIDTH-1 : INDEX_WIDTH + OFFSET_WIDTH];
-assign index  = cpu_addr[INDEX_WIDTH + OFFSET_WIDTH - 1 : OFFSET_WIDTH];
 assign offset = cpu_addr[OFFSET_WIDTH-1 : 0];
+assign index  = cpu_addr[OFFSET_WIDTH + INDEX_WIDTH - 1 : OFFSET_WIDTH];
+assign tag    = cpu_addr[ADDR_WIDTH-1 : OFFSET_WIDTH + INDEX_WIDTH];
 
-reg [   TAG_WIDTH-1:0]    tag_array  [CACHE_BLOCKS-1:0];
-reg [  DATA_WIDTH-1:0]    data_array [CACHE_BLOCKS-1:0];
-reg [CACHE_BLOCKS-1:0]    valid_array;
-// reg                       cpu_hit;
+assign mem_addr = {cpu_addr[ADDR_WIDTH-1 : OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
+
+reg [   TAG_WIDTH-1:0]  tag_array  [CACHE_BLOCKS-1:0];
+reg [BLOCK_SIZE*8-1:0]  data_array [CACHE_BLOCKS-1:0];
+reg [CACHE_BLOCKS-1:0]  valid_array;
+
 localparam IDLE      = 2'b00;
 localparam COMPARE   = 2'b01;
 localparam REFILL    = 2'b10;
@@ -50,11 +52,7 @@ always @(*) begin
 end
 
 always @(*) begin
-    if ((current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag)) begin
-        cpu_hit = 1'b1;
-    end else begin
-        cpu_hit = 1'b0;
-    end
+    cpu_hit = (current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag);
 end
 
 always @(posedge clk or posedge rst) begin
@@ -65,14 +63,10 @@ always @(posedge clk or posedge rst) begin
     end else begin
         current_state <= next_state;
 
-        // if ((current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag)) begin
-        //     cpu_hit <= 1'b1;
-        // end else begin cpu_hit <= 1'b0; end
-
         case (current_state)
             COMPARE: begin
                 if (cpu_hit) begin
-                    cpu_data  <= data_array[index];
+                    cpu_data  <= data_array[index][offset*8 +: DATA_WIDTH];
                     cpu_ready <= 1'b1;
                 end else begin
                     cpu_data  <= 'b0;
@@ -81,7 +75,7 @@ always @(posedge clk or posedge rst) begin
             end
             REFILL: begin
                 if (mem_ready) begin
-                    cpu_data  <= mem_data;
+                    cpu_data  <= mem_data[offset*8 +: DATA_WIDTH];
                     cpu_ready <= 1'b1;
                 end else begin
                     cpu_data  <= 'b0;
@@ -101,21 +95,9 @@ always @(posedge clk or posedge rst) begin
         mem_req  <= 1'b0;
     end else begin
         case (current_state)
-            COMPARE: begin
-                if (!cpu_hit) begin
-                    mem_req  <= 1'b1;
-                end else begin
-                    mem_req  <= 1'b0;
-                end
-            end
-            REFILL: begin
-                if (mem_ready) begin
-                    mem_req  <= 1'b0;
-                end
-            end
-            default: begin
-                mem_req  <= 1'b0;
-            end
+            COMPARE: mem_req <= !cpu_hit;
+            REFILL:  mem_req <= !mem_ready;
+            default: mem_req <= 1'b0;
         endcase
     end
 end
