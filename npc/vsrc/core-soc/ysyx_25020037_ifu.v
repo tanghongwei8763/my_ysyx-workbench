@@ -36,6 +36,7 @@ module ysyx_25020037_ifu #(
     output reg          mem_ready
 );
     localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);
+    localparam TRANSFER_COUNT = BLOCK_SIZE / 4;
     localparam IDLE    = 2'b00;
     localparam CHECK   = 2'b01;
     localparam BUSY    = 2'b10;
@@ -45,7 +46,7 @@ module ysyx_25020037_ifu #(
     reg  [31:0] last_pc;
     reg         icache_hit_reg;
     reg  [31:0] block_base_addr;
-    reg  [31:0] read_len;
+    reg  [ 7:0] burst_count;
     wire [31:0] aligned_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
 
     always @(*) begin
@@ -65,6 +66,10 @@ module ysyx_25020037_ifu #(
             ifu_valid <= 1'b0;
             araddr <= 32'h0;
             arvalid <= 1'b0;
+            arid <= 4'h0;
+            arlen <= 8'h0;
+            arsize <= 3'h0;
+            arburst <= 2'h0;
             rready <= 1'b0;
             last_pc <= 32'h0;
             icache_addr <= 32'h0;
@@ -72,7 +77,7 @@ module ysyx_25020037_ifu #(
             mem_data <= 'b0;
             mem_ready <= 1'b0;
             block_base_addr <= 32'h0;
-            read_len <= 32'b0;
+            burst_count <= 8'h0;
             access_fault <= 1'b0;
         end else begin
             state <= next_state;
@@ -89,8 +94,11 @@ module ysyx_25020037_ifu #(
                     end
                     ifu_valid <= 1'b0;
                     mem_ready <= 1'b0;
-                    read_len <= 32'b0;
+                    burst_count <= 8'h0;
                     mem_data <= 'b0;
+                    arvalid <= 1'b0;
+                    rready <= 1'b0;
+                    access_fault <= 1'b0;
                 end
                 CHECK: begin
                     icache_req <= 1'b0;
@@ -101,6 +109,10 @@ module ysyx_25020037_ifu #(
                         end else if (mem_req) begin
                             araddr <= block_base_addr;
                             arvalid <= 1'b1;
+                            arid <= 4'h1;
+                            arlen <= 8'(TRANSFER_COUNT - 1);
+                            arsize <= 3'h2;
+                            arburst <= 2'h1;
                         end
                     end
                 end
@@ -109,15 +121,20 @@ module ysyx_25020037_ifu #(
                         arvalid <= 1'b0;
                         rready <= 1'b1;
                     end
-                    if (rvalid && rready && (rresp == 2'b00)) begin
-                        mem_data[read_len*8 +: 32] <= rdata;
-                        read_len <= read_len + 4;
-                        if (read_len + 4 == BLOCK_SIZE) begin
+                    if (rvalid && rready) begin
+                        if (rresp != 2'b00) begin
+                            access_fault <= 1'b1;
                             mem_ready <= 1'b1;
                             rready <= 1'b0;
                         end else begin
-                            araddr <= block_base_addr + read_len + 4;
-                            arvalid <= 1'b1;
+                            mem_data[burst_count*32 +: 32] <= rdata;
+                            burst_count <= burst_count + 1'b1;
+                            
+                            if (rlast) begin
+                                mem_ready <= 1'b1;
+                                rready <= 1'b0;
+                                burst_count <= 8'h0;
+                            end
                         end
                     end
                 end
