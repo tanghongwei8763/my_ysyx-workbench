@@ -37,6 +37,7 @@ module ysyx_25020037_ifu #(
     
     reg  [ 1:0] state, next_state;
     reg  [31:0] last_pc;
+    reg         icache_hit_reg;
     reg  [31:0] block_base_addr;
     reg  [31:0] read_len;
     wire [31:0] aligned_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
@@ -44,7 +45,7 @@ module ysyx_25020037_ifu #(
     always @(*) begin
         case (state)
             IDLE:  begin next_state = (pc != last_pc && idu_ready) ? CHECK : IDLE; end
-            CHECK: begin next_state = (icache_hit) ? IDLE : (mem_req) ? BUSY : CHECK; end
+            CHECK: begin next_state = (icache_hit_reg) ? IDLE : (mem_req) ? BUSY : CHECK; end
             BUSY:  begin next_state = (mem_ready && idu_ready) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
@@ -67,6 +68,7 @@ module ysyx_25020037_ifu #(
             read_len <= 32'b0;
         end else begin
             state <= next_state;
+            icache_hit_reg <= icache_hit;
             case (state)
                 IDLE: begin
                     if (pc != last_pc && idu_ready) begin
@@ -85,7 +87,7 @@ module ysyx_25020037_ifu #(
                 CHECK: begin
                     icache_req <= 1'b0;
                     if(!icache_req) begin
-                        if (icache_hit) begin
+                        if (icache_hit_reg) begin
                             inst <= icache_data;
                             ifu_valid <= 1'b1;
                         end else if (mem_req) begin
