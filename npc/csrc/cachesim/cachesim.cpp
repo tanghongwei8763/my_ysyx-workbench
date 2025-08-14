@@ -9,11 +9,11 @@
 // ./cachesim itrace.bin.bz2
 
 // 缓存配置参数范围
-#define SIZE_OPTIONS 4
+#define SIZE_OPTIONS 3
 #define ASSOC_OPTIONS 3
 #define LINE_OPTIONS 3
 
-const int cache_sizes[SIZE_OPTIONS] = {64, 1024, 2048, 4096};  // 缓存大小(字节)
+const int cache_sizes[SIZE_OPTIONS] = {64, 256, 512};  // 缓存大小(字节)
 const int associativities[ASSOC_OPTIONS] = {1, 2, 4};             // 相联度
 const int line_sizes[LINE_OPTIONS] = {4, 16, 32};                // 块大小(字节)
 
@@ -272,8 +272,8 @@ static double simulate_cache(int size, int assoc, int line_size, const char *tra
     double ipc = (total_cycles > 0) ? (double)cache->total_accesses / total_cycles : 0;
 
     // 输出当前配置的结果
-    printf("配置: 大小=%dkB, 相联度=%d, 块大小=%dB | 命中率=%.2f%% | IPC=%.4f\n",
-           size / 1024, assoc, line_size, *hit_rate, ipc);
+    printf("配置: 大小=%dB, 相联度=%d, 块大小=%dB | 命中率=%.2f%% | IPC=%.4f\n",
+           size, assoc, line_size, *hit_rate, ipc);
 
     // 释放资源
     cache_free(cache);
