@@ -35,6 +35,9 @@ module ysyx_25020037_ifu #(
     output reg  [BLOCK_SIZE*8-1:0] mem_data,
     output reg          mem_ready
 );
+    localparam SDRAM_BASE = 32'hA0000000;
+    localparam SDRAM_END  = 32'hBFFFFFFF;
+
     localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);
     localparam TRANSFER_COUNT = BLOCK_SIZE / 4;
     localparam IDLE    = 2'b00;
@@ -47,9 +50,12 @@ module ysyx_25020037_ifu #(
     reg         icache_hit_reg;
     reg  [31:0] block_base_addr;
     reg  [ 7:0] burst_count;
+    reg  [31:0] read_len;
+    reg         is_sdram;
     wire [31:0] aligned_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
 
     always @(*) begin
+        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
         case (state)
             IDLE:  begin next_state = (pc != last_pc && idu_ready) ? CHECK : IDLE; end
             CHECK: begin next_state = (icache_hit_reg) ? IDLE : (mem_req) ? BUSY : CHECK; end
@@ -78,6 +84,7 @@ module ysyx_25020037_ifu #(
             mem_ready <= 1'b0;
             block_base_addr <= 32'h0;
             burst_count <= 8'h0;
+            read_len <= 32'b0;
             access_fault <= 1'b0;
         end else begin
             state <= next_state;
@@ -95,6 +102,7 @@ module ysyx_25020037_ifu #(
                     ifu_valid <= 1'b0;
                     mem_ready <= 1'b0;
                     burst_count <= 8'h0;
+                    read_len <= 32'b0;
                     mem_data <= 'b0;
                     arvalid <= 1'b0;
                     rready <= 1'b0;
@@ -110,9 +118,14 @@ module ysyx_25020037_ifu #(
                             araddr <= block_base_addr;
                             arvalid <= 1'b1;
                             arid <= 4'h1;
-                            arlen <= 8'(TRANSFER_COUNT - 1);
                             arsize <= 3'h2;
-                            arburst <= 2'h1;
+                            if (is_sdram) begin
+                                arlen <= 8'(TRANSFER_COUNT - 1);
+                                arburst <= 2'h1;
+                            end else begin
+                                arlen <= 8'h0;
+                                arburst <= 2'h0;
+                            end
                         end
                     end
                 end
@@ -126,14 +139,30 @@ module ysyx_25020037_ifu #(
                             access_fault <= 1'b1;
                             mem_ready <= 1'b1;
                             rready <= 1'b0;
+                            burst_count <= 8'h0;
+                            read_len <= 32'b0;
                         end else begin
-                            mem_data[burst_count*32 +: 32] <= rdata;
-                            burst_count <= burst_count + 1'b1;
-                            
-                            if (rlast) begin
-                                mem_ready <= 1'b1;
-                                rready <= 1'b0;
-                                burst_count <= 8'h0;
+                            if (is_sdram) begin
+                                mem_data[burst_count*32 +: 32] <= rdata;
+                                burst_count <= burst_count + 1'b1;
+                                
+                                if (rlast) begin
+                                    mem_ready <= 1'b1;
+                                    rready <= 1'b0;
+                                    burst_count <= 8'h0;
+                                end
+                            end else begin
+                                mem_data[read_len*8 +: 32] <= rdata;
+                                read_len <= read_len + 4;
+                                
+                                if (read_len + 4 == BLOCK_SIZE) begin
+                                    mem_ready <= 1'b1;
+                                    rready <= 1'b0;
+                                    read_len <= 32'b0;
+                                end else begin
+                                    araddr <= block_base_addr + read_len + 4;
+                                    arvalid <= 1'b1;
+                                end
                             end
                         end
                     end
