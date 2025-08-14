@@ -84,7 +84,7 @@ module ysyx_25020037 (
     parameter MCAUSE    = 12'h342;
     parameter MVENDORID = 12'hF11;
     parameter MARCHID   = 12'hF12;
-
+    parameter BLOCK_SIZE = 32'd16;
     //parameter CONFIG_FTRACE = 1'b0;
     //import "DPI-C" function void call_func(input int pc, input int dnpc);
     //import "DPI-C" function void ret_func(input int pc);
@@ -188,11 +188,14 @@ module ysyx_25020037 (
     wire         ifu_access_fault;
     wire         lsu_access_fault;
 
+    wire [31: 0] icache_addr;
+    wire         icache_req;
     wire [31: 0] icache_data;
-    wire         icache_hit;      
-    wire         icache_ready;    
-    wire         icache_mem_req;  
-    wire         icache_req;      
+    wire         icache_hit;
+    wire         icache_ready;
+    wire         icache_mem_req;
+    wire [31: 0] icache_mem_addr;
+    wire [BLOCK_SIZE*8-1:0] icache_mem_data;
     wire         icache_mem_ready;
 
     wire [31: 0] csr_wgpr_data;
@@ -238,7 +241,9 @@ module ysyx_25020037 (
         .marchid          (marchid         )  
     );          
     
-    ysyx_25020037_ifu ifu_cpu(
+    ysyx_25020037_ifu #(
+        .BLOCK_SIZE    (BLOCK_SIZE)
+    ) ifu_cpu(
         .clk         (clock            ),
         .rst         (reset            ),
         .pc          (pc               ),
@@ -259,11 +264,14 @@ module ysyx_25020037 (
         .rdata       (ifu_rdata        ),
         .rlast       (ifu_rlast        ),
         .rid         (ifu_rid          ),
+        .icache_addr (icache_addr      ),
+        .icache_req  (icache_req       ),
         .icache_data (icache_data      ),
         .icache_hit  (icache_hit       ),
         .icache_ready(icache_ready     ),
         .mem_req     (icache_mem_req   ),
-        .icache_req  (icache_req       ),
+        .mem_addr    (icache_mem_addr  ),
+        .mem_data    (icache_mem_data  ),
         .mem_ready   (icache_mem_ready )
         );
 
@@ -271,17 +279,18 @@ module ysyx_25020037 (
         .ADDR_WIDTH    (32),
         .DATA_WIDTH    (32),
         .CACHE_BLOCKS  (16),
-        .BLOCK_SIZE    (4 )
+        .BLOCK_SIZE    (BLOCK_SIZE)
     ) u_icache (
         .clk           (clock           ),
         .rst           (reset           ),
-        .cpu_addr      (pc              ),
+        .cpu_addr      (icache_addr     ),
         .cpu_req       (icache_req      ),
         .cpu_data      (icache_data     ),
         .cpu_hit       (icache_hit      ),
         .cpu_ready     (icache_ready    ),
         .mem_req       (icache_mem_req  ),
-        .mem_data      (ifu_rdata       ),
+        .mem_addr      (icache_mem_addr ),
+        .mem_data      (icache_mem_data ),
         .mem_ready     (icache_mem_ready)
     );
 
