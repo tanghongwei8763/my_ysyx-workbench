@@ -15,10 +15,15 @@ module ysyx_25020037_idu (
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
     output reg  [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
-    output reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus,
-    output wire         ftrace_jalr,
-    output wire         ftrace_jal
+    output reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus
 );
+
+`ifdef VERILATOR
+    import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
+    always @(posedge clk) begin
+       if(idu_valid & ~rst) begin performance_counter(32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N}, 32'b0);end
+    end
+`endif
 
     parameter MSTATUS = 32'h300;
     parameter MTVEC   = 32'h305;
@@ -286,9 +291,6 @@ module ysyx_25020037_idu (
     assign csrs_mepc_wen    = (imm == MEPC) & is_csr_op;
     assign csrs_mstatus_wen = (imm == MSTATUS) & is_csr_op;
     assign csrs_mcause_wen  = (imm == MCAUSE) & is_csr_op;
-
-    assign ftrace_jal   = inst_jal;
-    assign ftrace_jalr  = inst_jarl;
 
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | TYPE_W | inst_ecall | inst_mret);
 

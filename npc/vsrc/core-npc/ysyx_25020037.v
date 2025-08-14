@@ -12,12 +12,16 @@ module ysyx_25020037 (
     parameter MCAUSE  = 32'h342;
 
     parameter BLOCK_SIZE = 32'd16;
+    //parameter CONFIG_FTRACE = 1'b0;
+    //import "DPI-C" function void call_func(input int pc, input int dnpc);
+    //import "DPI-C" function void ret_func(input int pc);
+    //wire         ftrace_jal;
+    //wire         ftrace_jalr;
 `ifdef VERILATOR
-    parameter CONFIG_FTRACE = 1'b0;
-    import "DPI-C" function void call_func(input int pc, input int dnpc);
-    import "DPI-C" function void ret_func(input int pc);
-    wire         ftrace_jal;
-    wire         ftrace_jalr;
+    import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
+    always @(posedge clock) begin
+       performance_counter({27'b0, ifu_valid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0, {31'b0, icache_hit});
+    end
 `endif
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
@@ -229,9 +233,7 @@ module ysyx_25020037 (
         .du_to_eu_bus(du_to_eu_bus),
         .du_to_gu_bus(du_to_gu_bus),
         .du_to_lu_bus(du_to_lu_bus),
-        .du_to_wu_bus(du_to_wu_bus),
-        .ftrace_jal  (ftrace_jal  ),
-        .ftrace_jalr (ftrace_jalr )
+        .du_to_wu_bus(du_to_wu_bus)
         );
 
 
@@ -432,6 +434,7 @@ ysyx_25020037_clint u_clint (
         .csr_wgpr_data(csr_wgpr_data),
         .wu_to_gu_bus (wu_to_gu_bus )
         );
+        
 `ifdef VERILATOR
     // always @(posedge clock) begin
     //    if(CONFIG_FTRACE) begin
