@@ -34,6 +34,7 @@ module ysyx_25020037_ifu #(
     localparam IDLE    = 2'b00;
     localparam CHECK   = 2'b01;
     localparam BUSY    = 2'b10;
+    localparam READ    = 2'b11;
     
     reg  [ 1:0] state, next_state;
     reg  [31:0] last_pc;
@@ -46,7 +47,8 @@ module ysyx_25020037_ifu #(
         case (state)
             IDLE:  begin next_state = (pc != last_pc && idu_ready) ? CHECK : IDLE; end
             CHECK: begin next_state = (icache_hit_reg) ? IDLE : (mem_req) ? BUSY : CHECK; end
-            BUSY:  begin next_state = (mem_ready && idu_ready) ? IDLE : BUSY; end
+            BUSY:  begin next_state = (mem_ready) ? READ : BUSY; end
+            READ:  begin next_state = (ifu_valid && idu_ready) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
@@ -106,7 +108,6 @@ module ysyx_25020037_ifu #(
                         read_len <= read_len + 4;
                         if (read_len + 4 == BLOCK_SIZE) begin
                             mem_ready <= 1'b1;
-                            inst <= icache_data;
                             ifu_valid <= 1'b1;
                             rready <= 1'b0;
                         end else begin
@@ -115,6 +116,7 @@ module ysyx_25020037_ifu #(
                         end
                     end
                 end
+                READ: begin inst <= icache_data; end
                 default: begin 
                     arvalid <= 1'b0;
                     rready <= 1'b0;
