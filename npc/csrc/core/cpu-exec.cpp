@@ -109,8 +109,8 @@ static void inst_infomation() {
     printf("| cache\t\t | 命中率\t\t|\n");
     printf("+----------------+----------------------+\n");
     printf("| -icache\t | %-15.4f\t|\n", (double)icache_hit / stats.inst_sum);
-#ifdef CONFIG_YSYXSOC
     printf("+----------------+----------------------+\n");
+#ifdef CONFIG_YSYXSOC
     printf("| 模块耗时统计   | 时钟占比\t\t|\n");
     printf("+----------------+----------------------+\n");
     const char* module_names[5] = {"ifu", "idu", "exu", "lsu", "wbu"};
