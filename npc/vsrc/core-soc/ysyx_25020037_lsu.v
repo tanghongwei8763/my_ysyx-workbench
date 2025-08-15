@@ -67,18 +67,7 @@ module ysyx_25020037_lsu (
     always @(*) begin
         case (state)
             IDLE: next_state = (lsu_ready & exu_valid) ? BUSY : IDLE;  
-            BUSY: begin
-                if (is_sdram) begin
-                    if (du_to_lu_bus[1] && rvalid && rready && rlast)
-                        next_state = IDLE;
-                    else if (du_to_lu_bus[0] && bvalid && bready)
-                        next_state = IDLE;
-                    else
-                        next_state = BUSY;
-                end else begin
-                    next_state = (lsu_valid & wbu_ready) ? IDLE : BUSY;
-                end
-            end
+            BUSY: next_state = (lsu_valid & wbu_ready) ? IDLE : BUSY;
             default: next_state = IDLE;
         endcase
     end
