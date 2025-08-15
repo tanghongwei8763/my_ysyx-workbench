@@ -84,7 +84,7 @@ module ysyx_25020037 (
     parameter MCAUSE    = 12'h342;
     parameter MVENDORID = 12'hF11;
     parameter MARCHID   = 12'hF12;
-    parameter BLOCK_SIZE = 32'd4;
+    parameter BLOCK_SIZE = 32'd16;
     //parameter CONFIG_FTRACE = 1'b0;
     //import "DPI-C" function void call_func(input int pc, input int dnpc);
     //import "DPI-C" function void ret_func(input int pc);
