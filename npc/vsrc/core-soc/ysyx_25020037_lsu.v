@@ -125,6 +125,7 @@ module ysyx_25020037_lsu (
                         end
                         else if (du_to_lu_bus[0]) begin
                             awvalid <= 1'b1;
+                            wvalid <= 1'b1;
                             awaddr  <= addr;
                             wdata   <= aligned_wdata;
                             case (du_to_lu_bus[ 4: 2])
