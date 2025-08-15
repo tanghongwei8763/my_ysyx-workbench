@@ -52,7 +52,6 @@ module ysyx_25020037_lsu (
     localparam AXI_BURST_INCR = 2'b01;
     localparam AXI_BURST_FIXED = 2'b00;
     localparam AXI_LEN_SINGLE = 8'h0;
-    localparam AXI_LEN_BURST  = 8'h7;
     localparam AXI_SIZE_WORD  = 3'h2;
 
     wire [31:0] addr = eu_to_lu_bus[63:32];
@@ -62,7 +61,7 @@ module ysyx_25020037_lsu (
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
     reg [2:0] burst_cnt;
-    wire burst_complete = (burst_cnt == 3'd7);
+    wire burst_complete = (burst_cnt == 3'd0);
 
     always @(*) begin
         case (state)
@@ -118,7 +117,7 @@ module ysyx_25020037_lsu (
                             arvalid <= 1'b1;
                             if (is_sdram) begin
                                 arburst <= AXI_BURST_INCR;
-                                arlen   <= AXI_LEN_BURST;
+                                arlen   <= AXI_LEN_SINGLE;
                             end else begin
                                 arburst <= AXI_BURST_FIXED;
                                 arlen   <= AXI_LEN_SINGLE;
@@ -136,7 +135,7 @@ module ysyx_25020037_lsu (
                             endcase
                             if (is_sdram) begin
                                 awburst <= AXI_BURST_INCR;
-                                awlen   <= AXI_LEN_BURST;
+                                awlen   <= AXI_LEN_SINGLE;
                             end else begin
                                 awburst <= AXI_BURST_FIXED;
                                 awlen   <= AXI_LEN_SINGLE;
@@ -162,22 +161,15 @@ module ysyx_25020037_lsu (
                                 burst_cnt <= burst_cnt + 3'd1;
                             end
                         end
-                    end
-                    else if (du_to_lu_bus[0]) begin 
+                    end else if (du_to_lu_bus[0]) begin 
                         if (awready & awvalid) begin
                             wvalid <= 1'b1;
                             awvalid <= 1'b0;
-                            wlast <= !is_sdram;
+                            wlast <= 1'b1;
                         end          
                         if (wvalid & wready) begin
-                            if (is_sdram && !burst_complete) begin
-                                burst_cnt <= burst_cnt + 3'd1;
-                                wdata <= wdata + 32'd4;
-                                wlast <= burst_complete;
-                            end else begin
-                                wvalid  <= 1'b0;
-                                bready  <= 1'b1;
-                            end
+                            wvalid  <= 1'b0;
+                            bready  <= 1'b1;
                         end
                         if (bvalid & bready) begin
                             bready <= 1'b0;
