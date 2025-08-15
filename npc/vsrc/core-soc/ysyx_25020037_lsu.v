@@ -60,13 +60,19 @@ module ysyx_25020037_lsu (
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
-    reg [2:0] burst_cnt;
-    wire burst_complete = (burst_cnt == 3'd0);
+    reg [1:0] write_state;
+    localparam WR_IDLE = 2'd0;
+    localparam WR_WAIT_RESP = 2'd1;
+
+    reg [1:0] read_state;
+    localparam RD_IDLE = 2'd0;
+    localparam RD_WAIT_DATA = 2'd1;
 
     always @(*) begin
         case (state)
-            IDLE: next_state = (lsu_ready & exu_valid) ? BUSY : IDLE;  
-            BUSY: next_state = (lsu_valid & wbu_ready) ? IDLE : BUSY;
+            IDLE: begin next_state = (lsu_ready & exu_valid) ? BUSY : IDLE; end
+            BUSY: begin next_state = ((write_state == WR_WAIT_RESP && bvalid && bready) || 
+                                      (read_state == RD_WAIT_DATA && rvalid && rready && rlast)) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
@@ -96,51 +102,54 @@ module ysyx_25020037_lsu (
             arsize <= AXI_SIZE_WORD;
             arburst <= AXI_BURST_FIXED;
             rready <= 1'b0;
-            burst_cnt <= 3'd0;
+            write_state <= WR_IDLE;
+            read_state <= RD_IDLE;
         end else begin
             state <= next_state;
-            burst_cnt <= burst_cnt;
 
             case (state)
                 IDLE: begin
                     lsu_valid <= 1'b0;
-                    bready <= 1'b0;
-                    rready <= 1'b0;
+                    access_fault <= 1'b0;
                     awvalid <= 1'b0;
                     wvalid <= 1'b0;
                     arvalid <= 1'b0;
-                    burst_cnt <= 3'd0;
+                    bready <= 1'b0;
+                    rready <= 1'b0;
+                    write_state <= WR_IDLE;
+                    read_state <= RD_IDLE;
                     if (lsu_ready & exu_valid) begin
                         lsu_ready <= 1'b0;
                         if (du_to_lu_bus[1]) begin
                             araddr  <= addr;
                             arvalid <= 1'b1;
-                            if (is_sdram) begin
-                                arburst <= AXI_BURST_INCR;
-                                arlen   <= AXI_LEN_SINGLE;
-                            end else begin
-                                arburst <= AXI_BURST_FIXED;
-                                arlen   <= AXI_LEN_SINGLE;
-                            end
-                        end
-                        else if (du_to_lu_bus[0]) begin
+                            arid <= AXI_ID;
+                            arlen <= AXI_LEN_SINGLE;
+                            arsize <= AXI_SIZE_WORD;
+                            arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
+                            read_state <= RD_WAIT_DATA;
+                            rready <= 1'b1;
+                        end else if (du_to_lu_bus[0]) begin
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
                             awaddr  <= addr;
                             wdata   <= aligned_wdata;
-                            case (du_to_lu_bus[ 4: 2])
+                            awid <= AXI_ID;
+                            awlen <= AXI_LEN_SINGLE;
+                            awsize <= AXI_SIZE_WORD;
+                            awburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
+                            wlast <= 1'b1;
+                            case (du_to_lu_bus[4:2])
                                 3'b001: wstrb <= (4'b0001 << addr_off);
                                 3'b010: wstrb <= (4'b0011 << addr_off);
                                 3'b100: wstrb <= (4'b1111 << addr_off);
                                 default: wstrb <= 4'b0000;
                             endcase
-                            if (is_sdram) begin
-                                awburst <= AXI_BURST_INCR;
-                                awlen   <= AXI_LEN_SINGLE;
-                            end else begin
-                                awburst <= AXI_BURST_FIXED;
-                                awlen   <= AXI_LEN_SINGLE;
-                            end
+                            write_state <= WR_WAIT_RESP;
+                        end else begin
+                            lu_to_wu_bus <= {eu_to_lu_bus[63:32], eu_to_lu_bus[31:0]};
+                            lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
                         end
                     end
                 end
@@ -148,41 +157,28 @@ module ysyx_25020037_lsu (
                     if (du_to_lu_bus[1]) begin
                         if (arvalid && arready) begin
                             arvalid <= 1'b0;
-                            rready <= 1'b1;
                         end
                         if (rvalid && rready) begin
-                            if (!is_sdram || (is_sdram && rlast)) begin
-                                lu_to_wu_bus <= {eu_to_lu_bus[63:32], rdata};
-                                lsu_valid <= 1'b1;
-                                lsu_ready <= 1'b1;
-                                access_fault <= (rresp != 2'b00);
-                                rready <= 1'b0;
-                            end
-                            if (is_sdram) begin
-                                burst_cnt <= burst_cnt + 3'd1;
-                            end
+                            lu_to_wu_bus <= {eu_to_lu_bus[63:32], rdata};
+                            lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
+                            access_fault <= (rresp != 2'b00);
+                            rready <= 1'b0;
+                            read_state <= RD_IDLE;
                         end
                     end else if (du_to_lu_bus[0]) begin 
-                        if (awready & awvalid) begin
-                            wvalid <= 1'b1;
+                        if (awvalid && awready && wvalid && wready) begin
                             awvalid <= 1'b0;
-                            wlast <= 1'b1;
-                        end          
-                        if (wvalid & wready) begin
-                            wvalid  <= 1'b0;
-                            bready  <= 1'b1;
+                            wvalid <= 1'b0;
+                            bready <= 1'b1;
                         end
-                        if (bvalid & bready) begin
-                            bready <= 1'b0;
+                        if (bvalid && bready) begin
                             lsu_valid <= 1'b1;
                             lsu_ready <= 1'b1;
                             access_fault <= (bresp != 2'b00);
+                            bready <= 1'b0;
+                            write_state <= WR_IDLE;
                         end
-                    end
-                    else begin
-                        lu_to_wu_bus <= {eu_to_lu_bus[63:32], eu_to_lu_bus[63:32]};
-                        lsu_valid <= 1'b1;
-                        lsu_ready <= 1'b1;
                     end
                 end
             endcase
