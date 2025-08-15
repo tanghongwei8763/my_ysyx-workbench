@@ -49,11 +49,11 @@ module ysyx_25020037_ifu #(
     reg  [31:0] last_pc;
     reg         icache_hit_reg;
     reg  [31:0] block_base_addr;
-    reg  [ 7:0] burst_count;
     reg  [31:0] read_len;
     reg         is_sdram;
     wire [31:0] aligned_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
     reg  [1:0]  burst_cnt;
+    reg         is_burst_done;
 
     always @(*) begin
         is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
@@ -84,10 +84,10 @@ module ysyx_25020037_ifu #(
             mem_data <= 'b0;
             mem_ready <= 1'b0;
             block_base_addr <= 32'h0;
-            burst_count <= 8'h0;
             read_len <= 32'b0;
             access_fault <= 1'b0;
             burst_cnt <= 2'd0;
+            is_burst_done <= 1'b0;
         end else begin
             state <= next_state;
             icache_hit_reg <= icache_hit;
@@ -103,13 +103,13 @@ module ysyx_25020037_ifu #(
                     end
                     ifu_valid <= 1'b0;
                     mem_ready <= 1'b0;
-                    burst_count <= 8'h0;
                     read_len <= 32'b0;
                     mem_data <= 'b0;
                     arvalid <= 1'b0;
                     rready <= 1'b0;
                     access_fault <= 1'b0;
                     burst_cnt <= 2'd0;
+                    is_burst_done <= 1'b0;
                 end
                 CHECK: begin
                     icache_req <= 1'b0;
@@ -137,6 +137,7 @@ module ysyx_25020037_ifu #(
                         arvalid <= 1'b0;
                         rready <= 1'b1;
                         burst_cnt <= 2'd0;
+                        is_burst_done <= 1'b0;
                     end
                     if (rvalid && rready) begin
                         if (rresp != 2'b00) begin
@@ -144,14 +145,28 @@ module ysyx_25020037_ifu #(
                             mem_ready <= 1'b1;
                             rready <= 1'b0;
                             burst_cnt <= 2'd0;
+                            is_burst_done <= 1'b0;
                         end else begin
                             mem_data[burst_cnt*32 +: 32] <= rdata;
                             burst_cnt <= burst_cnt + 1'b1;
 
-                            if (rlast || burst_cnt == 2'd3) begin
-                                mem_ready <= 1'b1;
-                                rready <= 1'b0;
-                                burst_cnt <= 2'd0;
+                            if (is_sdram) begin
+                                if (rlast) begin
+                                    mem_ready <= 1'b1;
+                                    rready <= 1'b0;
+                                    burst_cnt <= 2'd0;
+                                    is_burst_done <= 1'b1;
+                                end
+                            end else begin
+                                if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
+                                    mem_ready <= 1'b1;
+                                    rready <= 1'b0;
+                                    burst_cnt <= 2'd0;
+                                    is_burst_done <= 1'b1;
+                                end else begin
+                                    araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) * 32'd4;
+                                    arvalid <= 1'b1;
+                                end
                             end
                         end
                     end
