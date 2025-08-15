@@ -146,7 +146,7 @@ module ysyx_25020037_lsu (
                             endcase
                             write_state <= WR_WAIT_RESP;
                         end else begin
-                            lu_to_wu_bus <= {eu_to_lu_bus[63:32], eu_to_lu_bus[31:0]};
+                            lu_to_wu_bus <= {eu_to_lu_bus[63:32], eu_to_lu_bus[63:32]};
                             lsu_valid <= 1'b1;
                             lsu_ready <= 1'b1;
                         end
