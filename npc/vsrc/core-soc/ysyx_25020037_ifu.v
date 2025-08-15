@@ -136,7 +136,6 @@ module ysyx_25020037_ifu #(
                     if (arvalid && arready) begin
                         arvalid <= 1'b0;
                         rready <= 1'b1;
-                        burst_cnt <= 2'd0;
                         is_burst_done <= 1'b0;
                     end
                     if (rvalid && rready) begin
@@ -158,7 +157,7 @@ module ysyx_25020037_ifu #(
                                     is_burst_done <= 1'b1;
                                 end
                             end else begin
-                                if (burst_cnt == 2'd3) begin
+                                if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
                                     mem_ready <= 1'b1;
                                     rready <= 1'b0;
                                     burst_cnt <= 2'd0;
