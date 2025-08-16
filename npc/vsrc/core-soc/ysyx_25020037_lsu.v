@@ -60,11 +60,9 @@ module ysyx_25020037_lsu (
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
-    reg [1:0] write_state;
     localparam WR_IDLE = 2'd0;
     localparam WR_WAIT_RESP = 2'd1;
 
-    reg [1:0] read_state;
     localparam RD_IDLE = 2'd0;
     localparam RD_WAIT_DATA = 2'd1;
 
@@ -101,8 +99,6 @@ module ysyx_25020037_lsu (
             arsize <= AXI_SIZE_WORD;
             arburst <= AXI_BURST_FIXED;
             rready <= 1'b0;
-            write_state <= WR_IDLE;
-            read_state <= RD_IDLE;
         end else begin
             state <= next_state;
 
@@ -115,8 +111,6 @@ module ysyx_25020037_lsu (
                     arvalid <= 1'b0;
                     bready <= 1'b0;
                     rready <= 1'b0;
-                    write_state <= WR_IDLE;
-                    read_state <= RD_IDLE;
                     if (lsu_ready & exu_valid) begin
                         lsu_ready <= 1'b0;
                         if (du_to_lu_bus[1]) begin
@@ -126,8 +120,6 @@ module ysyx_25020037_lsu (
                             arlen <= AXI_LEN_SINGLE;
                             arsize <= AXI_SIZE_WORD;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
-                            read_state <= RD_WAIT_DATA;
-                            rready <= 1'b1;
                         end else if (du_to_lu_bus[0]) begin
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
@@ -145,7 +137,6 @@ module ysyx_25020037_lsu (
                                 3'b100: wstrb <= (4'b1111 << addr_off);
                                 default: wstrb <= 4'b0000;
                             endcase
-                            write_state <= WR_WAIT_RESP;
                         end else begin
                             lu_to_wu_bus <= {eu_to_lu_bus[63:32], eu_to_lu_bus[63:32]};
                             lsu_valid <= 1'b1;
@@ -157,6 +148,7 @@ module ysyx_25020037_lsu (
                     if (du_to_lu_bus[1]) begin
                         if (arvalid && arready) begin
                             arvalid <= 1'b0;
+                            rready <= 1'b1;
                         end
                         if (rvalid && rready) begin
                             lu_to_wu_bus <= {eu_to_lu_bus[63:32], rdata};
@@ -164,7 +156,6 @@ module ysyx_25020037_lsu (
                             lsu_ready <= 1'b1;
                             access_fault <= (rresp != 2'b00);
                             rready <= 1'b0;
-                            read_state <= RD_IDLE;
                         end
                     end else if (du_to_lu_bus[0]) begin 
                         if (awvalid && awready && wvalid && wready) begin
@@ -176,7 +167,6 @@ module ysyx_25020037_lsu (
                             lsu_ready <= 1'b1;
                             access_fault <= (bresp != 2'b00);
                             bready <= 1'b0;
-                            write_state <= WR_IDLE;
                         end
                     end
                 end
