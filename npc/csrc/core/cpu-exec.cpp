@@ -105,6 +105,7 @@ extern "C" void performance_counter(int valid, int type_, int cache_hit) {
 }
 
 static void inst_infomation() {
+    printf("\n");
     printf("+----------------+----------------------+\n");
     printf("| cache\t\t | 命中率\t\t|\n");
     printf("+----------------+----------------------+\n");
