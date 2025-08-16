@@ -117,8 +117,8 @@ end
 
 always @(*) begin
     case (current_master)
-        IDLE: next_master = (((lsu_arvalid | lsu_arlen != 8'b0)) || lsu_awvalid) ? LSU_ACCESS  :
-                            (((ifu_arvalid | ifu_arlen != 8'b0))) ? IFU_ACCESS : IDLE;
+        IDLE: next_master = (lsu_arvalid || lsu_awvalid) ? LSU_ACCESS  :
+                            (ifu_arvalid) ? IFU_ACCESS : IDLE;
         IFU_ACCESS : next_master = ifu_rlast ? IDLE : IFU_ACCESS;
         LSU_ACCESS : next_master = ((lsu_rlast || (io_master_bvalid & io_master_bready)) |
                                     (clint_rvalid & clint_rready)) ? IDLE : LSU_ACCESS;
