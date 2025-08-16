@@ -155,6 +155,7 @@ module ysyx_25020037_ifu #(
                                     rready <= 1'b0;
                                     burst_cnt <= 2'd0;
                                     is_burst_done <= 1'b1;
+                                    arvalid <= 1'b0;
                                 end else begin
                                     arvalid <= 1'b1;
                                 end
