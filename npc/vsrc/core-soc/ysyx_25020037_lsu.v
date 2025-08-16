@@ -55,7 +55,7 @@ module ysyx_25020037_lsu (
     localparam AXI_SIZE_WORD  = 3'h2;
 
     wire [31:0] addr = eu_to_lu_bus[63:32];
-    wire [1:0]  addr_off = addr[1:0];
+    wire [31:0] addr_off = addr & 32'b11;
     wire [31:0] aligned_wdata = eu_to_lu_bus[31:0] << (addr_off << 3);
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
