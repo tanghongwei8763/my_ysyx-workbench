@@ -60,12 +60,6 @@ module ysyx_25020037_lsu (
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
-    localparam WR_IDLE = 2'd0;
-    localparam WR_WAIT_RESP = 2'd1;
-
-    localparam RD_IDLE = 2'd0;
-    localparam RD_WAIT_DATA = 2'd1;
-
     always @(*) begin
         case (state)
             IDLE: begin next_state = (lsu_ready & exu_valid) ? BUSY : IDLE; end
