@@ -25,7 +25,8 @@ static const uint32_t img [] = {
 0x00e78023,          	//sb	a4,0(a5)
 0x00e78023,          	//sb	a4,0(a5)
 0x00a00713,          	//li	a4,10
-0x0f001137,          	//lui	a5,0x10000
+0x0f002137,          	//lui	sp,0x10000
+0xff410113,          	//addi	sp,sp,-12
 0x00112423,
 0x00100073
 };
