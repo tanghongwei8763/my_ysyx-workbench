@@ -70,9 +70,10 @@ SECTIONS {
   _heap_start = _psram_start;
 
   .stack (NOLOAD) : ALIGN(8) {
+    . = ORIGIN(sram) + LENGTH(sram) - _stack_size;
+    . = ALIGN(8);
     _stack_top = .;
     . += _stack_size;
-    . = ALIGN(8);
     _stack_pointer = .;
   } > sram
 }
