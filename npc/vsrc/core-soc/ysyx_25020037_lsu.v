@@ -153,10 +153,12 @@ module ysyx_25020037_lsu (
                         end
                     end else if (du_to_lu_bus[0]) begin 
                         if (awvalid && awready && wvalid && wready) begin
-                            awvalid <= 1'b0;
-                            wvalid <= 1'b0;
+                            awvalid <= 1'b1;
+                            wvalid <= 1'b1;
                         end
                         if (bvalid && bready) begin
+                            awvalid <= 1'b0;
+                            wvalid <= 1'b0;
                             lsu_valid <= 1'b1;
                             lsu_ready <= 1'b1;
                             access_fault <= (bresp != 2'b00);
