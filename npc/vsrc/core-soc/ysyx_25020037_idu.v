@@ -350,7 +350,8 @@ module ysyx_25020037_idu (
                             ecall_en,
                             mret_en       
                         };
-                        du_to_lu_bus <= {     
+                        du_to_lu_bus <= {
+                            lw_lh_lb,   
                             sw_sh_sb,
                             rlsu_we,         
                             wlsu_we   

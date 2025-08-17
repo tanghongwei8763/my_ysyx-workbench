@@ -52,13 +52,34 @@ module ysyx_25020037_lsu (
     localparam AXI_BURST_INCR = 2'b01;
     localparam AXI_BURST_FIXED = 2'b00;
     localparam AXI_LEN_SINGLE = 8'h0;
-    localparam AXI_SIZE_WORD  = 3'h2;
+    localparam AXI_SIZE_BYTE   = 3'h0;
+    localparam AXI_SIZE_HALF   = 3'h1;
+    localparam AXI_SIZE_WORD   = 3'h2;
 
     wire [31:0] addr = eu_to_lu_bus[63:32];
     wire [31:0] addr_off = addr & 32'b11;
     wire [31:0] aligned_wdata = eu_to_lu_bus[31:0] << (addr_off << 3);
+    wire [ 2:0] data_rop = du_to_lu_bus[7:5];  // 数据操作类型（复用原有信号）
+    wire [ 2:0] data_wop = du_to_lu_bus[4:2];  // 数据操作类型（复用原有信号）
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
+
+    reg  [ 2:0] axi_rsize;
+    reg  [ 2:0] axi_wsize;
+    always @(*) begin
+        case (data_rop)
+            3'b001: axi_rsize = AXI_SIZE_BYTE;  // 字节访问
+            3'b010: axi_rsize = AXI_SIZE_HALF;  // 半字访问
+            3'b100: axi_rsize = AXI_SIZE_WORD;  // 字访问
+            default: axi_rsize = AXI_SIZE_WORD;
+        endcase
+        case (data_wop)
+            3'b001: axi_wsize = AXI_SIZE_BYTE;  // 字节访问
+            3'b010: axi_wsize = AXI_SIZE_HALF;  // 半字访问
+            3'b100: axi_wsize = AXI_SIZE_WORD;  // 字访问
+            default: axi_wsize = AXI_SIZE_WORD;
+        endcase
+    end
 
     always @(*) begin
         case (state)
@@ -112,7 +133,7 @@ module ysyx_25020037_lsu (
                             arvalid <= 1'b1;
                             arid <= AXI_ID;
                             arlen <= AXI_LEN_SINGLE;
-                            arsize <= AXI_SIZE_WORD;
+                            arsize <= axi_rsize;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
                         end else if (du_to_lu_bus[0]) begin
                             awvalid <= 1'b1;
@@ -122,7 +143,7 @@ module ysyx_25020037_lsu (
                             wdata   <= aligned_wdata;
                             awid <= AXI_ID;
                             awlen <= AXI_LEN_SINGLE;
-                            awsize <= AXI_SIZE_WORD;
+                            awsize <= axi_wsize;
                             awburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
                             wlast <= 1'b1;
                             case (du_to_lu_bus[4:2])
