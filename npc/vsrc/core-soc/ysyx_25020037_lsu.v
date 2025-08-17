@@ -152,10 +152,6 @@ module ysyx_25020037_lsu (
                             rready <= 1'b0;
                         end
                     end else if (du_to_lu_bus[0]) begin 
-                        if (awvalid && awready && wvalid && wready) begin
-                            awvalid <= 1'b0;
-                            wvalid <= 1'b0;
-                        end
                         if (bvalid && bready) begin
                             awvalid <= 1'b0;
                             wvalid <= 1'b0;
