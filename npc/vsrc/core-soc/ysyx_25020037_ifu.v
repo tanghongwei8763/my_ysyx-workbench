@@ -120,7 +120,7 @@ module ysyx_25020037_ifu #(
                         end else if (mem_req) begin
                             araddr <= block_base_addr;
                             arvalid <= 1'b1;
-                            arid <= 4'h1;
+                            arid <= 4'h0;
                             arsize <= 3'h2;
                             if (is_sdram) begin
                                 arlen <= 8'(TRANSFER_COUNT - 1);
