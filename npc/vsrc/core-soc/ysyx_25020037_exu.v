@@ -16,9 +16,9 @@ module ysyx_25020037_exu (
 
     output reg  [31: 0] dnpc
 );
-
+`ifdef VERILATOR
     import "DPI-C" function void hit(input int inst_not_realize);
-
+`endif
     localparam IDLE  = 1'b0;
     localparam BUSY  = 1'b1;
 
@@ -138,9 +138,9 @@ module ysyx_25020037_exu (
             default: next_state = IDLE;
         endcase
     end
-
+`ifdef VERILATOR
     always @(*) begin
        if(ebreak | inst_not_realize) begin hit({32{inst_not_realize}}); end
     end
-
+`endif
 endmodule
