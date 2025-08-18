@@ -138,7 +138,6 @@ module ysyx_25020037_lsu (
                         end else if (du_to_lu_bus[0]) begin
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
-                            bready <= 1'b1;
                             awaddr  <= addr;
                             wdata   <= aligned_wdata;
                             awid <= AXI_ID;
@@ -176,6 +175,7 @@ module ysyx_25020037_lsu (
                         if (awvalid && awready && wvalid && wready) begin
                             awvalid <= 1'b0;
                             wvalid <= 1'b0;
+                            bready <= 1'b1;
                         end
                         if (bvalid && bready) begin
                             lsu_valid <= 1'b1;
