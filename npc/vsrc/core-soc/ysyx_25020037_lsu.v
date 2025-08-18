@@ -140,7 +140,7 @@ module ysyx_25020037_lsu (
                             wvalid <= 1'b1;
                             awaddr  <= addr;
                             wdata   <= aligned_wdata;
-                            awid <= 4'h2;
+                            awid <= 4'h1;
                             awlen <= AXI_LEN_SINGLE;
                             awsize <= axi_wsize;
                             awburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
