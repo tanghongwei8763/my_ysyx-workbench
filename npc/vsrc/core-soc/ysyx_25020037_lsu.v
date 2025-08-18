@@ -131,7 +131,7 @@ module ysyx_25020037_lsu (
                         if (du_to_lu_bus[1]) begin
                             araddr  <= addr;
                             arvalid <= 1'b1;
-                            arid <= 4'h1;
+                            arid <= 4'h0;
                             arlen <= AXI_LEN_SINGLE;
                             arsize <= axi_rsize;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
@@ -144,7 +144,7 @@ module ysyx_25020037_lsu (
                             awlen <= AXI_LEN_SINGLE;
                             awsize <= axi_wsize;
                             awburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
-                            wlast <= 1'b1;
+                            wlast <= 1'b0;
                             case (du_to_lu_bus[4:2])
                                 3'b001: wstrb <= (4'b0001 << addr_off);
                                 3'b010: wstrb <= (4'b0011 << addr_off);
