@@ -26,7 +26,7 @@ module ysyx_25020037_gpr (
   localparam IDLE   = 1'b0;
   localparam BUSY   = 1'b1;
   reg state, next_state;
-  reg  [31: 0] regs [31:0];
+  reg  [31: 0] regs [16:0];
   //实例化寄存器
   generate
     genvar i;
