@@ -1,8 +1,9 @@
 #include "../include/common.h"
 #include "../include/reg.h"
+
+#ifdef CONFIG_YSYXSOC
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
-
 extern VysyxSoCFull *top;
 #define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 #define dut_gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
@@ -10,7 +11,17 @@ extern VysyxSoCFull *top;
 #define dut_mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mepc
 #define dut_mstatus top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mstatus
 #define dut_mcause top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mcause
-
+#else
+#include "Vysyx_25020037___024root.h"
+#include "Vysyx_25020037.h"
+extern Vysyx_25020037 *top;
+#define dut_pc top->rootp->ysyx_25020037__DOT__pc
+#define dut_gpr top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__regs
+#define dut_mtvec top->rootp->ysyx_25020037__DOT__mtvec
+#define dut_mepc top->rootp->ysyx_25020037__DOT__mepc
+#define dut_mstatus top->rootp->ysyx_25020037__DOT__mstatus
+#define dut_mcause top->rootp->ysyx_25020037__DOT__mcause
+#endif
 
 bool isa_difftest_checkregs(diff_context_t *ref_r, vaddr_t pc) {
 

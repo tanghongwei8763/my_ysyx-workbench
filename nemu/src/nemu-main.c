@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <common.h>
+#include "/home/tanghongwei/ysyx-workbench/nemu/src/utils/iringbuf.h"
 
 void init_monitor(int, char *[]);
 void am_init_monitor();
@@ -30,6 +31,8 @@ int main(int argc, char *argv[]) {
 
   /* Start engine. */
   engine_start();
-
+#ifdef CONFIG_ITRACE
+  close_ringbuf();
+#endif
   return is_exit_status_bad();
 }

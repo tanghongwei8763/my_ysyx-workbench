@@ -2,24 +2,31 @@
 #include "../include/switch.h"
 #include "../include/memory.h"
 #include "../include/difftest-def.h"
-#include "VysyxSoCFull___024root.h"
-#include "VysyxSoCFull.h"
-
-extern VysyxSoCFull *top;
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 
 #include <time.h>
 #include <sys/time.h>
 
+#ifdef CONFIG_YSYXSOC
+#include "VysyxSoCFull___024root.h"
+#include "VysyxSoCFull.h"
+extern VysyxSoCFull *top;
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#else
+#include "Vysyx_25020037___024root.h"
+#include "Vysyx_25020037.h"
+extern Vysyx_25020037 *top;
+#define pc top->rootp->ysyx_25020037__DOT__pc
+#endif
+
 static const uint32_t img [] = {
-  0x100007b7,          	// lui	a5,0x10000
-  0x04100713,          	// li	a4,65
-  0x00e78023,          	// sb	a4,0(a5) # 10000000 <_sram_end+0xffe000>
-  0x00e78023,          	// sb	a4,0(a5)
-  0x00e78023,          	// sb	a4,0(a5)
-  0x00a00713,          	// li	a4,10
-  0x00e78023,          	// sb	a4,0(a5)
-  0x00100073
+0x100007b7,          	//lui	a5,0x10000
+0x04100713,          	//li	a4,65
+0x00e78023,          	//sb	a4,0(a5) # 10000000 <_sram_end+0xffe000>
+0x00e78023,          	//sb	a4,0(a5)
+0x00e78023,          	//sb	a4,0(a5)
+0x00a00713,          	//li	a4,10
+0x00e78023,          	//sb	a4,0(a5)
+0x00100073
 };
 
 static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
@@ -30,9 +37,14 @@ static uint8_t clk[CLK_SIZE] PG_ALIGN = {};
 
 extern "C" uint8_t* guest_to_host(uint32_t paddr) {
   if(paddr >= CLK_BASE) return clk + paddr - CLK_BASE;
-  return pmem + paddr - CONFIG_MBASE; 
+  else if (paddr >= RESET_VECTOR && paddr <= CONFIG_END) {
+    return pmem + paddr - CONFIG_MBASE;
+  } else {
+    printf("Invalid Address: 0x%0x\n", paddr);
+    assert(0);
+  }
 }
-
+#ifdef CONFIG_YSYXSOC
 extern "C" {
   word_t host_read(uint8_t *addr, uint8_t len) {
     switch (len) {
@@ -53,7 +65,28 @@ extern "C" {
     }
   }
 }
+#else
+extern "C" {
+  word_t host_read(void *addr, uint8_t len) {
+    switch (len) {
+      case 1: return *(uint8_t*)addr; break;
+      case 2: return *(uint16_t*)addr; break;
+      case 4: return *(uint32_t*)addr; break;
+      default: return 0x00100073; break;
+    }
+  }
+}
 
+extern "C" {
+  static inline void host_write(void *addr, int len, word_t data) {
+    switch (len) {
+      case 0x1: *(uint8_t  *)addr = data; return;
+      case 0x2: *(uint16_t *)addr = data; return;
+      case 0xf: *(uint32_t *)addr = data; return;
+    }
+  }
+}
+#endif
 extern "C" uint8_t* SoC_to_host(uint32_t paddr) {
   if(paddr >= MROM_RESET_VECTOR && paddr <= MROM_BASE_END) {
     return mrom + paddr - MROM_RESET_VECTOR;
@@ -140,8 +173,11 @@ extern "C" void pmem_write(paddr_t addr, uint8_t len, word_t data, int trace_on)
   else host_write(guest_to_host(addr), len, data);
 }
 
+#ifdef CONFIG_YSYXSOC
 extern "C" void init_isa() {memcpy(SoC_to_host(FLASH_RESET_VECTOR), img, sizeof(img));}
-//extern "C" void init_isa() {memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));}
+#else
+extern "C" void init_isa() {memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));}
+#endif
 
 extern "C" void init_device() {
   memcpy(guest_to_host(CLK_BASE), clk, sizeof(clk));

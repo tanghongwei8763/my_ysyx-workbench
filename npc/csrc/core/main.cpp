@@ -8,9 +8,10 @@
 #include "../include/switch.h"
 #include "../include/debug.h"
 #include "../include/macro.h"
+
+#ifdef CONFIG_YSYXSOC
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
-
 #ifdef CONFIG_NVBOARD
 #include <nvboard.h>
 extern void nvboard_bind_all_pins(VysyxSoCFull* top);
@@ -20,6 +21,14 @@ VysyxSoCFull *top = new VysyxSoCFull("top");
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 #define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
 #define gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
+#else
+#include "Vysyx_25020037___024root.h"
+#include "Vysyx_25020037.h"
+Vysyx_25020037 *top = new Vysyx_25020037("top");
+#define pc top->rootp->ysyx_25020037__DOT__pc
+#define inst top->rootp->ysyx_25020037__DOT__inst
+#define gpr top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__regs
+#endif
 
 /*********************************************************************/
 //                    _ooOoo_

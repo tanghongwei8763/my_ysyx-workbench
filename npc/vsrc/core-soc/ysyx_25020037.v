@@ -84,18 +84,18 @@ module ysyx_25020037 (
     parameter MCAUSE    = 12'h342;
     parameter MVENDORID = 12'hF11;
     parameter MARCHID   = 12'hF12;
-
+    parameter BLOCK_SIZE = 32'd16;
     //parameter CONFIG_FTRACE = 1'b0;
     //import "DPI-C" function void call_func(input int pc, input int dnpc);
     //import "DPI-C" function void ret_func(input int pc);
     //wire         ftrace_jal;
     //wire         ftrace_jalr;
-
-    import "DPI-C" function void performance_counter(input int ifu, input int lsu, input int exu, input int idu, input int type_);
+`ifdef VERILATOR
+    import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
     always @(posedge clock) begin
-       performance_counter({31'b0, ifu_rvalid}, {31'b0, lsu_rvalid}, {31'b0, exu_valid}, {31'b0, idu_valid}, 32'b0);
+       performance_counter({27'b0, ifu_valid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0, {31'b0, icache_hit});
     end
-
+`endif
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
@@ -115,6 +115,7 @@ module ysyx_25020037 (
     wire [31: 0] mvendorid;
     wire [31: 0] marchid;
 
+    wire         ifu_valid;
     wire         idu_valid;
     wire         idu_ready;
     wire         exu_valid;
@@ -187,6 +188,16 @@ module ysyx_25020037 (
     wire         ifu_access_fault;
     wire         lsu_access_fault;
 
+    wire [31: 0] icache_addr;
+    wire         icache_req;
+    wire [31: 0] icache_data;
+    wire         icache_hit;
+    wire         icache_ready;
+    wire         icache_mem_req;
+    wire [31: 0] icache_mem_addr;
+    wire [BLOCK_SIZE*8-1:0] icache_mem_data;
+    wire         icache_mem_ready;
+
     wire [31: 0] csr_wgpr_data;
     wire [31: 0] csr_wcsr_data;
     wire         inst_s;
@@ -230,34 +241,65 @@ module ysyx_25020037 (
         .marchid          (marchid         )  
     );          
     
-    ysyx_25020037_ifu ifu_cpu(
-        .clk         (clock        ),
-        .rst         (reset        ),
-        .pc          (pc           ),
-        .idu_ready   (idu_ready    ),
-        .inst        (inst         ),
-        .access_fault(ifu_access_fault),
-        .arready     (ifu_arready  ),
-        .arvalid     (ifu_arvalid  ),
-        .araddr      (ifu_araddr   ),
-        .arid        (ifu_arid     ),
-        .arlen       (ifu_arlen    ),
-        .arsize      (ifu_arsize   ),
-        .arburst     (ifu_arburst  ),
-        .rready      (ifu_rready   ),
-        .rvalid      (ifu_rvalid   ),
-        .rresp       (ifu_rresp    ),
-        .rdata       (ifu_rdata    ),
-        .rlast       (ifu_rlast    ),
-        .rid         (ifu_rid      )
+    ysyx_25020037_ifu #(
+        .BLOCK_SIZE    (BLOCK_SIZE)
+    ) ifu_cpu(
+        .clk         (clock            ),
+        .rst         (reset            ),
+        .pc          (pc               ),
+        .idu_ready   (idu_ready        ),
+        .ifu_valid   (ifu_valid        ),
+        .inst        (inst             ),
+        .access_fault(ifu_access_fault ),
+        .arready     (ifu_arready      ),
+        .arvalid     (ifu_arvalid      ),
+        .araddr      (ifu_araddr       ),
+        .arid        (ifu_arid         ),
+        .arlen       (ifu_arlen        ),
+        .arsize      (ifu_arsize       ),
+        .arburst     (ifu_arburst      ),
+        .rready      (ifu_rready       ),
+        .rvalid      (ifu_rvalid       ),
+        .rresp       (ifu_rresp        ),
+        .rdata       (ifu_rdata        ),
+        .rlast       (ifu_rlast        ),
+        .rid         (ifu_rid          ),
+        .icache_addr (icache_addr      ),
+        .icache_req  (icache_req       ),
+        .icache_data (icache_data      ),
+        .icache_hit  (icache_hit       ),
+        .icache_ready(icache_ready     ),
+        .mem_req     (icache_mem_req   ),
+        .mem_addr    (icache_mem_addr  ),
+        .mem_data    (icache_mem_data  ),
+        .mem_ready   (icache_mem_ready )
         );
+
+    ysyx_25020037_icache #(
+        .ADDR_WIDTH    (32),
+        .DATA_WIDTH    (32),
+        .CACHE_BLOCKS  (16),
+        .BLOCK_SIZE    (BLOCK_SIZE)
+    ) u_icache (
+        .clk           (clock           ),
+        .rst           (reset           ),
+        .cpu_addr      (icache_addr     ),
+        .cpu_req       (icache_req      ),
+        .cpu_data      (icache_data     ),
+        .cpu_hit       (icache_hit      ),
+        .cpu_ready     (icache_ready    ),
+        .mem_req       (icache_mem_req  ),
+        .mem_addr      (icache_mem_addr ),
+        .mem_data      (icache_mem_data ),
+        .mem_ready     (icache_mem_ready)
+    );
 
     ysyx_25020037_idu idu_cpu(
         .clk         (clock       ),
         .rst         (reset       ),
         .pc          (pc          ),
-        .inst        (ifu_rdata   ),
-        .ifu_rvalid  (ifu_rvalid  ),
+        .inst        (inst        ),
+        .ifu_valid   (ifu_valid   ),
         .exu_ready   (exu_ready   ),
         .idu_valid   (idu_valid   ),
         .idu_ready   (idu_ready   ),
