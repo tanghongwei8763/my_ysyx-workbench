@@ -88,6 +88,8 @@ module ysyx_25020037_idu (
     wire         rw_word_2;
     wire         rw_word_4;
 
+    wire        is_fence_i;
+
     wire        inst_add;
     wire        inst_and;
     wire        inst_or;
@@ -128,6 +130,7 @@ module ysyx_25020037_idu (
     wire        inst_auipc;
     wire        inst_lui;
     wire        inst_jal;
+    wire        inst_fence_i;
     wire        inst_ebreak;
     wire        inst_waiting;
 
@@ -201,6 +204,7 @@ module ysyx_25020037_idu (
     assign inst_auipc     = opcode_06_00_d[7'h17];
     assign inst_lui       = opcode_06_00_d[7'h37];
     assign inst_jal       = opcode_06_00_d[7'h6f];
+    assign inst_fence_i   = opcode_06_00_d[7'h0f] & rd_d[5'h00] & opcode_14_12_d[3'h1] & rs1_d[5'h00] & rs2_d[5'h00] & opcode_31_25_d[7'h00];
     assign inst_mret      = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h02] & opcode_31_25_d[7'h18];
     assign inst_ecall     = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h00] & opcode_31_25_d[7'h00];
     assign inst_ebreak    = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h01] & opcode_31_25_d[7'h00];
@@ -232,7 +236,7 @@ module ysyx_25020037_idu (
     assign TYPE_I = inst_addi   | inst_jarl | inst_lw  | inst_sltiu | inst_srai | 
                     inst_lbu    | inst_lh   | inst_lhu |inst_andi   | inst_xori | 
                     inst_srli   | inst_slli | inst_lb  | inst_ori   | inst_csrrw|
-                    inst_csrrs;
+                    inst_csrrs  | inst_fence_i;
     assign TYPE_S = inst_sw     | inst_sh   | inst_sb;
     assign TYPE_B = inst_bne    | inst_beq  | inst_bge | inst_bgeu  | inst_blt  | inst_bltu;
     assign TYPE_U = inst_auipc  | inst_lui;
@@ -273,6 +277,7 @@ module ysyx_25020037_idu (
     assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
     assign ebreak       = inst_ebreak;
+    assign is_fence_i   = inst_fence_i;
 
     assign csr_w_gpr_we = inst_csrrw | inst_csrrs;
     assign csrrw_op     = inst_csrrw;
@@ -322,7 +327,8 @@ module ysyx_25020037_idu (
                         inst_s <= inst_sw | inst_sh | inst_sb;
                         inst_l <= inst_lw | inst_lh | inst_lb | inst_lhu | inst_lbu;
                         gpr_we <= gpr_we_r;
-                        du_to_eu_bus <= {           
+                        du_to_eu_bus <= {  
+                            is_fence_i,         
                             imm,             
                             alu_op,             
                             src1_is_pc,      

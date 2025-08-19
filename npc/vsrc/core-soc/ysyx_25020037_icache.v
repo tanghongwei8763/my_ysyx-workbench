@@ -1,3 +1,5 @@
+`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
+
 module ysyx_25020037_icache #(
     parameter ADDR_WIDTH    = 32,
     parameter DATA_WIDTH    = 32,
@@ -9,7 +11,9 @@ module ysyx_25020037_icache #(
 ) (
     input                           clk,
     input                           rst,
-    
+
+    input  wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
+
     input  wire [ADDR_WIDTH-1:0] cpu_addr,
     input  wire                  cpu_req,
     output reg  [DATA_WIDTH-1:0] cpu_data,
@@ -21,6 +25,7 @@ module ysyx_25020037_icache #(
     input  wire [BLOCK_SIZE*8-1:0] mem_data,
     input  wire                  mem_ready
 );
+wire                      is_fence_i = eu_to_ic_bus;
 
 wire [OFFSET_WIDTH-1:0]   offset;
 wire [ INDEX_WIDTH-1:0]   index;
@@ -39,14 +44,17 @@ reg [CACHE_BLOCKS-1:0]  valid_array;
 localparam IDLE      = 2'b00;
 localparam COMPARE   = 2'b01;
 localparam REFILL    = 2'b10;
+localparam FENCE_I   = 2'b11;
 
 reg [1:0] current_state, next_state;
 
 always @(*) begin
     case (current_state)
-        IDLE: begin next_state = cpu_req ? COMPARE : IDLE; end
+        IDLE: begin next_state = is_fence_i ? FENCE_I : 
+                                 cpu_req    ? COMPARE : IDLE;  end
         COMPARE: begin next_state = cpu_hit ? IDLE : REFILL; end
-        REFILL: begin next_state = mem_ready ? IDLE : REFILL; end
+        REFILL : begin next_state = mem_ready ? IDLE : REFILL; end
+        FENCE_I: begin next_state = IDLE; end
         default: next_state = IDLE;
     endcase
 end
@@ -82,6 +90,10 @@ always @(posedge clk or posedge rst) begin
                     cpu_ready <= 1'b0;
                 end
             end
+            FENCE_I: begin
+                cpu_data  <= 'b0;
+                cpu_ready <= 1'b1;
+            end
             default: begin
                 cpu_data  <= 'b0;
                 cpu_ready <= 1'b0;
@@ -104,6 +116,8 @@ end
 
 always @(posedge clk or posedge rst) begin
     if (rst) begin
+        valid_array <= 'b0;
+    end else if (is_fence_i && current_state == FENCE_I) begin
         valid_array <= 'b0;
     end else if (current_state == REFILL && mem_ready) begin
         tag_array[index]    <= tag;
