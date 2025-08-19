@@ -133,9 +133,6 @@ module ysyx_25020037_lsu (
                     if (lsu_ready & exu_valid) begin
                         lsu_ready <= 1'b0;
                         if (du_to_lu_bus[1]) begin
-`ifdef VERILATOR
-                            if ((addr < 32'h30000000 || addr >32'h3fffffff) && (addr < 32'h0f000000 || addr >32'h0f0001fff) && (addr < 32'ha0000000 || addr >32'hbfffffff)) difftest_skip_ref();
-`endif
                             araddr  <= addr;
                             arvalid <= 1'b1;
                             arid <= 4'h0;
@@ -143,9 +140,6 @@ module ysyx_25020037_lsu (
                             arsize <= axi_rsize;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
                         end else if (du_to_lu_bus[0]) begin
-`ifdef VERILATOR
-                            if ((addr < 32'h30000000 || addr >32'h3fffffff) && (addr < 32'h0f000000 || addr >32'h0f0001fff) && (addr < 32'ha0000000 || addr >32'hbfffffff)) difftest_skip_ref();
-`endif
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
                             awaddr  <= addr;
@@ -171,6 +165,9 @@ module ysyx_25020037_lsu (
                 BUSY: begin
                     if (du_to_lu_bus[1]) begin
                         if (arvalid && arready) begin
+`ifdef VERILATOR
+                            if ((addr < 32'h30000000 || addr >32'h3fffffff) && (addr < 32'h0f000000 || addr >32'h0f0001fff) && (addr < 32'ha0000000 || addr >32'hbfffffff)) difftest_skip_ref();
+`endif
                             arvalid <= 1'b0;
                             rready <= 1'b1;
                         end
@@ -183,6 +180,9 @@ module ysyx_25020037_lsu (
                         end
                     end else if (du_to_lu_bus[0]) begin 
                         if (awvalid && awready && wvalid && wready) begin
+`ifdef VERILATOR
+                            if ((addr < 32'h30000000 || addr >32'h3fffffff) && (addr < 32'h0f000000 || addr >32'h0f0001fff) && (addr < 32'ha0000000 || addr >32'hbfffffff)) difftest_skip_ref();
+`endif
                             awvalid <= 1'b0;
                             wvalid <= 1'b0;
                             bready <= 1'b1;
