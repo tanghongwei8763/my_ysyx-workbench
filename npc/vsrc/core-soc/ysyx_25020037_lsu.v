@@ -185,7 +185,7 @@ module ysyx_25020037_lsu (
                         if (awvalid && awready && wvalid && wready) begin
                             $write("0x%h\n", addr);
 `ifdef VERILATOR
-                            if (((addr >= 32'h10000000) && (addr <= 32'h10000fff)) || ((addr >= 32'h02000000) && (addr <= 32'h02000ffff))) begin
+                            if (((addr >= 32'h02000000) && (addr <= 32'h02000ffff))) begin
                                 difftest_skip_ref();
                             end
 `endif
