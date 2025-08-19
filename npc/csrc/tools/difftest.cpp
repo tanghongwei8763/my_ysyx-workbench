@@ -38,7 +38,6 @@ static bool is_skip_ref = false;
 static int skip_dut_nr_inst = 0;
 
 extern "C" void difftest_skip_ref() {
-  printf("!!!!\n");
   is_skip_ref = true;
   skip_dut_nr_inst = 0;
 }
@@ -102,7 +101,6 @@ static void checkregs(diff_context_t *ref, vaddr_t pc) {
 void difftest_step(vaddr_t pc, vaddr_t npc) {
 
   if (is_skip_ref) {
-    printf("!!\n");
     diff_context_t* dut_r = (diff_context_t*)malloc(sizeof(diff_context_t));
     for(int i = 0; i < 32; i++){
     dut_r->gpr[i] = dut_gpr[i];
