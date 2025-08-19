@@ -41,6 +41,10 @@ module ysyx_25020037_lsu (
     input  wire         rlast,
     input  wire [ 3: 0] rid
 );
+`ifdef VERILATOR
+    import "DPI-C" function void difftest_skip_ref();
+`endif
+
     localparam IDLE    = 1'b0;
     localparam BUSY    = 1'b1;
     reg        state, next_state;
@@ -129,6 +133,9 @@ module ysyx_25020037_lsu (
                     if (lsu_ready & exu_valid) begin
                         lsu_ready <= 1'b0;
                         if (du_to_lu_bus[1]) begin
+`ifdef VERILATOR
+                            if (addr < 32'ha0000000 || addr >32'hbfffffff) difftest_skip_ref();
+`endif
                             araddr  <= addr;
                             arvalid <= 1'b1;
                             arid <= 4'h0;
@@ -136,6 +143,9 @@ module ysyx_25020037_lsu (
                             arsize <= axi_rsize;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
                         end else if (du_to_lu_bus[0]) begin
+`ifdef VERILATOR
+                            if (addr < 32'ha0000000 || addr >32'hbfffffff) difftest_skip_ref();
+`endif
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
                             awaddr  <= addr;

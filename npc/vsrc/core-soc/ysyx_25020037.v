@@ -95,6 +95,10 @@ module ysyx_25020037 (
     always @(posedge clock) begin
        performance_counter({27'b0, ifu_valid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0, {31'b0, icache_hit});
     end
+    import "DPI-C" function void difftest_skip_ref();
+    always @(posedge clock) begin
+        if (pc < 32'ha0000000 || pc >32'hbfffffff) difftest_skip_ref();
+    end
 `endif
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
