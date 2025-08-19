@@ -97,7 +97,6 @@ module ysyx_25020037 (
     end
 `endif
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
-    wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus;
@@ -204,6 +203,7 @@ module ysyx_25020037 (
     wire         inst_s;
     wire         inst_l;
     wire         gpr_we;
+    wire         is_fence_i;
     assign csr_wgpr_data    = ({32{du_to_eu_bus[38:27] == MTVEC    }} & mtvec)
                             | ({32{du_to_eu_bus[38:27] == MEPC     }} & mepc)
                             | ({32{du_to_eu_bus[38:27] == MSTATUS  }} & mstatus)
@@ -284,7 +284,7 @@ module ysyx_25020037 (
     ) u_icache (
         .clk           (clock           ),
         .rst           (reset           ),
-        .eu_to_ic_bus  (eu_to_ic_bus    ),
+        .is_fence_i    (is_fence_i      ),
         .cpu_addr      (icache_addr     ),
         .cpu_req       (icache_req      ),
         .cpu_data      (icache_data     ),
@@ -308,6 +308,7 @@ module ysyx_25020037 (
         .inst_s      (inst_s      ),
         .inst_l      (inst_l      ),
         .gpr_we      (gpr_we      ),
+        .is_fence_i  (is_fence_i  ),
         .du_to_eu_bus(du_to_eu_bus),
         .du_to_gu_bus(du_to_gu_bus),
         .du_to_lu_bus(du_to_lu_bus),
@@ -481,7 +482,6 @@ ysyx_25020037_clint u_clint (
         .gu_to_eu_bus(gu_to_eu_bus),
         .du_to_eu_bus(du_to_eu_bus),
         .eu_to_lu_bus(eu_to_lu_bus),
-        .eu_to_ic_bus(eu_to_ic_bus),
         .dnpc        (dnpc        )
     );
 

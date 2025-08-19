@@ -12,7 +12,7 @@ module ysyx_25020037_icache #(
     input                           clk,
     input                           rst,
 
-    input  wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
+    input  wire                  is_fence_i,
 
     input  wire [ADDR_WIDTH-1:0] cpu_addr,
     input  wire                  cpu_req,
@@ -25,7 +25,6 @@ module ysyx_25020037_icache #(
     input  wire [BLOCK_SIZE*8-1:0] mem_data,
     input  wire                  mem_ready
 );
-wire                      is_fence_i = eu_to_ic_bus;
 
 wire [OFFSET_WIDTH-1:0]   offset;
 wire [ INDEX_WIDTH-1:0]   index;

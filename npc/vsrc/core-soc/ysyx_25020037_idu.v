@@ -12,6 +12,7 @@ module ysyx_25020037_idu (
     output reg          inst_l,
     output reg          inst_s,
     output reg          gpr_we,
+    output wire         is_fence_i,
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
     output reg  [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
@@ -87,8 +88,6 @@ module ysyx_25020037_idu (
     wire         rw_word_1;
     wire         rw_word_2;
     wire         rw_word_4;
-
-    wire        is_fence_i;
 
     wire        inst_add;
     wire        inst_and;
@@ -327,8 +326,7 @@ module ysyx_25020037_idu (
                         inst_s <= inst_sw | inst_sh | inst_sb;
                         inst_l <= inst_lw | inst_lh | inst_lb | inst_lhu | inst_lbu;
                         gpr_we <= gpr_we_r;
-                        du_to_eu_bus <= {  
-                            is_fence_i,         
+                        du_to_eu_bus <= {
                             imm,             
                             alu_op,             
                             src1_is_pc,      
