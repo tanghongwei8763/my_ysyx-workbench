@@ -17,6 +17,10 @@ extern VysyxSoCFull *top;
 #define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
 #define ifu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_access_fault
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
+#define araddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_araddr
+#define arvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_arvalid
+#define awaddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awaddr
+#define awvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awvalid
 #else
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
@@ -264,6 +268,10 @@ static void exec_once() {
     uint64_t clk_sum_reg = 0;
     int prev_valid_reg = 0x10;
     do{
+#ifdef CONFIG_DIFFTEST
+        if((araddr >= 0x10000000) & (araddr <= 0x10000fff) & (arvalid | awvalid)) difftest_skip_ref();
+        if((araddr >= 0x02000000) & (araddr <= 0x0200ffff) & (arvalid | awvalid)) difftest_skip_ref();
+#endif
         if(prev_valid_reg != prev_valid){
             prev_valid_reg = prev_valid;
             update_module_stats(prev_valid_reg, clk_sum_reg);
