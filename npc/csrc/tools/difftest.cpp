@@ -78,12 +78,12 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
            "If it is not necessary, you can turn it off in switch.h\n\x1B[0m", ref_so_file);
 
   ref_difftest_init(port);
-  ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), 4*1024, DIFFTEST_TO_REF);
+  ref_difftest_memcpy(FLASH_RESET_VECTOR, SoC_to_host(FLASH_RESET_VECTOR), 4*1024, DIFFTEST_TO_REF);
   diff_context_t* dut_r = (diff_context_t*)malloc(sizeof(diff_context_t));
   for(int i = 0; i < 32; i++){
     dut_r->gpr[i] = dut_gpr[i];
   }
-  dut_r->pc  = RESET_VECTOR;
+  dut_r->pc  = FLASH_RESET_VECTOR;
   dut_r->mtvec   = dut_mtvec;
   dut_r->mepc    = dut_mepc;
   dut_r->mstatus = dut_mstatus;
