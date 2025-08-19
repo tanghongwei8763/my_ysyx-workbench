@@ -41,10 +41,6 @@ module ysyx_25020037_lsu (
     input  wire         rlast,
     input  wire [ 3: 0] rid
 );
-`ifdef VERILATOR
-    import "DPI-C" function void difftest_skip_ref();
-`endif
-
     localparam IDLE    = 1'b0;
     localparam BUSY    = 1'b1;
     reg        state, next_state;
@@ -63,8 +59,8 @@ module ysyx_25020037_lsu (
     wire [31:0] addr = eu_to_lu_bus[63:32];
     wire [31:0] addr_off = addr & 32'b11;
     wire [31:0] aligned_wdata = eu_to_lu_bus[31:0] << (addr_off << 3);
-    wire [ 2:0] data_rop = du_to_lu_bus[7:5];  // 数据操作类型（复用原有信号）
-    wire [ 2:0] data_wop = du_to_lu_bus[4:2];  // 数据操作类型（复用原有信号）
+    wire [ 2:0] data_rop = du_to_lu_bus[7:5];
+    wire [ 2:0] data_wop = du_to_lu_bus[4:2];
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
@@ -72,15 +68,15 @@ module ysyx_25020037_lsu (
     reg  [ 2:0] axi_wsize;
     always @(*) begin
         case (data_rop)
-            3'b001: axi_rsize = AXI_SIZE_BYTE;  // 字节访问
-            3'b010: axi_rsize = AXI_SIZE_HALF;  // 半字访问
-            3'b100: axi_rsize = AXI_SIZE_WORD;  // 字访问
+            3'b001: axi_rsize = AXI_SIZE_BYTE; 
+            3'b010: axi_rsize = AXI_SIZE_HALF; 
+            3'b100: axi_rsize = AXI_SIZE_WORD; 
             default: axi_rsize = AXI_SIZE_WORD;
         endcase
         case (data_wop)
-            3'b001: axi_wsize = AXI_SIZE_BYTE;  // 字节访问
-            3'b010: axi_wsize = AXI_SIZE_HALF;  // 半字访问
-            3'b100: axi_wsize = AXI_SIZE_WORD;  // 字访问
+            3'b001: axi_wsize = AXI_SIZE_BYTE;
+            3'b010: axi_wsize = AXI_SIZE_HALF;
+            3'b100: axi_wsize = AXI_SIZE_WORD;
             default: axi_wsize = AXI_SIZE_WORD;
         endcase
     end
@@ -165,12 +161,6 @@ module ysyx_25020037_lsu (
                 BUSY: begin
                     if (du_to_lu_bus[1]) begin
                         if (arvalid && arready) begin
-                            $write("0x%h\n", addr);
-`ifdef VERILATOR
-                            if (((addr >= 32'h10000000) && (addr <= 32'h10000fff)) || ((addr >= 32'h02000000) && (addr <= 32'h02000ffff))) begin
-                                difftest_skip_ref();
-                            end
-`endif
                             arvalid <= 1'b0;
                             rready <= 1'b1;
                         end
@@ -183,12 +173,6 @@ module ysyx_25020037_lsu (
                         end
                     end else if (du_to_lu_bus[0]) begin 
                         if (awvalid && awready && wvalid && wready) begin
-                            $write("0x%h\n", addr);
-`ifdef VERILATOR
-                            if (((addr >= 32'h02000000) && (addr <= 32'h02000ffff))) begin
-                                difftest_skip_ref();
-                            end
-`endif
                             awvalid <= 1'b0;
                             wvalid <= 1'b0;
                             bready <= 1'b1;
