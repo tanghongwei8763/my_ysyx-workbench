@@ -166,8 +166,7 @@ module ysyx_25020037_lsu (
                     if (du_to_lu_bus[1]) begin
                         if (arvalid && arready) begin
 `ifdef VERILATOR
-                            if ((addr < 32'h30000000 || addr >32'h3fffffff) && (addr < 32'h0f000000 || addr >32'h0f0001fff) && (addr < 32'ha0000000 || addr >32'hbfffffff)) begin
-                                $write("!!!\n");
+                            if ((addr >= 32'h10000000 && addr <= 32'h10000fff) || (addr >= 32'h02000000 && addr <= 32'h02000ffff)) begin
                                 difftest_skip_ref();
                             end
 `endif
@@ -184,8 +183,7 @@ module ysyx_25020037_lsu (
                     end else if (du_to_lu_bus[0]) begin 
                         if (awvalid && awready && wvalid && wready) begin
 `ifdef VERILATOR
-                            if ((addr < 32'h30000000 || addr >32'h3fffffff) && (addr < 32'h0f000000 || addr >32'h0f0001fff) && (addr < 32'ha0000000 || addr >32'hbfffffff)) begin
-                                $write("!!!!!!\n");
+                            if ((addr >= 32'h10000000 && addr <= 32'h10000fff) || (addr >= 32'h02000000 && addr <= 32'h02000ffff)) begin
                                 difftest_skip_ref();
                             end
 `endif
