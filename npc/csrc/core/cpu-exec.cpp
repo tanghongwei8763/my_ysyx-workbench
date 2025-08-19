@@ -269,10 +269,12 @@ static void exec_once() {
     int prev_valid_reg = 0x10;
     do{
 #ifdef CONFIG_DIFFTEST
-        if(((araddr >= 0x10000000) & (araddr <= 0x10000fff) & arvalid) | 
-           ((awaddr >= 0x10000000) & (awaddr <= 0x10000fff) & awvalid)) {difftest_skip_ref();}
-        if(((araddr >= 0x02000000) & (araddr <= 0x0200ffff) & arvalid) |
-           ((awaddr >= 0x02000000) & (awaddr <= 0x0200ffff) & awvalid)) {difftest_skip_ref();}
+        if(((araddr < 0x30000000) | (araddr > 0x3fffffff) & arvalid) & 
+           ((araddr < 0x0f000000) | (araddr > 0x0f002000) & arvalid) & 
+           ((araddr < 0xa0000000) | (araddr > 0xbfffffff) & arvalid)) {difftest_skip_ref();}
+        if(((awaddr < 0x30000000) | (awaddr > 0x3fffffff) & awvalid) & 
+           ((awaddr < 0x0f000000) | (awaddr > 0x0f002000) & awvalid) & 
+           ((awaddr < 0xa0000000) | (awaddr > 0xbfffffff) & awvalid)) {difftest_skip_ref();}
 #endif
         if(prev_valid_reg != prev_valid){
             prev_valid_reg = prev_valid;
