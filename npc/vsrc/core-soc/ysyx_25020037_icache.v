@@ -117,7 +117,7 @@ end
 always @(posedge clk or posedge rst) begin
     if (rst) begin
         valid_array <= 'b0;
-    end else if (is_fence_i && current_state == FENCE_I) begin
+    end else if (current_state == FENCE_I) begin
         valid_array <= 'b0;
     end else if (current_state == REFILL && mem_ready) begin
         tag_array[index]    <= tag;

@@ -13,7 +13,7 @@ module ysyx_25020037_exu (
     input  wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus,
     input  wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
-    output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
+    output wire         eu_to_ic_bus,
 
     output reg  [31: 0] dnpc
 );
@@ -97,16 +97,15 @@ module ysyx_25020037_exu (
                     is_pc_jump  ? (alu_result2 == 32'b1) ? alu_result1 : snpc
                                 : snpc;
 
-    assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
-
-    assign snpc   = pc + 32'h4;
+    assign result       = is_pc_jump ? pc + 32'h4 : alu_result1;
+    assign snpc         = pc + 32'h4;
+    assign eu_to_ic_bus = is_fence_i;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
             exu_valid <= 0;
             exu_ready <= 1'b1;
             eu_to_lu_bus <= `EU_TO_LU_BUS_WD'b0;
-            eu_to_ic_bus <= `EU_TO_IC_BUS_WD'b0;
             dnpc <= 32'b0;
         end else begin
             state <= next_state;
@@ -126,9 +125,6 @@ module ysyx_25020037_exu (
                         eu_to_lu_bus <= {           
                             result,
                             src2
-                        };
-                        eu_to_ic_bus <= {
-                            is_fence_i
                         };
                         exu_valid <= 1'b1;
                         exu_ready <= 1'b1;
