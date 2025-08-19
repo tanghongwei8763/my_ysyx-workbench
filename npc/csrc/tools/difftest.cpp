@@ -38,7 +38,6 @@ static bool is_skip_ref = false;
 static int skip_dut_nr_inst = 0;
 
 extern "C" void difftest_skip_ref() {
-  printf("0x%08x\n", dut_pc);
   is_skip_ref = true;
   skip_dut_nr_inst = 0;
 }
