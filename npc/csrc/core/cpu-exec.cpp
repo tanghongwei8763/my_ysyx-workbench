@@ -269,8 +269,8 @@ static void exec_once() {
     int prev_valid_reg = 0x10;
     do{
 #ifdef CONFIG_DIFFTEST
-        if((araddr >= 0x10000000) & (araddr <= 0x10000fff) & (arvalid | awvalid)) difftest_skip_ref();
-        if((araddr >= 0x02000000) & (araddr <= 0x0200ffff) & (arvalid | awvalid)) difftest_skip_ref();
+        if((araddr >= 0x10000000) & (araddr <= 0x10000fff) & (arvalid | awvalid)) {printf("jumping 0x%08x\n", pc); difftest_skip_ref();}
+        if((araddr >= 0x02000000) & (araddr <= 0x0200ffff) & (arvalid | awvalid)) {printf("jumping 0x%08x\n", pc); difftest_skip_ref();}
 #endif
         if(prev_valid_reg != prev_valid){
             prev_valid_reg = prev_valid;
