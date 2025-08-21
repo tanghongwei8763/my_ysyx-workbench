@@ -13,8 +13,8 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
-#define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_cpu__DOT__pc
+#define inst (top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__fu_to_du_bus & 0xFFFFFFFF)
 #define ifu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_access_fault
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
 #define araddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_araddr
@@ -240,7 +240,7 @@ void cpu_exec(int n){
 #endif
                 if(NPC_STATE == NPC_RUNING) {
                     exec_once();
-                    if(NPC_STATE == NPC_RUNING) printf("0x%08x: %08x\n", pc, inst);
+                    if(NPC_STATE == NPC_RUNING) printf("0x%08x: %08lx\n", pc, inst);
                 }
                 else if (NPC_STATE == NPC_STOP) {
                     NPC_STATE = NPC_RUNING;

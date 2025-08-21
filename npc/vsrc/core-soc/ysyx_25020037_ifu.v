@@ -5,10 +5,11 @@ module ysyx_25020037_ifu #(
 ) (
     input  wire         clk,
     input  wire         rst,
-    input  wire [31: 0] pc,
+    input  wire         exu_dnpc_valid,
+    input  wire [31: 0] exu_dnpc,
     input  wire         idu_ready,
     output reg          ifu_valid,
-    output reg  [31: 0] inst,
+    output reg  [`FU_TO_DU_BUS_WD-1: 0] fu_to_du_bus,
     output reg          access_fault,
 
     input  wire         arready,
@@ -46,7 +47,10 @@ module ysyx_25020037_ifu #(
     localparam READ    = 2'b11;
     
     reg  [ 1:0] state, next_state;
-    reg  [31:0] last_pc;
+    wire [31:0] pc;
+    wire [31:0] inst;
+    wire [31:0] snpc;
+    wire [31:0] dnpc;
     reg         icache_hit_reg;
     reg  [31:0] block_base_addr;
     reg  [31:0] read_len;
@@ -55,13 +59,25 @@ module ysyx_25020037_ifu #(
     reg  [1:0]  burst_cnt;
     reg         is_burst_done;
 
+    ysyx_25020037_Reg #(32, 32'h30000000) PC (
+        .clk         (clk      ),
+        .rst         (rst      ),
+        .din         (dnpc     ),
+        .dout        (pc       ),
+        .wen         (pc_updata)
+    );
+    wire        pc_updata = ifu_valid;
+    assign      inst = fu_to_du_bus[31:0];
+    assign      snpc = pc + 32'h4;
+    assign      dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
+
     always @(*) begin
         is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
         case (state)
-            IDLE:  begin next_state = (pc != last_pc && idu_ready) ? CHECK : IDLE; end
+            IDLE:  begin next_state = (idu_ready) ? CHECK : IDLE; end
             CHECK: begin next_state = (icache_hit_reg) ? IDLE : (mem_req) ? BUSY : CHECK; end
             BUSY:  begin next_state = (mem_ready) ? READ : BUSY; end
-            READ:  begin next_state = (idu_ready) ? IDLE : READ; end
+            READ:  begin next_state = (ifu_valid) ? IDLE : READ; end
             default: next_state = IDLE;
         endcase
     end
@@ -69,7 +85,6 @@ module ysyx_25020037_ifu #(
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
-            inst <= 32'b0;
             ifu_valid <= 1'b0;
             araddr <= 32'h0;
             arvalid <= 1'b0;
@@ -78,7 +93,6 @@ module ysyx_25020037_ifu #(
             arsize <= 3'h0;
             arburst <= 2'h0;
             rready <= 1'b0;
-            last_pc <= 32'h0;
             icache_addr <= 32'h0;
             icache_req <= 1'b0;
             mem_data <= 'b0;
@@ -93,8 +107,7 @@ module ysyx_25020037_ifu #(
             icache_hit_reg <= icache_hit;
             case (state)
                 IDLE: begin
-                    if (pc != last_pc && idu_ready) begin
-                        last_pc <= pc;
+                    if (idu_ready) begin
                         icache_addr <= pc;
                         icache_req <= 1'b1;
                         block_base_addr <= aligned_addr;
@@ -115,7 +128,7 @@ module ysyx_25020037_ifu #(
                     icache_req <= 1'b0;
                     if(!icache_req) begin
                         if (icache_hit_reg) begin
-                            inst <= icache_data;
+                            fu_to_du_bus <= {pc, icache_data};
                             ifu_valid <= 1'b1;
                         end else if (mem_req) begin
                             araddr <= block_base_addr;
@@ -171,7 +184,7 @@ module ysyx_25020037_ifu #(
                     end
                 end
                 READ: begin
-                    inst <= icache_data;
+                    fu_to_du_bus <= {pc, icache_data};
                     ifu_valid <= 1'b1;
                 end
                 default: begin 

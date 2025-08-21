@@ -7,7 +7,6 @@ module ysyx_25020037_lsu (
     output reg           lsu_ready,
     output reg           lsu_valid,
     input  wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
-    input  wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
     output reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
     output reg          access_fault,
 
@@ -56,9 +55,23 @@ module ysyx_25020037_lsu (
     localparam AXI_SIZE_HALF   = 3'h1;
     localparam AXI_SIZE_WORD   = 3'h2;
 
-    wire [31:0] addr = eu_to_lu_bus[63:32];
+    reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus_r;
+    wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
+    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+    assign {
+        du_to_gu_bus,
+        du_to_lu_bus,
+        du_to_wu_bus,         
+        addr,
+        csr_wcsr_data,
+        data
+    } = eu_to_lu_bus_r;
+    wire [31:0] addr;
+    wire [31:0] csr_wcsr_data;
+    wire [31:0] data;
     wire [31:0] addr_off = addr & 32'b11;
-    wire [31:0] aligned_wdata = eu_to_lu_bus[31:0] << (addr_off << 3);
+    wire [31:0] aligned_wdata = data << (addr_off << 3);
     wire [ 2:0] data_rop = du_to_lu_bus[7:5];
     wire [ 2:0] data_wop = du_to_lu_bus[4:2];
 
@@ -84,7 +97,7 @@ module ysyx_25020037_lsu (
     always @(*) begin
         case (state)
             IDLE: begin next_state = (lsu_ready & exu_valid) ? BUSY : IDLE; end
-            BUSY: begin next_state = (lsu_valid & wbu_ready) ? IDLE : BUSY; end
+            BUSY: begin next_state = (lsu_valid) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
@@ -126,6 +139,10 @@ module ysyx_25020037_lsu (
                     arvalid <= 1'b0;
                     bready <= 1'b0;
                     rready <= 1'b0;
+                    if (exu_valid & !lsu_ready) begin
+                        eu_to_lu_bus_r <= eu_to_lu_bus;
+                        lsu_ready <= 1'b1;
+                    end
                     if (lsu_ready & exu_valid) begin
                         lsu_ready <= 1'b0;
                         if (du_to_lu_bus[1]) begin
@@ -152,7 +169,13 @@ module ysyx_25020037_lsu (
                                 default: wstrb <= 4'b0000;
                             endcase
                         end else begin
-                            lu_to_wu_bus <= {eu_to_lu_bus[63:32], eu_to_lu_bus[63:32]};
+                            lu_to_wu_bus <= {
+                                du_to_wu_bus,
+                                du_to_gu_bus,
+                                csr_wcsr_data,
+                                eu_to_lu_bus[63:32],
+                                eu_to_lu_bus[63:32]
+                            };
                             lsu_valid <= 1'b1;
                             lsu_ready <= 1'b1;
                         end
@@ -165,7 +188,13 @@ module ysyx_25020037_lsu (
                             rready <= 1'b1;
                         end
                         if (rvalid && rready) begin
-                            lu_to_wu_bus <= {eu_to_lu_bus[63:32], rdata};
+                            lu_to_wu_bus <= {
+                                du_to_wu_bus,
+                                du_to_gu_bus,
+                                csr_wcsr_data,
+                                eu_to_lu_bus[63:32], 
+                                rdata
+                                };
                             lsu_valid <= 1'b1;
                             lsu_ready <= 1'b1;
                             access_fault <= (rresp != 2'b00);

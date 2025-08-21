@@ -2,16 +2,12 @@
 
 module ysyx_25020037_wbu (
     input  wire         lsu_valid,
-    input  wire         inst_l,
-    input  wire         inst_s,
     input  wire         gpr_ready,
     output reg          wbu_valid,
     output reg          wbu_ready,
     input  wire         clk,
     input  wire         rst,
-    input  wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus,
     input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
-    input  wire [31: 0] csr_wgpr_data,
     output reg  [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus
 );
     
@@ -19,23 +15,39 @@ module ysyx_25020037_wbu (
     localparam BUSY   = 1'b1;
     reg state, next_state;
 
-    reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus_r;
     reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus_r;
+    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+    wire [31: 0] addr;
+    wire [31: 0] csr_wcsr_data;
+    wire [31: 0] data;
+    assign {du_to_wu_bus,
+            du_to_gu_bus,
+            addr,
+            csr_wcsr_data,
+            data
+           } = lu_to_wu_bus_r;
+    wire         inst_l;
+    wire         inst_s;
     wire [ 2: 0] lw_lh_lb;
     wire         bit_sext;
     wire         half_sext;
     wire         gpr_we;
     wire         rlsu_we;
     wire         csr_w_gpr_we;
-    assign {lw_lh_lb,  
+    wire [31: 0] csr_data;
+    assign {inst_l,
+            inst_s,
+            lw_lh_lb,  
             bit_sext, 
             half_sext,
             gpr_we,
             rlsu_we,
-            csr_w_gpr_we
-           } = du_to_wu_bus_r;
+            csr_w_gpr_we,
+            csr_data
+           } = du_to_wu_bus;
     wire [31: 0] result;
-    assign result = inst_l ? (lu_to_wu_bus_r[31: 0] >> ((lu_to_wu_bus_r[63:32] & 32'b11) << 3)) : lu_to_wu_bus_r[31: 0];
+    assign result = inst_l ? (data >> ((addr & 32'b11) << 3)) : data;
 
     wire [31:0] rdata_processed;
 
@@ -50,14 +62,14 @@ module ysyx_25020037_wbu (
     wire         final_gpr_we;
     wire [31: 0] final_result;
     assign final_result = rst          ? 32'b0 :
-                          csr_w_gpr_we ? csr_wgpr_data :
+                          csr_w_gpr_we ? csr_data :
                           rdata_processed;
     assign final_gpr_we = rst ? 1'b0   : gpr_we | rlsu_we;
 
     always @(*) begin
         case (state)
             IDLE: next_state = (lsu_valid & wbu_ready) ? BUSY : IDLE;
-            BUSY: next_state = (wbu_valid & gpr_ready) ? IDLE : BUSY;
+            BUSY: next_state = (wbu_valid) ? IDLE : BUSY;
             default: next_state = IDLE;
         endcase
     end
@@ -73,16 +85,20 @@ module ysyx_25020037_wbu (
 
             case (state)
                 IDLE: begin
-                    if (lsu_valid) begin
+                    if (lsu_valid & !wbu_ready) begin
                         lu_to_wu_bus_r <= lu_to_wu_bus;
-                        du_to_wu_bus_r <= du_to_wu_bus;
+                        wbu_ready <= 1'b1;
+                    end
+                    if (lsu_valid & wbu_ready) begin
                         wbu_ready <= 1'b0;
                     end
                     wbu_valid <= 1'b0;
                 end
                 BUSY: begin
                     if (gpr_ready) begin
-                        wu_to_gu_bus <= {           
+                        wu_to_gu_bus <= {
+                            du_to_gu_bus,
+                            csr_wcsr_data,     
                             final_gpr_we,         
                             final_result 
                         };

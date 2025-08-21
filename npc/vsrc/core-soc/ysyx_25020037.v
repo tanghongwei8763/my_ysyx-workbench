@@ -78,44 +78,28 @@ module ysyx_25020037 (
     assign io_slave_rlast   = 1'b0;
     assign io_slave_rid     = 4'b0;
 
-    parameter MSTATUS   = 12'h300;
-    parameter MTVEC     = 12'h305;
-    parameter MEPC      = 12'h341;
-    parameter MCAUSE    = 12'h342;
-    parameter MVENDORID = 12'hF11;
-    parameter MARCHID   = 12'hF12;
     parameter BLOCK_SIZE = 32'd16;
-    //parameter CONFIG_FTRACE = 1'b0;
-    //import "DPI-C" function void call_func(input int pc, input int dnpc);
-    //import "DPI-C" function void ret_func(input int pc);
-    //wire         ftrace_jal;
-    //wire         ftrace_jalr;
+
 `ifdef VERILATOR
     import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
     always @(posedge clock) begin
        performance_counter({27'b0, ifu_valid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0, {31'b0, icache_hit});
     end
 `endif
-    wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
-    wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
-    wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
-    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
-    wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus;
+    wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus;
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
+    wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
+    wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus;
+    wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
+    wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
-    wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus;
+    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+    wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
 
-    wire [31: 0] pc;
-    wire [31: 0] inst;
-    wire [ 9: 0] rs_data;
-    wire [31: 0] dnpc;
-    wire [31: 0] mtvec;
-    wire [31: 0] mepc;
-    wire [31: 0] mstatus;
-    wire [31: 0] mcause;
-    wire [31: 0] mvendorid;
-    wire [31: 0] marchid;
+    wire [`RS_DATA-1: 0] rs_data;
+    wire [31: 0] exu_dnpc;
+    wire         exu_dnpc_valid;
 
     wire         ifu_valid;
     wire         idu_valid;
@@ -200,82 +184,52 @@ module ysyx_25020037 (
     wire [BLOCK_SIZE*8-1:0] icache_mem_data;
     wire         icache_mem_ready;
 
-    wire [31: 0] csr_wgpr_data;
-    wire [31: 0] csr_wcsr_data;
-    wire         inst_s;
-    wire         inst_l;
-    wire         gpr_we;
-    assign csr_wgpr_data    = ({32{du_to_eu_bus[38:27] == MTVEC    }} & mtvec)
-                            | ({32{du_to_eu_bus[38:27] == MEPC     }} & mepc)
-                            | ({32{du_to_eu_bus[38:27] == MSTATUS  }} & mstatus)
-                            | ({32{du_to_eu_bus[38:27] == MCAUSE   }} & mcause)
-                            | ({32{du_to_eu_bus[38:27] == MVENDORID}} & mvendorid)
-                            | ({32{du_to_eu_bus[38:27] == MARCHID  }} & marchid);
-    assign csr_wcsr_data    = ({32{du_to_eu_bus[0]}} & gu_to_du_bus[255: 224])
-                            | ({32{du_to_eu_bus[1]}} & (gu_to_du_bus[255: 224] | csr_wgpr_data));
-
-    ysyx_25020037_Reg #(32, 32'h30000000) PC (
-        .clk         (clock    ),
-        .rst         (reset    ),
-        .din         (dnpc     ),
-        .dout        (pc       ),
-        .wen         (wbu_valid)
-    );
-
     ysyx_25020037_gpr gpr_cpu (
         .idu_valid        (idu_valid       ),
         .wbu_valid        (wbu_valid       ),
-        .gpr_we           (gpr_we          ),
         .exu_ready        (exu_ready       ),
         .gpr_ready        (gpr_ready       ),
         .gpr_valid        (gpr_valid       ),
         .clk              (clock           ),
         .rst              (reset           ),
         .rs_data          (rs_data         ),
-        .csr_wcsr_data    (csr_wcsr_data   ),
         .wu_to_gu_bus     (wu_to_gu_bus    ),
-        .du_to_gu_bus     (du_to_gu_bus    ),
-        .gu_to_du_bus     (gu_to_du_bus    ),
-        .mtvec            (mtvec           ),
-        .mepc             (mepc            ),
-        .mstatus          (mstatus         ),
-        .mcause           (mcause          ),
-        .mvendorid        (mvendorid       ),
-        .marchid          (marchid         )  
+        .gu_to_du_bus     (gu_to_du_bus    )
     );          
     
     ysyx_25020037_ifu #(
         .BLOCK_SIZE    (BLOCK_SIZE)
     ) ifu_cpu(
-        .clk         (clock            ),
-        .rst         (reset            ),
-        .pc          (pc               ),
-        .idu_ready   (idu_ready        ),
-        .ifu_valid   (ifu_valid        ),
-        .inst        (inst             ),
-        .access_fault(ifu_access_fault ),
-        .arready     (ifu_arready      ),
-        .arvalid     (ifu_arvalid      ),
-        .araddr      (ifu_araddr       ),
-        .arid        (ifu_arid         ),
-        .arlen       (ifu_arlen        ),
-        .arsize      (ifu_arsize       ),
-        .arburst     (ifu_arburst      ),
-        .rready      (ifu_rready       ),
-        .rvalid      (ifu_rvalid       ),
-        .rresp       (ifu_rresp        ),
-        .rdata       (ifu_rdata        ),
-        .rlast       (ifu_rlast        ),
-        .rid         (ifu_rid          ),
-        .icache_addr (icache_addr      ),
-        .icache_req  (icache_req       ),
-        .icache_data (icache_data      ),
-        .icache_hit  (icache_hit       ),
-        .icache_ready(icache_ready     ),
-        .mem_req     (icache_mem_req   ),
-        .mem_addr    (icache_mem_addr  ),
-        .mem_data    (icache_mem_data  ),
-        .mem_ready   (icache_mem_ready )
+        .clk           (clock            ),
+        .rst           (reset            ),
+        .exu_dnpc_valid(exu_dnpc_valid   ),
+        .exu_dnpc      (exu_dnpc         ),
+        .idu_ready     (idu_ready        ),
+        .ifu_valid     (ifu_valid        ),
+        .access_fault  (ifu_access_fault ),
+        .fu_to_du_bus  (fu_to_du_bus     ),
+        .arready       (ifu_arready      ),
+        .arvalid       (ifu_arvalid      ),
+        .araddr        (ifu_araddr       ),
+        .arid          (ifu_arid         ),
+        .arlen         (ifu_arlen        ),
+        .arsize        (ifu_arsize       ),
+        .arburst       (ifu_arburst      ),
+        .rready        (ifu_rready       ),
+        .rvalid        (ifu_rvalid       ),
+        .rresp         (ifu_rresp        ),
+        .rdata         (ifu_rdata        ),
+        .rlast         (ifu_rlast        ),
+        .rid           (ifu_rid          ),
+        .icache_addr   (icache_addr      ),
+        .icache_req    (icache_req       ),
+        .icache_data   (icache_data      ),
+        .icache_hit    (icache_hit       ),
+        .icache_ready  (icache_ready     ),
+        .mem_req       (icache_mem_req   ),
+        .mem_addr      (icache_mem_addr  ),
+        .mem_data      (icache_mem_data  ),
+        .mem_ready     (icache_mem_ready )
         );
 
     ysyx_25020037_icache #(
@@ -301,21 +255,14 @@ module ysyx_25020037 (
     ysyx_25020037_idu idu_cpu(
         .clk         (clock       ),
         .rst         (reset       ),
-        .pc          (pc          ),
-        .inst        (inst        ),
         .ifu_valid   (ifu_valid   ),
         .exu_ready   (exu_ready   ),
         .idu_valid   (idu_valid   ),
         .idu_ready   (idu_ready   ),
-        .inst_s      (inst_s      ),
-        .inst_l      (inst_l      ),
-        .gpr_we      (gpr_we      ),
         .rs_data     (rs_data     ),
         .gu_to_du_bus(gu_to_du_bus),
-        .du_to_eu_bus(du_to_eu_bus),
-        .du_to_gu_bus(du_to_gu_bus),
-        .du_to_lu_bus(du_to_lu_bus),
-        .du_to_wu_bus(du_to_wu_bus)
+        .fu_to_du_bus(fu_to_du_bus),
+        .du_to_eu_bus(du_to_eu_bus)
         );
 
 
@@ -327,7 +274,6 @@ module ysyx_25020037 (
         .lsu_ready   (lsu_ready   ),
         .lsu_valid   (lsu_valid   ),
         .eu_to_lu_bus(eu_to_lu_bus),
-        .du_to_lu_bus(du_to_lu_bus),
         .lu_to_wu_bus(lu_to_wu_bus),
         .access_fault(lsu_access_fault),
         .awready     (lsu_awready ),
@@ -473,46 +419,28 @@ ysyx_25020037_clint u_clint (
 );
 
     ysyx_25020037_exu exu_cpu(
-        .clk         (clock       ),
-        .rst         (reset       ),
-        .inst_s      (inst_s      ),
-        .inst_l      (inst_l      ),
-        .idu_valid   (idu_valid   ),
-        .lsu_ready   (lsu_ready   ),
-        .exu_ready   (exu_ready   ),
-        .exu_valid   (exu_valid   ),
-        .pc          (pc          ),
-        .du_to_eu_bus(du_to_eu_bus),
-        .eu_to_lu_bus(eu_to_lu_bus),
-        .eu_to_ic_bus(eu_to_ic_bus),
-        .dnpc        (dnpc        )
+        .clk           (clock         ),
+        .rst           (reset         ),
+        .idu_valid     (idu_valid     ),
+        .lsu_ready     (lsu_ready     ),
+        .exu_ready     (exu_ready     ),
+        .exu_valid     (exu_valid     ),
+        .du_to_eu_bus  (du_to_eu_bus  ),
+        .eu_to_lu_bus  (eu_to_lu_bus  ),
+        .eu_to_ic_bus  (eu_to_ic_bus  ),
+        .exu_dnpc_valid(exu_dnpc_valid),
+        .exu_dnpc      (exu_dnpc      )
     );
 
     ysyx_25020037_wbu wbu_cpu(
         .lsu_valid    (lsu_valid    ),
-        .inst_s       (inst_s       ),
-        .inst_l       (inst_l       ),
         .gpr_ready    (gpr_ready    ),
         .wbu_valid    (wbu_valid    ),
         .wbu_ready    (wbu_ready    ),
         .clk          (clock        ),
         .rst          (reset        ),
-        .du_to_wu_bus (du_to_wu_bus ),
         .lu_to_wu_bus (lu_to_wu_bus ),
-        .csr_wgpr_data(csr_wgpr_data),
         .wu_to_gu_bus (wu_to_gu_bus )
         );
-
-    //always @(posedge clock) begin
-    //    if(CONFIG_FTRACE) begin
-    //        if(ftrace_jalr) begin
-    //            if(rd == 5'h1) begin call_func(pc, dnpc); end
-    //            else if(rd == 5'h0 && src1 == regs[1]) begin ret_func(pc); end
-    //        end
-    //        if(ftrace_jal) begin
-    //            if(rd == 5'h1) begin call_func(pc, dnpc); end
-    //        end
-    //    end
-    //end
 
 endmodule
