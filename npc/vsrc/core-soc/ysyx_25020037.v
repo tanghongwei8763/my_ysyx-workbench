@@ -100,7 +100,7 @@ module ysyx_25020037 (
     wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
-    wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus;
+    wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus;
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
@@ -210,8 +210,8 @@ module ysyx_25020037 (
                             | ({32{du_to_eu_bus[38:27] == MCAUSE   }} & mcause)
                             | ({32{du_to_eu_bus[38:27] == MVENDORID}} & mvendorid)
                             | ({32{du_to_eu_bus[38:27] == MARCHID  }} & marchid);
-    assign csr_wcsr_data    = ({32{du_to_eu_bus[0]}} & gu_to_eu_bus[127: 96])
-                            | ({32{du_to_eu_bus[1]}} & (gu_to_eu_bus[127: 96] | csr_wgpr_data));
+    assign csr_wcsr_data    = ({32{du_to_eu_bus[0]}} & gu_to_du_bus[255: 224])
+                            | ({32{du_to_eu_bus[1]}} & (gu_to_du_bus[255: 224] | csr_wgpr_data));
 
     ysyx_25020037_Reg #(32, 32'h30000000) PC (
         .clk         (clock    ),
@@ -233,7 +233,7 @@ module ysyx_25020037 (
         .csr_wcsr_data    (csr_wcsr_data   ),
         .wu_to_gu_bus     (wu_to_gu_bus    ),
         .du_to_gu_bus     (du_to_gu_bus    ),
-        .gu_to_eu_bus     (gu_to_eu_bus    ),
+        .gu_to_du_bus     (gu_to_du_bus    ),
         .mtvec            (mtvec           ),
         .mepc             (mepc            ),
         .mstatus          (mstatus         ),
@@ -308,6 +308,7 @@ module ysyx_25020037 (
         .inst_s      (inst_s      ),
         .inst_l      (inst_l      ),
         .gpr_we      (gpr_we      ),
+        .gu_to_eu_bus(gu_to_eu_bus),
         .du_to_eu_bus(du_to_eu_bus),
         .du_to_gu_bus(du_to_gu_bus),
         .du_to_lu_bus(du_to_lu_bus),
@@ -478,7 +479,6 @@ ysyx_25020037_clint u_clint (
         .exu_ready   (exu_ready   ),
         .exu_valid   (exu_valid   ),
         .pc          (pc          ),
-        .gu_to_eu_bus(gu_to_eu_bus),
         .du_to_eu_bus(du_to_eu_bus),
         .eu_to_lu_bus(eu_to_lu_bus),
         .eu_to_ic_bus(eu_to_ic_bus),

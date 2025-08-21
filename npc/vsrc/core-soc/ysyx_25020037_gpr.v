@@ -10,10 +10,11 @@ module ysyx_25020037_gpr (
   output reg          gpr_valid,
   input  wire         clk,
   input  wire         rst,
+  input  wire [ 9: 0] rs_data,
   input  wire [31: 0] csr_wcsr_data,
   input  wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus,
   input  wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
-  output wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus,
+  output wire [`GU_TO_EU_BUS_WD -1:0] gu_to_du_bus,
 
   output wire [31: 0] mtvec,
   output wire [31: 0] mepc,
@@ -48,10 +49,14 @@ module ysyx_25020037_gpr (
   assign {gpr_wen,
           gpr_wdata
          } = wu_to_gu_bus_r;
-  wire [31: 0] pc;
-  wire [ 4: 0] rd;
+  
   wire [ 4: 0] rs1;
   wire [ 4: 0] rs2;
+  assign {rs1,
+          rs2
+         } = rs_data;
+  wire [31: 0] pc;
+  wire [ 4: 0] rd;
   wire         csrs_mtvec_wen;
   wire         csrs_mepc_wen;
   wire         csrs_mstatus_wen;
@@ -62,8 +67,6 @@ module ysyx_25020037_gpr (
   wire         mret_en;
   assign {pc,
           rd,
-          rs1,
-          rs2,
           csrs_mtvec_wen,
           csrs_mepc_wen,
           csrs_mstatus_wen,
@@ -122,7 +125,7 @@ module ysyx_25020037_gpr (
     .wen         (mstatus_wen & wbu_valid & (~gpr_ready))
   );
 
-  ysyx_25020037_Reg #(32, 32'h0) CSRS_cause (
+  ysyx_25020037_Reg #(32, 32'h0) CSRS_mcause (
     .clk         (clk             ),
     .rst         (rst             ),
     .din         (mcause_data     ),
@@ -148,11 +151,15 @@ module ysyx_25020037_gpr (
   
   assign src1 = regs[rs1];
   assign src2 = regs[rs2];
-  assign gu_to_eu_bus = {           
+  assign gu_to_du_bus = {           
            src1,
            src2,
            mtvec,
-           mepc
+           mepc,
+           mstatus,
+           mcause,
+           mvendorid,
+           marchid
          };
 
   always @(*) begin

@@ -12,6 +12,8 @@ module ysyx_25020037_idu (
     output reg          inst_l,
     output reg          inst_s,
     output reg          gpr_we,
+    output wire [ 9: 0] rs_data,
+    input  wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
     output reg  [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
@@ -34,7 +36,27 @@ module ysyx_25020037_idu (
     localparam BUSY   = 1'b1;
     reg state, next_state;
 
+    reg  [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus_r;
     reg  [31: 0] inst_r;
+
+    wire [31: 0] src1;
+    wire [31: 0] src2;
+    wire [31: 0] mtvec;
+    wire [31: 0] mepc;
+    wire [31: 0] mstatus;
+    wire [31: 0] mcause;
+    wire [31: 0] mvendorid;
+    wire [31: 0] marchid;
+    assign = {src1,
+              src2,
+              mtvec,
+              mepc,
+              mstatus,
+              mcause,
+              mvendorid,
+              marchid
+         } = gu_to_du_bus_r;
+
     wire [ 4: 0] rs1;
     wire [ 4: 0] rs2;
     wire [ 4: 0] rd;
@@ -54,6 +76,7 @@ module ysyx_25020037_idu (
     wire         ebreak;
     wire         inst_not_realize;
     wire         csr_w_gpr_we;
+    wire [31: 0] csrrs_mdata;
     wire         csrrw_op;
     wire         csrrs_op;
     wire         ecall_en;
@@ -147,9 +170,10 @@ module ysyx_25020037_idu (
     assign opcode_14_12  = inst_r[14:12];
     assign opcode_06_00  = inst_r[ 6: 0];
 
-    assign rs1   = inst_r[19:15];
-    assign rs2   = inst_r[24:20];
-    assign rd    = inst_r[11: 7];
+    assign rs1     = inst_r[19:15];
+    assign rs2     = inst_r[24:20];
+    assign rd      = inst_r[11: 7];
+    assign rs_data = {rs1, rs2};
 
     assign immI  = {{20{inst_r[31]}}, inst_r[31:20]};
     assign immS  = {{20{inst_r[31]}}, inst_r[31:25], inst_r[11:7]};
@@ -284,6 +308,9 @@ module ysyx_25020037_idu (
     assign csrrs_op     = inst_csrrs;
     assign ecall_en     = inst_ecall;
     assign mret_en      = inst_mret;
+    assign csrrs_mdata  = ecall_en ? mtvec :
+                          mret_en  ? mepc  :
+                          32'b0;
     assign is_csr_op    = inst_csrrw | inst_csrrs | inst_ecall | inst_mret;
     assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & is_csr_op;
     assign csrs_mepc_wen      = (imm[11:0] == MEPC) & is_csr_op;
@@ -318,6 +345,7 @@ module ysyx_25020037_idu (
                 IDLE: begin
                     if (ifu_valid & idu_ready) begin
                         inst_r <= inst;
+                        gu_to_du_bus_r <= gu_to_du_bus;
                         idu_ready <= 1'b0;
                     end
                     idu_valid <= 1'b0;
@@ -329,7 +357,9 @@ module ysyx_25020037_idu (
                         gpr_we <= gpr_we_r;
                         du_to_eu_bus <= {
                             is_fence_i,         
-                            imm,             
+                            imm,
+                            src1,
+                            src2,         
                             alu_op,             
                             src1_is_pc,      
                             src2_is_imm,     
@@ -339,14 +369,13 @@ module ysyx_25020037_idu (
                             inst_not_realize,
                             ecall_en,
                             mret_en,
+                            csrrs_mdata,
                             csrrs_op,
                             csrrw_op
                         };
                         du_to_gu_bus <= {
                             pc,
                             rd,
-                            rs1,             
-                            rs2,
                             csrs_mtvec_wen,
                             csrs_mepc_wen,
                             csrs_mstatus_wen,
