@@ -108,6 +108,7 @@ module ysyx_25020037 (
 
     wire [31: 0] pc;
     wire [31: 0] inst;
+    wire [ 9: 0] rs_data;
     wire [31: 0] dnpc;
     wire [31: 0] mtvec;
     wire [31: 0] mepc;
@@ -230,6 +231,7 @@ module ysyx_25020037 (
         .gpr_valid        (gpr_valid       ),
         .clk              (clock           ),
         .rst              (reset           ),
+        .rs_data          (rs_data         ),
         .csr_wcsr_data    (csr_wcsr_data   ),
         .wu_to_gu_bus     (wu_to_gu_bus    ),
         .du_to_gu_bus     (du_to_gu_bus    ),
@@ -308,7 +310,8 @@ module ysyx_25020037 (
         .inst_s      (inst_s      ),
         .inst_l      (inst_l      ),
         .gpr_we      (gpr_we      ),
-        .gu_to_eu_bus(gu_to_eu_bus),
+        .rs_data     (rs_data     ),
+        .gu_to_du_bus(gu_to_du_bus),
         .du_to_eu_bus(du_to_eu_bus),
         .du_to_gu_bus(du_to_gu_bus),
         .du_to_lu_bus(du_to_lu_bus),

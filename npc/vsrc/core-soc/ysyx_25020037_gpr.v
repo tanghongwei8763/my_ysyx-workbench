@@ -14,7 +14,7 @@ module ysyx_25020037_gpr (
   input  wire [31: 0] csr_wcsr_data,
   input  wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus,
   input  wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
-  output wire [`GU_TO_EU_BUS_WD -1:0] gu_to_du_bus,
+  output wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
 
   output wire [31: 0] mtvec,
   output wire [31: 0] mepc,

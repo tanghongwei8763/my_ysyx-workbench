@@ -47,15 +47,15 @@ module ysyx_25020037_idu (
     wire [31: 0] mcause;
     wire [31: 0] mvendorid;
     wire [31: 0] marchid;
-    assign = {src1,
-              src2,
-              mtvec,
-              mepc,
-              mstatus,
-              mcause,
-              mvendorid,
-              marchid
-         } = gu_to_du_bus_r;
+    assign {src1,
+            src2,
+            mtvec,
+            mepc,
+            mstatus,
+            mcause,
+            mvendorid,
+            marchid
+           } = gu_to_du_bus_r;
 
     wire [ 4: 0] rs1;
     wire [ 4: 0] rs2;

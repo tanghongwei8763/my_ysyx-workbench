@@ -10,7 +10,6 @@ module ysyx_25020037_exu (
     output reg          exu_valid,
     output reg          exu_ready,
     input  wire [31: 0] pc,
-    input  wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus,
     input  wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
@@ -27,10 +26,11 @@ module ysyx_25020037_exu (
     wire [31: 0] snpc;
 
     reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus_r;
-    reg  [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus_r;
 
     wire         is_fence_i;
     wire [31: 0] imm;
+    wire [31: 0] src1;
+    wire [31: 0] src2;
     wire [16: 0] alu_op;
     wire         src1_is_pc;
     wire         src2_is_imm;
@@ -40,10 +40,13 @@ module ysyx_25020037_exu (
     wire         inst_not_realize;
     wire         ecall_en;
     wire         mret_en;
+    wire [31: 0] csrrs_mdata;
     wire         csrrs_op;
     wire         csrrw_op;
     assign {is_fence_i,
             imm,
+            src1,
+            src2, 
             alu_op,
             src1_is_pc,
             src2_is_imm,
@@ -53,19 +56,11 @@ module ysyx_25020037_exu (
             inst_not_realize,
             ecall_en,
             mret_en,
+            csrrs_mdata,
             csrrs_op,
             csrrw_op
            } = du_to_eu_bus_r;
 
-    wire [31: 0] src1;
-    wire [31: 0] src2;
-    wire [31: 0] mtvec;
-    wire [31: 0] mepc;
-    assign {src1,
-            src2,
-            mtvec,
-            mepc
-           } = gu_to_eu_bus_r;
     wire [31: 0] dnpc_r;
     wire [31: 0] result;
     wire [31: 0] alu_src1;
@@ -92,8 +87,8 @@ module ysyx_25020037_exu (
         );
 
     assign snpc   = pc + 32'h4;
-    assign dnpc_r = ecall_en    ? mtvec :
-                    mret_en     ? mepc  :
+    assign dnpc_r = ecall_en    ? csrrs_mdata :
+                    mret_en     ? csrrs_mdata :
                     is_pc_jump  ? (alu_result2 == 32'b1) ? alu_result1 : snpc
                                 : snpc;
 
@@ -114,7 +109,6 @@ module ysyx_25020037_exu (
             case (state)
                 IDLE: begin
                     if (idu_valid & exu_ready) begin
-                        gu_to_eu_bus_r <= gu_to_eu_bus;
                         du_to_eu_bus_r <= du_to_eu_bus;
                         exu_ready <= 1'b0;
                     end
