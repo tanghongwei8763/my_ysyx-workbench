@@ -36,7 +36,6 @@ module ysyx_25020037_idu (
     localparam BUSY   = 1'b1;
     reg state, next_state;
 
-    reg  [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus_r;
     reg  [31: 0] inst_r;
 
     wire [31: 0] src1;
@@ -55,7 +54,7 @@ module ysyx_25020037_idu (
             mcause,
             mvendorid,
             marchid
-           } = gu_to_du_bus_r;
+           } = gu_to_du_bus;
 
     wire [ 4: 0] rs1;
     wire [ 4: 0] rs2;
@@ -345,7 +344,6 @@ module ysyx_25020037_idu (
                 IDLE: begin
                     if (ifu_valid & idu_ready) begin
                         inst_r <= inst;
-                        gu_to_du_bus_r <= gu_to_du_bus;
                         idu_ready <= 1'b0;
                     end
                     idu_valid <= 1'b0;
