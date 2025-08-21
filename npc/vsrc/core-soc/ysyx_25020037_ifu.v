@@ -74,7 +74,7 @@ module ysyx_25020037_ifu #(
     always @(*) begin
         is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
         case (state)
-            IDLE:  begin next_state = (idu_ready) ? CHECK : IDLE; end
+            IDLE:  begin next_state = CHECK; end
             CHECK: begin next_state = (icache_hit_reg) ? IDLE : (mem_req) ? BUSY : CHECK; end
             BUSY:  begin next_state = (mem_ready) ? READ : BUSY; end
             READ:  begin next_state = (ifu_valid) ? IDLE : READ; end
@@ -107,13 +107,10 @@ module ysyx_25020037_ifu #(
             icache_hit_reg <= icache_hit;
             case (state)
                 IDLE: begin
-                    if (idu_ready) begin
-                        icache_addr <= pc;
-                        icache_req <= 1'b1;
-                        block_base_addr <= aligned_addr;
-                    end else begin
-                        icache_req <= 1'b0;
-                    end
+                    icache_addr <= pc;
+                    icache_req <= 1'b1;
+                    block_base_addr <= aligned_addr;
+
                     ifu_valid <= 1'b0;
                     mem_ready <= 1'b0;
                     read_len <= 32'b0;
