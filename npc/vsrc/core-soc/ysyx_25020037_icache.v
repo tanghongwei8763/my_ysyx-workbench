@@ -26,6 +26,7 @@ module ysyx_25020037_icache #(
     input  wire                  mem_ready
 );
 wire is_fence_i = eu_to_ic_bus;
+wire cache_hit;
 
 wire [OFFSET_WIDTH-1:0]   offset;
 wire [ INDEX_WIDTH-1:0]   index;
@@ -52,32 +53,33 @@ always @(*) begin
     case (current_state)
         IDLE: begin next_state = is_fence_i ? FENCE_I : 
                                  cpu_req    ? COMPARE : IDLE;  end
-        COMPARE: begin next_state = cpu_hit ? IDLE : REFILL; end
+        COMPARE: begin next_state = cache_hit ? IDLE : REFILL; end
         REFILL : begin next_state = mem_ready ? IDLE : REFILL; end
         FENCE_I: begin next_state = IDLE; end
         default: next_state = IDLE;
     endcase
 end
 
-always @(*) begin
-    cpu_hit = (current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag);
-end
+    assign cache_hit = (current_state == COMPARE) && valid_array[index] && (tag_array[index] == tag);
 
 always @(posedge clk or posedge rst) begin
     if (rst) begin
         current_state <= IDLE;
         cpu_data  <= 'b0;
+        cpu_hit <= 1'b0;
         cpu_ready <= 1'b0;
     end else begin
         current_state <= next_state;
 
         case (current_state)
             COMPARE: begin
-                if (cpu_hit) begin
+                if (cache_hit) begin
                     cpu_data  <= data_array[index][offset*8 +: DATA_WIDTH];
+                    cpu_hit <= 1'b1;
                     cpu_ready <= 1'b1;
                 end else begin
                     cpu_data  <= 'b0;
+                    cpu_hit <= 1'b0;
                     cpu_ready <= 1'b0;
                 end
             end
@@ -107,7 +109,7 @@ always @(posedge clk or posedge rst) begin
         mem_req  <= 1'b0;
     end else begin
         case (current_state)
-            COMPARE: mem_req <= !cpu_hit;
+            COMPARE: mem_req <= !cache_hit;
             REFILL:  mem_req <= !mem_ready;
             default: mem_req <= 1'b0;
         endcase
