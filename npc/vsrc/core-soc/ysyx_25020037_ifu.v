@@ -26,8 +26,7 @@ module ysyx_25020037_ifu #(
     input  wire         rlast,
     input  wire [ 3: 0] rid,
 
-    output reg  [31: 0] icache_addr,
-    output reg          icache_req,
+    output wire [31: 0] icache_addr,
     input  wire [31: 0] icache_data,
     input  wire         icache_hit,
     input  wire         icache_ready,
@@ -42,9 +41,8 @@ module ysyx_25020037_ifu #(
     localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);
     localparam TRANSFER_COUNT = BLOCK_SIZE / 4;
     localparam IDLE    = 2'b00;
-    localparam CHECK   = 2'b01;
-    localparam BUSY    = 2'b10;
-    localparam READ    = 2'b11;
+    localparam BUSY    = 2'b01;
+    localparam READ    = 2'b10;
     
     reg  [ 1:0] state, next_state;
     wire [31:0] pc;
@@ -71,14 +69,14 @@ module ysyx_25020037_ifu #(
 
     always @(*) begin
         case (state)
-            IDLE:  begin next_state = (idu_ready) ? CHECK : IDLE; end
-            CHECK: begin next_state = (icache_hit) ? IDLE : (mem_req) ? BUSY : CHECK; end
+            IDLE:  begin next_state = (idu_ready) ? (icache_hit) ? IDLE : BUSY : IDLE; end
             BUSY:  begin next_state = (mem_ready) ? READ : BUSY; end
             READ:  begin next_state = IDLE; end
             default: next_state = IDLE;
         endcase
     end
 
+    assign icache_addr = pc;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
@@ -90,8 +88,6 @@ module ysyx_25020037_ifu #(
             arsize <= 3'h0;
             arburst <= 2'h0;
             rready <= 1'b0;
-            icache_addr <= 32'h0;
-            icache_req <= 1'b0;
             mem_data <= 'b0;
             mem_ready <= 1'b0;
             read_len <= 32'b0;
@@ -102,37 +98,30 @@ module ysyx_25020037_ifu #(
             state <= next_state;
             case (state)
                 IDLE: begin
-                    icache_addr <= pc;
-                    icache_req <= 1'b1;
-
                     ifu_valid <= 1'b0;
-                    mem_ready <= 1'b0;
                     read_len <= 32'b0;
-                    mem_data <= 'b0;
                     arvalid <= 1'b0;
                     rready <= 1'b0;
                     access_fault <= 1'b0;
                     burst_cnt <= 2'd0;
                     is_burst_done <= 1'b0;
-                end
-                CHECK: begin
-                    icache_req <= 1'b0;
-                    if(!icache_req) begin
-                        if (icache_hit) begin
-                            fu_to_du_bus <= {pc, icache_data};
-                            ifu_valid <= 1'b1;
-                        end else if (mem_req) begin
-                            araddr <= block_base_addr;
-                            arvalid <= 1'b1;
-                            arid <= 4'h0;
-                            arsize <= 3'h2;
-                            if (is_sdram) begin
-                                arlen <= 8'(TRANSFER_COUNT - 1);
-                                arburst <= 2'h1;
-                            end else begin
-                                arlen <= 8'h0;
-                                arburst <= 2'h0;
-                            end
+
+                    mem_ready <= 1'b0;
+                    mem_data <= 'b0;
+                    if (icache_hit) begin
+                        fu_to_du_bus <= {pc, icache_data};
+                        ifu_valid <= 1'b1;
+                    end else if (mem_req) begin
+                        araddr <= block_base_addr;
+                        arvalid <= 1'b1;
+                        arid <= 4'h0;
+                        arsize <= 3'h2;
+                        if (is_sdram) begin
+                            arlen <= 8'(TRANSFER_COUNT - 1);
+                            arburst <= 2'h1;
+                        end else begin
+                            arlen <= 8'h0;
+                            arburst <= 2'h0;
                         end
                     end
                 end

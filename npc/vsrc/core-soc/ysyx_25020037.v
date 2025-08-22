@@ -175,7 +175,6 @@ module ysyx_25020037 (
     wire         lsu_access_fault;
 
     wire [31: 0] icache_addr;
-    wire         icache_req;
     wire [31: 0] icache_data;
     wire         icache_hit;
     wire         icache_ready;
@@ -222,7 +221,6 @@ module ysyx_25020037 (
         .rlast         (ifu_rlast        ),
         .rid           (ifu_rid          ),
         .icache_addr   (icache_addr      ),
-        .icache_req    (icache_req       ),
         .icache_data   (icache_data      ),
         .icache_hit    (icache_hit       ),
         .icache_ready  (icache_ready     ),
@@ -242,7 +240,6 @@ module ysyx_25020037 (
         .rst           (reset           ),
         .eu_to_ic_bus  (eu_to_ic_bus    ),
         .cpu_addr      (icache_addr     ),
-        .cpu_req       (icache_req      ),
         .cpu_data      (icache_data     ),
         .cpu_hit       (icache_hit      ),
         .cpu_ready     (icache_ready    ),
