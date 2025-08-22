@@ -349,7 +349,6 @@ module ysyx_25020037_idu (
         if (rst) begin
             state <= IDLE;
             idu_valid <= 1'b0;
-            idu_ready <= 1'h0;
             du_to_eu_bus <= `DU_TO_EU_BUS_WD'b0;
         end else begin
             state <= next_state;
@@ -381,7 +380,6 @@ module ysyx_25020037_idu (
                     csrrw_op
                 };
                 idu_valid <= 1'b1;
-                idu_ready <= 1'b1;
             end
         end
     end
