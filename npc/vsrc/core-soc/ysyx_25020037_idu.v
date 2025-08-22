@@ -373,7 +373,6 @@ module ysyx_25020037_idu (
                     csrrs_op,
                     csrrw_op
                 };
-                idu_valid <= 1'b1;
             end
         end
     end

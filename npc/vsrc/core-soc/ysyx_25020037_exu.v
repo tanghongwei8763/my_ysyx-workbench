@@ -17,8 +17,6 @@ module ysyx_25020037_exu (
     import "DPI-C" function void hit(input int inst_not_realize);
 `endif
 
-    reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus_r;
-
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
@@ -63,7 +61,7 @@ module ysyx_25020037_exu (
             csr_data,
             csrrs_op,
             csrrw_op
-           } = du_to_eu_bus_r;
+           } = du_to_eu_bus;
 
     wire [31: 0] dnpc_r;
     wire [31: 0] result;
