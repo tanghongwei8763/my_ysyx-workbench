@@ -130,9 +130,9 @@ module ysyx_25020037_lsu (
             rready <= 1'b0;
         end else begin
             state <= next_state;
-            lsu_valid <= 1'b0;
             case (state)
                 IDLE: begin
+                    lsu_valid <= 1'b0;
                     access_fault <= 1'b0;
                     awvalid <= 1'b0;
                     wvalid <= 1'b0;
@@ -178,6 +178,7 @@ module ysyx_25020037_lsu (
                     end
                 end
                 BUSY: begin
+                    lsu_valid <= 1'b0;
                     if (is_read) begin
                         if (arvalid && arready) begin
                             arvalid <= 1'b0;
