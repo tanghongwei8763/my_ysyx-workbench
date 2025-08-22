@@ -108,20 +108,22 @@ module ysyx_25020037_ifu #(
 
                     mem_ready <= 1'b0;
                     mem_data <= 'b0;
-                    if (icache_hit) begin
-                        fu_to_du_bus <= {pc, icache_data};
-                        ifu_valid <= 1'b1;
-                    end else if (mem_req) begin
-                        araddr <= block_base_addr;
-                        arvalid <= 1'b1;
-                        arid <= 4'h0;
-                        arsize <= 3'h2;
-                        if (is_sdram) begin
-                            arlen <= 8'(TRANSFER_COUNT - 1);
-                            arburst <= 2'h1;
-                        end else begin
-                            arlen <= 8'h0;
-                            arburst <= 2'h0;
+                    if(idu_ready) begin
+                        if (icache_hit) begin
+                            fu_to_du_bus <= {pc, icache_data};
+                            ifu_valid <= 1'b1;
+                        end else if (mem_req) begin
+                            araddr <= block_base_addr;
+                            arvalid <= 1'b1;
+                            arid <= 4'h0;
+                            arsize <= 3'h2;
+                            if (is_sdram) begin
+                                arlen <= 8'(TRANSFER_COUNT - 1);
+                                arburst <= 2'h1;
+                            end else begin
+                                arlen <= 8'h0;
+                                arburst <= 2'h0;
+                            end
                         end
                     end
                 end
