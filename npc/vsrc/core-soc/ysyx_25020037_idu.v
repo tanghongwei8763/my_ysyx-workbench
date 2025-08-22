@@ -6,7 +6,7 @@ module ysyx_25020037_idu (
     input  wire         ifu_valid,
     input  wire         exu_ready,
     output reg          idu_valid,
-    output reg          idu_ready,
+    output wire         idu_ready,
     output wire [`RS_DATA-1: 0] rs_data,
     input  wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
     input  wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus,
@@ -341,38 +341,41 @@ module ysyx_25020037_idu (
 
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
+    assign idu_ready = exu_ready;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             idu_valid <= 1'b0;
             du_to_eu_bus <= `DU_TO_EU_BUS_WD'b0;
         end else begin
             idu_valid <= 1'b0;
-            if (ifu_valid) begin
-                idu_valid <= 1'b1;
-                du_to_eu_bus <= {
-                    du_to_gu_bus,
-                    du_to_lu_bus,
-                    du_to_wu_bus,
-                    pc,
-                    inst_l,
-                    inst_s,
-                    is_fence_i,         
-                    imm,
-                    src1,
-                    src2,   
-                    alu_op,             
-                    src1_is_pc,      
-                    src2_is_imm,     
-                    is_pc_jump,      
-                    double_cal,      
-                    ebreak,          
-                    inst_not_realize,
-                    ecall_en,
-                    mret_en,
-                    csr_data,
-                    csrrs_op,
-                    csrrw_op
-                };
+            if(exu_ready) begin
+                if (ifu_valid) begin
+                    idu_valid <= 1'b1;
+                    du_to_eu_bus <= {
+                        du_to_gu_bus,
+                        du_to_lu_bus,
+                        du_to_wu_bus,
+                        pc,
+                        inst_l,
+                        inst_s,
+                        is_fence_i,         
+                        imm,
+                        src1,
+                        src2,   
+                        alu_op,             
+                        src1_is_pc,      
+                        src2_is_imm,     
+                        is_pc_jump,      
+                        double_cal,      
+                        ebreak,          
+                        inst_not_realize,
+                        ecall_en,
+                        mret_en,
+                        csr_data,
+                        csrrs_op,
+                        csrrw_op
+                    };
+                end
             end
         end
     end

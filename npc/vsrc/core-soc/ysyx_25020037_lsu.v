@@ -105,6 +105,7 @@ module ysyx_25020037_lsu (
         if (rst) begin
             state <= IDLE;
             lsu_valid <= 1'b0;
+            lsu_ready <= 1'b1;
             access_fault <= 1'b0;
             lu_to_wu_bus <= 'b0;
             awvalid <= 1'b0;
@@ -138,6 +139,7 @@ module ysyx_25020037_lsu (
                     bready <= 1'b0;
                     rready <= 1'b0;
                     if (exu_valid) begin
+                        lsu_ready <= 1'b0;
                         if (du_to_lu_bus[1]) begin
                             araddr  <= addr;
                             arvalid <= 1'b1;
@@ -163,6 +165,7 @@ module ysyx_25020037_lsu (
                             endcase
                         end else begin
                             lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
                             lu_to_wu_bus <= {
                                 du_to_wu_bus,
                                 du_to_gu_bus,
@@ -188,6 +191,7 @@ module ysyx_25020037_lsu (
                                 rdata
                                 };
                             lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
                             access_fault <= (rresp != 2'b00);
                             rready <= 1'b0;
                         end
@@ -199,6 +203,7 @@ module ysyx_25020037_lsu (
                         end
                         if (bvalid && bready) begin
                             lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
                             access_fault <= (bresp != 2'b00);
                             bready <= 1'b0;
                         end

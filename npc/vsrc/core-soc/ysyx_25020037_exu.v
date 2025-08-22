@@ -6,7 +6,7 @@ module ysyx_25020037_exu (
     input  wire         idu_valid,
     input  wire         lsu_ready,
     output reg          exu_valid,
-    output reg          exu_ready,
+    output wire         exu_ready,
     input  wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
@@ -97,35 +97,37 @@ module ysyx_25020037_exu (
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
+    assign exu_ready = lsu_ready;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             exu_valid <= 0;
-            exu_ready <= 1'b0;
             eu_to_lu_bus <= `EU_TO_LU_BUS_WD'b0;
             eu_to_ic_bus <= `EU_TO_IC_BUS_WD'b0;
             exu_dnpc_valid <=1'b0;
             exu_dnpc <= 32'b0;
         end else begin
             exu_valid <= 1'b0;
-            eu_to_ic_bus <= 'b0;
-            if (idu_valid) begin
-                exu_valid <= 1'b1;
-                if(dnpc_r != 32'b0) begin
-                    exu_dnpc_valid <=1'b1;
-                    exu_dnpc <= dnpc_r;
-                end else begin
-                    exu_dnpc_valid <=1'b0;
-                    exu_dnpc <= 32'b0;
+            if(lsu_ready) begin
+                eu_to_ic_bus <= 'b0;
+                if (idu_valid) begin
+                    exu_valid <= 1'b1;
+                    if(dnpc_r != 32'b0) begin
+                        exu_dnpc_valid <=1'b1;
+                        exu_dnpc <= dnpc_r;
+                    end else begin
+                        exu_dnpc_valid <=1'b0;
+                        exu_dnpc <= 32'b0;
+                    end
+                    eu_to_lu_bus <= {
+                        du_to_gu_bus,
+                        du_to_lu_bus,
+                        du_to_wu_bus,         
+                        result,
+                        csr_wcsr_data,
+                        src2
+                    };
+                    eu_to_ic_bus <= is_fence_i;
                 end
-                eu_to_lu_bus <= {
-                    du_to_gu_bus,
-                    du_to_lu_bus,
-                    du_to_wu_bus,         
-                    result,
-                    csr_wcsr_data,
-                    src2
-                };
-                eu_to_ic_bus <= is_fence_i;
             end
         end
     end
