@@ -348,34 +348,32 @@ module ysyx_25020037_idu (
             du_to_eu_bus <= `DU_TO_EU_BUS_WD'b0;
         end else begin
             idu_valid <= 1'b0;
-            if(exu_ready) begin
-                if (ifu_valid) begin
-                    idu_valid <= 1'b1;
-                    du_to_eu_bus <= {
-                        du_to_gu_bus,
-                        du_to_lu_bus,
-                        du_to_wu_bus,
-                        pc,
-                        inst_l,
-                        inst_s,
-                        is_fence_i,         
-                        imm,
-                        src1,
-                        src2,   
-                        alu_op,             
-                        src1_is_pc,      
-                        src2_is_imm,     
-                        is_pc_jump,      
-                        double_cal,      
-                        ebreak,          
-                        inst_not_realize,
-                        ecall_en,
-                        mret_en,
-                        csr_data,
-                        csrrs_op,
-                        csrrw_op
-                    };
-                end
+            if (ifu_valid) begin
+                idu_valid <= 1'b1;
+                du_to_eu_bus <= {
+                    du_to_gu_bus,
+                    du_to_lu_bus,
+                    du_to_wu_bus,
+                    pc,
+                    inst_l,
+                    inst_s,
+                    is_fence_i,         
+                    imm,
+                    src1,
+                    src2,   
+                    alu_op,             
+                    src1_is_pc,      
+                    src2_is_imm,     
+                    is_pc_jump,      
+                    double_cal,      
+                    ebreak,          
+                    inst_not_realize,
+                    ecall_en,
+                    mret_en,
+                    csr_data,
+                    csrrs_op,
+                    csrrw_op
+                };
             end
         end
     end
