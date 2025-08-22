@@ -51,11 +51,9 @@ module ysyx_25020037_ifu #(
     wire [31:0] inst;
     wire [31:0] snpc;
     wire [31:0] dnpc;
-    reg         icache_hit_reg;
-    reg  [31:0] block_base_addr;
     reg  [31:0] read_len;
-    reg         is_sdram;
-    wire [31:0] aligned_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
+    wire [31:0] block_base_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
+    wire        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
     reg  [1:0]  burst_cnt;
     reg         is_burst_done;
 
@@ -72,7 +70,6 @@ module ysyx_25020037_ifu #(
     assign      dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
 
     always @(*) begin
-        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
         case (state)
             IDLE:  begin next_state = CHECK; end
             CHECK: begin next_state = (icache_hit) ? IDLE : (mem_req) ? BUSY : CHECK; end
@@ -97,19 +94,16 @@ module ysyx_25020037_ifu #(
             icache_req <= 1'b0;
             mem_data <= 'b0;
             mem_ready <= 1'b0;
-            block_base_addr <= 32'h0;
             read_len <= 32'b0;
             access_fault <= 1'b0;
             burst_cnt <= 2'd0;
             is_burst_done <= 1'b0;
         end else begin
             state <= next_state;
-            icache_hit_reg <= icache_hit;
             case (state)
                 IDLE: begin
                     icache_addr <= pc;
                     icache_req <= 1'b1;
-                    block_base_addr <= aligned_addr;
 
                     ifu_valid <= 1'b0;
                     mem_ready <= 1'b0;
