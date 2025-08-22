@@ -70,6 +70,7 @@ always @(posedge clk or posedge rst) begin
         cpu_ready <= 1'b0;
     end else begin
         current_state <= next_state;
+        cpu_hit <= 1'b0;
 
         case (current_state)
             COMPARE: begin
