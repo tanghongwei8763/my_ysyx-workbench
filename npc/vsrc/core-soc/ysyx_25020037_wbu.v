@@ -10,12 +10,6 @@ module ysyx_25020037_wbu (
     input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
     output reg  [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus
 );
-    
-    localparam IDLE   = 1'b0;
-    localparam BUSY   = 1'b1;
-    reg state, next_state;
-
-    reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus_r;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [31: 0] addr;
@@ -26,7 +20,7 @@ module ysyx_25020037_wbu (
             addr,
             csr_wcsr_data,
             data
-           } = lu_to_wu_bus_r;
+           } = lu_to_wu_bus;
     wire         inst_l;
     wire         inst_s;
     wire [ 2: 0] lw_lh_lb;
@@ -66,47 +60,21 @@ module ysyx_25020037_wbu (
                           rdata_processed;
     assign final_gpr_we = rst ? 1'b0   : gpr_we | rlsu_we;
 
-    always @(*) begin
-        case (state)
-            IDLE: next_state = (lsu_valid & wbu_ready) ? BUSY : IDLE;
-            BUSY: next_state = (wbu_valid) ? IDLE : BUSY;
-            default: next_state = IDLE;
-        endcase
-    end
-
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            state <= IDLE;
             wbu_valid <= 1'b0;
-            wbu_ready <= 1'b1;
             wu_to_gu_bus <= `WU_TO_GU_BUS_WD'b0;
         end else begin
-            state <= next_state;
-
-            case (state)
-                IDLE: begin
-                    if (lsu_valid & !wbu_ready) begin
-                        lu_to_wu_bus_r <= lu_to_wu_bus;
-                        wbu_ready <= 1'b1;
-                    end
-                    if (lsu_valid & wbu_ready) begin
-                        wbu_ready <= 1'b0;
-                    end
-                    wbu_valid <= 1'b0;
-                end
-                BUSY: begin
-                    if (gpr_ready) begin
-                        wu_to_gu_bus <= {
-                            du_to_gu_bus,
-                            csr_wcsr_data,     
-                            final_gpr_we,         
-                            final_result 
-                        };
-                        wbu_valid <= 1'b1;
-                        wbu_ready <= 1'b1;
-                    end
-                end
-            endcase
+            wbu_valid <= 1'b0;
+            if (lsu_valid) begin
+                wbu_valid <= 1'b1;
+                wu_to_gu_bus <= {
+                    du_to_gu_bus,
+                    csr_wcsr_data,     
+                    final_gpr_we,         
+                    final_result 
+                };
+            end
         end
     end
 
