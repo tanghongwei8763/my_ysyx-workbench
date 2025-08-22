@@ -39,12 +39,11 @@ module ysyx_25020037_idu (
             csr_data
            } = gu_to_du_bus;
 
-    reg  [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus_r;
     wire [31: 0] pc;
     wire [31: 0] inst;
     assign {pc,
             inst
-           } = fu_to_du_bus_r;
+           } = fu_to_du_bus;
 
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
@@ -346,14 +345,6 @@ module ysyx_25020037_idu (
 
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
-    always @(*) begin
-        case (state)
-            IDLE: next_state = (ifu_valid & idu_ready) ? BUSY : IDLE;
-            BUSY: next_state = (idu_valid) ? IDLE : BUSY;
-            default: next_state = IDLE;
-        endcase
-    end
-
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
@@ -362,47 +353,36 @@ module ysyx_25020037_idu (
             du_to_eu_bus <= `DU_TO_EU_BUS_WD'b0;
         end else begin
             state <= next_state;
-
-            case (state)
-                IDLE: begin
-                    if (ifu_valid & !idu_ready) begin
-                        fu_to_du_bus_r <= fu_to_du_bus;
-                        idu_ready <= 1'b1;
-                    end
-                    if (ifu_valid & idu_ready) begin
-                        idu_ready <= 1'b0;
-                    end
-                    idu_valid <= 1'b0;
-                end
-                BUSY: begin
-                    du_to_eu_bus <= {
-                        du_to_gu_bus,
-                        du_to_lu_bus,
-                        du_to_wu_bus,
-                        pc,
-                        inst_l,
-                        inst_s,
-                        is_fence_i,         
-                        imm,
-                        src1,
-                        src2,   
-                        alu_op,             
-                        src1_is_pc,      
-                        src2_is_imm,     
-                        is_pc_jump,      
-                        double_cal,      
-                        ebreak,          
-                        inst_not_realize,
-                        ecall_en,
-                        mret_en,
-                        csr_data,
-                        csrrs_op,
-                        csrrw_op
-                    };
-                    idu_valid <= 1'b1;
-                    idu_ready <= 1'b1;
-                end
-            endcase
+            idu_valid <= 1'b0;
+            if (ifu_valid) begin
+                idu_valid <= 1'b1;
+                du_to_eu_bus <= {
+                    du_to_gu_bus,
+                    du_to_lu_bus,
+                    du_to_wu_bus,
+                    pc,
+                    inst_l,
+                    inst_s,
+                    is_fence_i,         
+                    imm,
+                    src1,
+                    src2,   
+                    alu_op,             
+                    src1_is_pc,      
+                    src2_is_imm,     
+                    is_pc_jump,      
+                    double_cal,      
+                    ebreak,          
+                    inst_not_realize,
+                    ecall_en,
+                    mret_en,
+                    csr_data,
+                    csrrs_op,
+                    csrrw_op
+                };
+                idu_valid <= 1'b1;
+                idu_ready <= 1'b1;
+            end
         end
     end
 
