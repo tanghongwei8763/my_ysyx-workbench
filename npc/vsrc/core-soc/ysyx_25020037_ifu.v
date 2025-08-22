@@ -66,7 +66,7 @@ module ysyx_25020037_ifu #(
         .dout        (pc       ),
         .wen         (pc_updata)
     );
-    wire        pc_updata = ifu_valid;
+    wire        pc_updata = (next_state == IDLE);
     assign      inst = fu_to_du_bus[31:0];
     assign      snpc = pc + 32'h4;
     assign      dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
