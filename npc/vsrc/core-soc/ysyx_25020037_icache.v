@@ -25,7 +25,6 @@ module ysyx_25020037_icache #(
     input  wire                  mem_ready
 );
 wire is_fence_i = eu_to_ic_bus;
-wire cache_hit;
 
 wire [OFFSET_WIDTH-1:0]   offset;
 wire [ INDEX_WIDTH-1:0]   index;

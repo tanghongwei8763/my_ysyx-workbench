@@ -21,6 +21,10 @@ extern Vysyx_25020037 *top;
 static const uint32_t img [] = {
 0x100007b7,          	//lui	a5,0x10000
 0x04100713,          	//li	a4,65
+0x00150513,           //addi a0 a0 1
+0x00150513,           //addi a0 a0 1
+0x00150513,           //addi a0 a0 1
+0x00150513,           //addi a0 a0 1
 0x00e78023,          	//sb	a4,0(a5) # 10000000 <_sram_end+0xffe000>
 0x00e78023,          	//sb	a4,0(a5)
 0x00e78023,          	//sb	a4,0(a5)
