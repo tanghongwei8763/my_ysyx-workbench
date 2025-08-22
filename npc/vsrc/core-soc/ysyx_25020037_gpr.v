@@ -45,8 +45,6 @@ module ysyx_25020037_gpr (
     end
   endgenerate
 
-  reg  [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus_r;
-
   wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
   wire [31: 0] csr_wcsr_data;
   wire [31: 0] gpr_wdata;
@@ -55,7 +53,7 @@ module ysyx_25020037_gpr (
           csr_wcsr_data,
           gpr_wen,
           gpr_wdata
-         } = wu_to_gu_bus_r;
+         } = wu_to_gu_bus;
   wire [11: 0] imm;
   wire [ 4: 0] rs1;
   wire [ 4: 0] rs2;
@@ -171,40 +169,4 @@ module ysyx_25020037_gpr (
            csr_data
          };
 
-  always @(*) begin
-    case (state)
-      IDLE: next_state = ((wbu_valid | idu_valid) & gpr_ready) ? BUSY : IDLE;
-      BUSY: next_state = (gpr_valid) ? IDLE : BUSY;
-      default: next_state = IDLE;
-    endcase
-    end
-
-    always @(posedge clk or posedge rst) begin
-      if (rst) begin
-        state <= IDLE;
-        gpr_valid <= 1'b0;
-        gpr_ready <= 1'h1;
-      end else begin
-        state <= next_state;
-
-        case (state)
-          IDLE: begin            
-            if (wbu_valid & !gpr_ready) begin
-              wu_to_gu_bus_r <= wu_to_gu_bus;
-              gpr_ready <= 1'b1;
-            end
-            if (wbu_valid & gpr_ready) begin
-              gpr_ready <= 1'b0;
-            end
-            gpr_valid <= 1'b0;
-          end
-          BUSY: begin
-            if (exu_ready) begin
-              gpr_ready <= 1'b1;
-              gpr_valid <= 1'b1;
-            end
-          end
-        endcase
-      end
-    end
 endmodule
