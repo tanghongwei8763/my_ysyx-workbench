@@ -73,6 +73,8 @@ module ysyx_25020037_lsu (
     wire [31:0] aligned_wdata = data << (addr_off << 3);
     wire [ 2:0] data_rop = du_to_lu_bus[7:5];
     wire [ 2:0] data_wop = du_to_lu_bus[4:2];
+    wire        is_write = du_to_lu_bus[0];
+    wire        is_read  = du_to_lu_bus[1];
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
@@ -95,7 +97,7 @@ module ysyx_25020037_lsu (
 
     always @(*) begin
         case (state)
-            IDLE: begin next_state = (exu_valid) ? BUSY : IDLE; end
+            IDLE: begin next_state = (exu_valid & (is_write | is_read)) ? BUSY : IDLE; end
             BUSY: begin next_state = (lsu_valid) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
@@ -140,14 +142,14 @@ module ysyx_25020037_lsu (
                     rready <= 1'b0;
                     if (exu_valid) begin
                         lsu_ready <= 1'b0;
-                        if (du_to_lu_bus[1]) begin
+                        if (is_read) begin
                             araddr  <= addr;
                             arvalid <= 1'b1;
                             arid <= 4'h0;
                             arlen <= AXI_LEN_SINGLE;
                             arsize <= axi_rsize;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
-                        end else if (du_to_lu_bus[0]) begin
+                        end else if (is_write) begin
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
                             awaddr  <= addr;
@@ -177,7 +179,7 @@ module ysyx_25020037_lsu (
                     end
                 end
                 BUSY: begin
-                    if (du_to_lu_bus[1]) begin
+                    if (is_read) begin
                         if (arvalid && arready) begin
                             arvalid <= 1'b0;
                             rready <= 1'b1;
@@ -195,7 +197,7 @@ module ysyx_25020037_lsu (
                             access_fault <= (rresp != 2'b00);
                             rready <= 1'b0;
                         end
-                    end else if (du_to_lu_bus[0]) begin 
+                    end else if (is_write) begin 
                         if (awvalid && awready && wvalid && wready) begin
                             awvalid <= 1'b0;
                             wvalid <= 1'b0;
