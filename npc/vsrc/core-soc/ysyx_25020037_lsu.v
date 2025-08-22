@@ -193,7 +193,7 @@ module ysyx_25020037_lsu (
                                 rdata
                                 };
                             lsu_valid <= 1'b1;
-                            lsu_ready <= ~is_read;
+                            lsu_ready <= 1'b1;
                             access_fault <= (rresp != 2'b00);
                             rready <= 1'b0;
                         end
@@ -205,7 +205,7 @@ module ysyx_25020037_lsu (
                         end
                         if (bvalid && bready) begin
                             lsu_valid <= 1'b1;
-                            lsu_ready <= ~is_write;
+                            lsu_ready <= 1'b1;
                             access_fault <= (bresp != 2'b00);
                             bready <= 1'b0;
                         end
