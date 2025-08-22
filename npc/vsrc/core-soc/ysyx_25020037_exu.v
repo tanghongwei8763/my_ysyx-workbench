@@ -16,10 +16,6 @@ module ysyx_25020037_exu (
 `ifdef VERILATOR
     import "DPI-C" function void hit(input int inst_not_realize);
 `endif
-    localparam IDLE  = 1'b0;
-    localparam BUSY  = 1'b1;
-
-    reg          state, next_state;
 
     reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus_r;
 
@@ -105,7 +101,6 @@ module ysyx_25020037_exu (
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            state <= IDLE;
             exu_valid <= 0;
             exu_ready <= 1'b0;
             eu_to_lu_bus <= `EU_TO_LU_BUS_WD'b0;
@@ -113,51 +108,30 @@ module ysyx_25020037_exu (
             exu_dnpc_valid <=1'b0;
             exu_dnpc <= 32'b0;
         end else begin
-            state <= next_state;
-            
-            case (state)
-                IDLE: begin
-                    if (idu_valid & !exu_ready) begin
-                        exu_ready <= 1'b1;
-                        du_to_eu_bus_r <= du_to_eu_bus;
-                    end
-                    if (idu_valid & exu_ready) begin
-                        exu_ready <= 1'b0;
-                    end
-                    exu_valid <= 1'b0;
-                    eu_to_ic_bus <= 'b0;
+            exu_valid <= 1'b0;
+            eu_to_ic_bus <= 'b0;
+            if (idu_valid) begin
+                exu_valid <= 1'b1;
+                if(dnpc_r != 32'b0) begin
+                    exu_dnpc_valid <=1'b1;
+                    exu_dnpc <= dnpc_r;
+                end else begin
+                    exu_dnpc_valid <=1'b0;
+                    exu_dnpc <= 32'b0;
                 end
-                BUSY: begin
-                    if(dnpc_r != 32'b0) begin
-                        exu_dnpc_valid <=1'b1;
-                        exu_dnpc <= dnpc_r;
-                    end else begin
-                        exu_dnpc_valid <=1'b0;
-                        exu_dnpc <= 32'b0;
-                    end
-                    eu_to_lu_bus <= {
-                        du_to_gu_bus,
-                        du_to_lu_bus,
-                        du_to_wu_bus,         
-                        result,
-                        csr_wcsr_data,
-                        src2
-                    };
-                    exu_valid <= 1'b1;
-                    exu_ready <= 1'b1;
-                    eu_to_ic_bus <= is_fence_i;
-                end
-            endcase
+                eu_to_lu_bus <= {
+                    du_to_gu_bus,
+                    du_to_lu_bus,
+                    du_to_wu_bus,         
+                    result,
+                    csr_wcsr_data,
+                    src2
+                };
+                eu_to_ic_bus <= is_fence_i;
+            end
         end
     end
 
-    always @(*) begin
-        case (state)
-            IDLE: next_state = (idu_valid & exu_ready) ? BUSY : IDLE;
-            BUSY: next_state = (exu_valid) ? IDLE : BUSY;
-            default: next_state = IDLE;
-        endcase
-    end
 `ifdef VERILATOR
     always @(*) begin
        if(ebreak | inst_not_realize) begin hit({32{inst_not_realize}}); end
