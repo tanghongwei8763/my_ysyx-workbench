@@ -61,9 +61,9 @@ module ysyx_25020037_lsu (
     assign {
         du_to_gu_bus,
         du_to_lu_bus,
-        du_to_wu_bus,         
+        du_to_wu_bus,    
+        csr_wcsr_data,     
         addr,
-        csr_wcsr_data,
         data
     } = eu_to_lu_bus;
     wire [31:0] addr;
