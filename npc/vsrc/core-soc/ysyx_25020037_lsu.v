@@ -98,7 +98,7 @@ module ysyx_25020037_lsu (
     always @(*) begin
         case (state)
             IDLE: begin next_state = (exu_valid & (is_write | is_read)) ? BUSY : IDLE; end
-            BUSY: begin next_state = (lsu_valid) ? IDLE : BUSY; end
+            BUSY: begin next_state = (lsu_valid | (bvalid & wlast) | (rvalid & rlast)) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
