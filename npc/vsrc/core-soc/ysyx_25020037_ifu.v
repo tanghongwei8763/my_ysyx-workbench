@@ -71,7 +71,7 @@ module ysyx_25020037_ifu #(
         case (state)
             IDLE:  begin next_state = (icache_hit) ? IDLE : BUSY; end
             BUSY:  begin next_state = (mem_ready) ? READ : BUSY; end
-            READ:  begin next_state = IDLE; end
+            READ:  begin next_state = (idu_ready) ? IDLE : READ; end
             default: next_state = IDLE;
         endcase
     end
@@ -95,21 +95,20 @@ module ysyx_25020037_ifu #(
             burst_cnt <= 2'd0;
             is_burst_done <= 1'b0;
         end else begin
-            if(idu_ready) begin
-                state <= next_state;
-                case (state)
-                    IDLE: begin
+            state <= next_state;
+            case (state)
+                IDLE: begin
+                    fu_to_du_bus <= 'b0;
+                    read_len <= 32'b0;
+                    arvalid <= 1'b0;
+                    rready <= 1'b0;
+                    access_fault <= 1'b0;
+                    burst_cnt <= 2'd0;
+                    is_burst_done <= 1'b0;
+                    mem_ready <= 1'b0;
+                    mem_data <= 'b0;
+                    if (idu_ready) begin
                         ifu_valid <= 1'b0;
-                        fu_to_du_bus <= 'b0;
-                        read_len <= 32'b0;
-                        arvalid <= 1'b0;
-                        rready <= 1'b0;
-                        access_fault <= 1'b0;
-                        burst_cnt <= 2'd0;
-                        is_burst_done <= 1'b0;
-
-                        mem_ready <= 1'b0;
-                        mem_data <= 'b0;
                         if (icache_hit) begin
                             fu_to_du_bus <= {pc, icache_data};
                             ifu_valid <= 1'b1;
@@ -127,56 +126,57 @@ module ysyx_25020037_ifu #(
                             end
                         end
                     end
-                    BUSY: begin
-                        if (arvalid && arready) begin
-                            arvalid <= 1'b0;
-                            rready <= 1'b1;
+                end
+                BUSY: begin
+                    if (arvalid && arready) begin
+                        arvalid <= 1'b0;
+                        rready <= 1'b1;
+                        is_burst_done <= 1'b0;
+                    end
+                    if (rvalid && rready) begin
+                        if (rresp != 2'b00) begin
+                            access_fault <= 1'b1;
+                            mem_ready <= 1'b1;
+                            rready <= 1'b0;
+                            burst_cnt <= 2'd0;
                             is_burst_done <= 1'b0;
-                        end
-                        if (rvalid && rready) begin
-                            if (rresp != 2'b00) begin
-                                access_fault <= 1'b1;
-                                mem_ready <= 1'b1;
-                                rready <= 1'b0;
-                                burst_cnt <= 2'd0;
-                                is_burst_done <= 1'b0;
+                        end else begin
+                            mem_data[burst_cnt*32 +: 32] <= rdata;
+                            burst_cnt <= burst_cnt + 1'b1;
+                            if (is_sdram) begin
+                                if (rlast) begin
+                                    mem_ready <= 1'b1;
+                                    rready <= 1'b0;
+                                    burst_cnt <= 2'd0;
+                                    is_burst_done <= 1'b1;
+                                end
                             end else begin
-                                mem_data[burst_cnt*32 +: 32] <= rdata;
-                                burst_cnt <= burst_cnt + 1'b1;
-
-                                if (is_sdram) begin
-                                    if (rlast) begin
-                                        mem_ready <= 1'b1;
-                                        rready <= 1'b0;
-                                        burst_cnt <= 2'd0;
-                                        is_burst_done <= 1'b1;
-                                    end
+                                if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
+                                    mem_ready <= 1'b1;
+                                    rready <= 1'b0;
+                                    burst_cnt <= 2'd0;
+                                    is_burst_done <= 1'b1;
                                 end else begin
-                                    if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
-                                        mem_ready <= 1'b1;
-                                        rready <= 1'b0;
-                                        burst_cnt <= 2'd0;
-                                        is_burst_done <= 1'b1;
-                                    end else begin
-                                        araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) * 32'd4;
-                                        arvalid <= 1'b1;
-                                    end
+                                    araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) * 32'd4;
+                                    arvalid <= 1'b1;
                                 end
                             end
                         end
                     end
-                    READ: begin
+                end
+                READ: begin
+                    if (idu_ready) begin
                         fu_to_du_bus <= {pc, icache_data};
                         ifu_valid <= 1'b1;
                     end
-                    default: begin 
-                        arvalid <= 1'b0;
-                        rready <= 1'b0;
-                        ifu_valid <= 1'b0;
-                        fu_to_du_bus <= 'b0;
-                    end
-                endcase
-            end
+                end
+                default: begin 
+                    arvalid <= 1'b0;
+                    rready <= 1'b0;
+                    ifu_valid <= 1'b0;
+                    fu_to_du_bus <= 'b0;
+                end
+            endcase
         end
     end
 
