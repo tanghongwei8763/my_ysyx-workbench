@@ -99,6 +99,7 @@ module ysyx_25020037_ifu #(
             case (state)
                 IDLE: begin
                     ifu_valid <= 1'b0;
+                    fu_to_du_bus <= 'b0;
                     read_len <= 32'b0;
                     arvalid <= 1'b0;
                     rready <= 1'b0;
@@ -173,6 +174,7 @@ module ysyx_25020037_ifu #(
                     arvalid <= 1'b0;
                     rready <= 1'b0;
                     ifu_valid <= 1'b0;
+                    fu_to_du_bus <= 'b0;
                 end
             endcase
         end
