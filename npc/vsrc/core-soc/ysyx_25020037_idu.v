@@ -348,8 +348,8 @@ module ysyx_25020037_idu (
             du_to_eu_bus <= `DU_TO_EU_BUS_WD'b0;
         end else begin
             idu_valid <= 1'b0;
-            du_to_eu_bus <= 'b0;
             if (exu_ready) begin
+                du_to_eu_bus <= 'b0;
                 if (ifu_valid) begin
                     idu_valid <= 1'b1;
                     du_to_eu_bus <= {
