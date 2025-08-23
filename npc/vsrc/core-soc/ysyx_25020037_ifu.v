@@ -98,7 +98,6 @@ module ysyx_25020037_ifu #(
             state <= next_state;
             case (state)
                 IDLE: begin
-                    fu_to_du_bus <= 'b0;
                     read_len <= 32'b0;
                     arvalid <= 1'b0;
                     rready <= 1'b0;
@@ -109,6 +108,7 @@ module ysyx_25020037_ifu #(
                     mem_data <= 'b0;
                     if (idu_ready) begin
                         ifu_valid <= 1'b0;
+                        fu_to_du_bus <= 'b0;
                         if (icache_hit) begin
                             fu_to_du_bus <= {pc, icache_data};
                             ifu_valid <= 1'b1;
