@@ -73,8 +73,6 @@ module ysyx_25020037_lsu (
     wire [31:0] aligned_wdata = data << (addr_off << 3);
     wire [ 2:0] data_rop = du_to_lu_bus[7:5];
     wire [ 2:0] data_wop = du_to_lu_bus[4:2];
-    reg         is_write_reg;
-    reg         is_read_reg;
     wire        is_write = du_to_lu_bus[0];
     wire        is_read  = du_to_lu_bus[1];
 
@@ -130,14 +128,10 @@ module ysyx_25020037_lsu (
             arsize <= AXI_SIZE_WORD;
             arburst <= AXI_BURST_FIXED;
             rready <= 1'b0;
-            is_write_reg <= 1'b0;
-            is_read_reg <= 1'b0;
         end else begin
             state <= next_state;
             case (state)
                 IDLE: begin
-                    is_write_reg <= is_write;
-                    is_read_reg <= is_read;
                     lsu_valid <= 1'b0;
                     access_fault <= 1'b0;
                     awvalid <= 1'b0;
@@ -147,14 +141,14 @@ module ysyx_25020037_lsu (
                     rready <= 1'b0;
                     if (exu_valid) begin
                         lsu_ready <= 1'b0;
-                        if (is_read | is_read_reg) begin
+                        if (is_read) begin
                             araddr  <= addr;
                             arvalid <= 1'b1;
                             arid <= 4'h0;
                             arlen <= AXI_LEN_SINGLE;
                             arsize <= axi_rsize;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
-                        end else if (is_write | is_write_reg) begin
+                        end else if (is_write) begin
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
                             awaddr  <= addr;
@@ -185,7 +179,7 @@ module ysyx_25020037_lsu (
                 end
                 BUSY: begin
                     lsu_valid <= 1'b0;
-                    if (is_read_reg) begin
+                    if (is_read) begin
                         if (arvalid && arready) begin
                             arvalid <= 1'b0;
                             rready <= 1'b1;
@@ -203,7 +197,7 @@ module ysyx_25020037_lsu (
                             access_fault <= (rresp != 2'b00);
                             rready <= 1'b0;
                         end
-                    end else if (is_write_reg) begin 
+                    end else if (is_write) begin 
                         if (awvalid && awready && wvalid && wready) begin
                             awvalid <= 1'b0;
                             wvalid <= 1'b0;
