@@ -147,14 +147,14 @@ module ysyx_25020037_lsu (
                     rready <= 1'b0;
                     if (exu_valid) begin
                         lsu_ready <= 1'b0;
-                        if (is_read) begin
+                        if (is_read_reg) begin
                             araddr  <= addr;
                             arvalid <= 1'b1;
                             arid <= 4'h0;
                             arlen <= AXI_LEN_SINGLE;
                             arsize <= axi_rsize;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
-                        end else if (is_write) begin
+                        end else if (is_write_reg) begin
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
                             awaddr  <= addr;
