@@ -106,8 +106,8 @@ module ysyx_25020037_exu (
             exu_dnpc_valid <=1'b0;
             exu_dnpc <= 32'b0;
         end else begin
-            // exu_valid <= 1'b0;
             if(lsu_ready) begin
+                exu_valid <= 1'b0;
                 eu_to_ic_bus <= 'b0;
                 eu_to_lu_bus <= 'b0;
                 if (idu_valid) begin
