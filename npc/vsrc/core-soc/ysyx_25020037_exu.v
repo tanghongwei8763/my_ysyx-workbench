@@ -97,7 +97,7 @@ module ysyx_25020037_exu (
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
-    assign exu_ready = lsu_ready & ~(inst_l | inst_s);
+    assign exu_ready = lsu_ready;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             exu_valid <= 0;
