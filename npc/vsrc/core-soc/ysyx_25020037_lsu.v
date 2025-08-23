@@ -134,10 +134,10 @@ module ysyx_25020037_lsu (
             is_read_reg <= 1'b0;
         end else begin
             state <= next_state;
-            is_write_reg <= is_write;
-            is_read_reg <= is_read;
             case (state)
                 IDLE: begin
+                    is_write_reg <= is_write;
+                    is_read_reg <= is_read;
                     lsu_valid <= 1'b0;
                     access_fault <= 1'b0;
                     awvalid <= 1'b0;
