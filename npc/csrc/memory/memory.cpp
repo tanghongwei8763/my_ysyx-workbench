@@ -29,6 +29,8 @@ static const uint32_t img [] = {
 0x00350513,           //li  a0 3
 0x00450513,           //li  a0 4
 
+0x00450513,           //li  a0 4
+
 0x00c78023,          	//sb	a2,0(a5) # 10000000 <_sram_end+0xffe000>
 0x00d78023,          	//sb	a3,0(a5)
 0x00e78023,          	//sb	a4,0(a5)
