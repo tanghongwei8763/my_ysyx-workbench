@@ -250,16 +250,17 @@ module ysyx_25020037 (
     );
 
     ysyx_25020037_idu idu_cpu(
-        .clk         (clock       ),
-        .rst         (reset       ),
-        .ifu_valid   (ifu_valid   ),
-        .exu_ready   (exu_ready   ),
-        .idu_valid   (idu_valid   ),
-        .idu_ready   (idu_ready   ),
-        .rs_data     (rs_data     ),
-        .gu_to_du_bus(gu_to_du_bus),
-        .fu_to_du_bus(fu_to_du_bus),
-        .du_to_eu_bus(du_to_eu_bus)
+        .clk            (clock          ),
+        .rst            (reset          ),
+        .ifu_valid      (ifu_valid      ),
+        .exu_ready      (exu_ready      ),
+        .idu_valid      (idu_valid      ),
+        .idu_ready      (idu_ready      ),
+        .rs_data        (rs_data        ),
+        .exu_dnpc_valid (exu_dnpc_valid ),
+        .gu_to_du_bus   (gu_to_du_bus   ),
+        .fu_to_du_bus   (fu_to_du_bus   ),
+        .du_to_eu_bus   (du_to_eu_bus   )
         );
 
 

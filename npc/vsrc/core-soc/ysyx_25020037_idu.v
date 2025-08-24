@@ -8,6 +8,7 @@ module ysyx_25020037_idu (
     output reg          idu_valid,
     output wire         idu_ready,
     output wire [`RS_DATA-1: 0] rs_data,
+    input  wire         exu_dnpc_valid,
     input  wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
     input  wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus,
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
@@ -351,7 +352,7 @@ module ysyx_25020037_idu (
                 idu_valid <= 1'b0;
                 du_to_eu_bus <= 'b0;
                 if (ifu_valid) begin
-                    idu_valid <= 1'b1;
+                    idu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     du_to_eu_bus <= {
                         du_to_gu_bus,
                         du_to_lu_bus,
