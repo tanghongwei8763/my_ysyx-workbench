@@ -61,7 +61,7 @@ static const uint32_t img [] = {
 
 0x000080e7,           // jalr ra
 
-0x0007a683,          	//lw	a3,0(a5)
+0x00450513,           //li  a0 4
 0x00000513,          	//li	a0,0  6c
 0x00000513,          	//li	a0,0
 
