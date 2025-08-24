@@ -111,7 +111,7 @@ module ysyx_25020037_ifu #(
                         fu_to_du_bus <= 'b0;
                         if (icache_hit) begin
                             fu_to_du_bus <= {pc, icache_data};
-                            ifu_valid <= 1'b1;
+                            ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                         end else if (mem_req) begin
                             araddr <= block_base_addr;
                             arvalid <= 1'b1;
@@ -167,7 +167,7 @@ module ysyx_25020037_ifu #(
                 READ: begin
                     if (idu_ready) begin
                         fu_to_du_bus <= {pc, icache_data};
-                        ifu_valid <= 1'b1;
+                        ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     end
                 end
                 default: begin 
