@@ -84,8 +84,11 @@ module ysyx_25020037_exu (
         bypass_src1 = src1_r;
         for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
             if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 5'd0)) begin
-                bypass_src1 = bypass_data[i];
-                break;
+                if (bypass_is_load[i]) begin break; end
+                else begin
+                    bypass_src1 = bypass_data[i];
+                    break;
+                end
             end
         end
     end
@@ -94,8 +97,11 @@ module ysyx_25020037_exu (
         bypass_src2 = src2_r;
         for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
             if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 5'd0)) begin
-                bypass_src2 = bypass_data[i];
-                break;
+                if (bypass_is_load[i]) begin break; end
+                else begin
+                    bypass_src2 = bypass_data[i];
+                    break;
+                end
             end
         end
     end
