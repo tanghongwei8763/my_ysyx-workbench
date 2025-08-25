@@ -1,12 +1,13 @@
 `include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
 module ysyx_25020037_lsu (
-    input  wire          clk,
-    input  wire          rst,
-    input  wire          exu_valid,
-    input  wire          wbu_ready,
-    output wire          lsu_ready,
-    output reg           lsu_valid,
+    input  wire         clk,
+    input  wire         rst,
+    input  wire         exu_valid,
+    input  wire         wbu_ready,
+    output wire         lsu_ready,
+    output reg          lsu_valid,
     input  wire         exu_dnpc_valid,
+    output wire [31: 0] rdata_processed,
     input  wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
     output reg          access_fault,
@@ -118,7 +119,6 @@ module ysyx_25020037_lsu (
     end
 
     wire [31: 0] lsu_rdata;
-    wire [31:0] rdata_processed;
     assign lsu_rdata = inst_l ? (rdata >> ((addr & 32'b11) << 3)) : rdata;
     assign rdata_processed = (data_rop == 3'b001) ? 
                              (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 

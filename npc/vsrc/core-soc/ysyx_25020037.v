@@ -101,6 +101,7 @@ module ysyx_25020037 (
     wire [31: 0] exu_dnpc;
     wire         exu_dnpc_valid;
     wire         pc_updata;
+    wire [31:0]  rdata_processed;
 
     wire         ifu_valid;
     wire         idu_valid;
@@ -274,6 +275,7 @@ module ysyx_25020037 (
         .lsu_ready      (lsu_ready       ),
         .lsu_valid      (lsu_valid       ),
         .exu_dnpc_valid (exu_dnpc_valid  ),
+        .rdata_processed(rdata_processed ),
         .eu_to_lu_bus   (eu_to_lu_bus    ),
         .lu_to_wu_bus   (lu_to_wu_bus    ),
         .access_fault   (lsu_access_fault),
@@ -420,18 +422,20 @@ ysyx_25020037_clint u_clint (
 );
 
     ysyx_25020037_exu exu_cpu(
-        .clk           (clock         ),
-        .rst           (reset         ),
-        .idu_valid     (idu_valid     ),
-        .lsu_ready     (lsu_ready     ),
-        .exu_ready     (exu_ready     ),
-        .exu_valid     (exu_valid     ),
-        .du_to_eu_bus  (du_to_eu_bus  ),
-        .eu_to_lu_bus  (eu_to_lu_bus  ),
-        .eu_to_ic_bus  (eu_to_ic_bus  ),
-        .pc_updata     (pc_updata     ),
-        .exu_dnpc_valid(exu_dnpc_valid),
-        .exu_dnpc      (exu_dnpc      )
+        .clk            (clock          ),
+        .rst            (reset          ),
+        .idu_valid      (idu_valid      ),
+        .lsu_ready      (lsu_ready      ),
+        .exu_ready      (exu_ready      ),
+        .exu_valid      (exu_valid      ),
+        .lsu_valid      (lsu_valid      ),
+        .rdata_processed(rdata_processed),
+        .du_to_eu_bus   (du_to_eu_bus   ),
+        .eu_to_lu_bus   (eu_to_lu_bus   ),
+        .eu_to_ic_bus   (eu_to_ic_bus   ),
+        .pc_updata      (pc_updata      ),
+        .exu_dnpc_valid (exu_dnpc_valid ),
+        .exu_dnpc       (exu_dnpc       )
     );
 
     ysyx_25020037_wbu wbu_cpu(
