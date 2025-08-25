@@ -7,7 +7,6 @@ module ysyx_25020037_exu (
     input  wire         lsu_ready,
     output reg          exu_valid,
     output wire         exu_ready,
-    input  wire         lsu_valid,
     input  wire [31: 0] rdata_processed,
     input  wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
@@ -166,7 +165,7 @@ module ysyx_25020037_exu (
             lsu_update_en  <= 1'b0;
             lsu_update_idx <= 2'd0;
 
-            if (lsu_valid) begin
+            if (lsu_ready) begin
                 for (integer i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
                     if (bypass_valid[i] && bypass_is_load[i]) begin
                         lsu_update_idx <= i[1:0];

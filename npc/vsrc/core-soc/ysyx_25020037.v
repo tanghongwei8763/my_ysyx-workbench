@@ -428,7 +428,6 @@ ysyx_25020037_clint u_clint (
         .lsu_ready      (lsu_ready      ),
         .exu_ready      (exu_ready      ),
         .exu_valid      (exu_valid      ),
-        .lsu_valid      (lsu_valid      ),
         .rdata_processed(rdata_processed),
         .du_to_eu_bus   (du_to_eu_bus   ),
         .eu_to_lu_bus   (eu_to_lu_bus   ),
