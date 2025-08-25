@@ -18,6 +18,14 @@ module ysyx_25020037_exu (
     import "DPI-C" function void hit(input int inst_not_realize);
 `endif
 
+    localparam BYPASS_DEPTH = 4;
+    reg [ 4:0] bypass_rd[     BYPASS_DEPTH-1:0];
+    reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
+    reg        bypass_valid[  BYPASS_DEPTH-1:0];
+    reg        bypass_is_load[BYPASS_DEPTH-1:0];
+
+    wire [31: 0] src1;
+    wire [31: 0] src2;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
@@ -26,8 +34,11 @@ module ysyx_25020037_exu (
     wire         inst_s;
     wire         is_fence_i;
     wire [31: 0] imm;
-    wire [31: 0] src1;
-    wire [31: 0] src2;
+    wire [ 4: 0] rd;
+    wire [ 4: 0] rs1;
+    wire [ 4: 0] rs2;
+    wire [31: 0] src1_r;
+    wire [31: 0] src2_r;
     wire [16: 0] alu_op;
     wire         src1_is_pc;
     wire         src2_is_imm;
@@ -48,8 +59,11 @@ module ysyx_25020037_exu (
             inst_s,
             is_fence_i,
             imm,
-            src1,
-            src2, 
+            rd,
+            rs1,
+            rs2,
+            src1_r,
+            src2_r, 
             alu_op,
             src1_is_pc,
             src2_is_imm,
@@ -63,6 +77,31 @@ module ysyx_25020037_exu (
             csrrs_op,
             csrrw_op
            } = du_to_eu_bus;
+
+    reg [31:0] bypass_src1;
+    reg [31:0] bypass_src2;
+    always @(*) begin
+        bypass_src1 = src1_r;
+        for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+            if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 5'd0)) begin
+                bypass_src1 = bypass_data[i];
+                break;
+            end
+        end
+    end
+
+    always @(*) begin
+        bypass_src2 = src2_r;
+        for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+            if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 5'd0)) begin
+                bypass_src2 = bypass_data[i];
+                break;
+            end
+        end
+    end
+
+    assign src1 = bypass_src1;
+    assign src2 = bypass_src2;
 
     wire [31: 0] dnpc_r;
     wire [31: 0] result;
@@ -99,6 +138,31 @@ module ysyx_25020037_exu (
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
     assign exu_ready = lsu_ready;
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+                bypass_rd[i]       <= 5'd0;
+                bypass_data[i]     <= 32'd0;
+                bypass_valid[i]    <= 1'b0;
+                bypass_is_load[i]  <= 1'b0;
+            end
+        end else begin
+            if (lsu_ready && idu_valid && !exu_dnpc_valid) begin
+                for (integer i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
+                    bypass_rd[i]       <= bypass_rd[i - 1];
+                    bypass_data[i]     <= bypass_data[i - 1];
+                    bypass_valid[i]    <= bypass_valid[i - 1];
+                    bypass_is_load[i]  <= bypass_is_load[i - 1];
+                end
+                bypass_rd[0]       <= rd;
+                bypass_data[0]     <= result;
+                bypass_valid[0]    <= 1'b1;
+                bypass_is_load[0]  <= inst_l;
+            end
+        end
+    end
+
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             exu_valid <= 0;
