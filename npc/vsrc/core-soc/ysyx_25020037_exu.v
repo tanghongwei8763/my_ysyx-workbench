@@ -154,7 +154,6 @@ module ysyx_25020037_exu (
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            // 复位：清空缓冲区+重置LSU更新标记
             for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
                 bypass_rd[i]       <= 5'd0;
                 bypass_data[i]     <= 32'd0;
