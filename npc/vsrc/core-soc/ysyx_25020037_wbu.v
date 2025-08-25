@@ -14,44 +14,22 @@ module ysyx_25020037_wbu (
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [31: 0] addr;
     wire [31: 0] csr_wcsr_data;
-    wire [31: 0] data;
+    wire [31: 0] rdata_processed;
     assign {du_to_wu_bus,
             du_to_gu_bus,
             addr,
             csr_wcsr_data,
-            data
+            rdata_processed
            } = lu_to_wu_bus;
-    wire         inst_l;
-    wire         inst_s;
-    wire [ 2: 0] lw_lh_lb;
-    wire         bit_sext;
-    wire         half_sext;
     wire         gpr_we;
     wire         rlsu_we;
     wire         csr_w_gpr_we;
     wire [31: 0] csr_data;
-    assign {inst_l,
-            inst_s,
-            lw_lh_lb,  
-            bit_sext, 
-            half_sext,
-            gpr_we,
+    assign {gpr_we,
             rlsu_we,
             csr_w_gpr_we,
             csr_data
            } = du_to_wu_bus;
-    wire [31: 0] result;
-    assign result = inst_l ? (data >> ((addr & 32'b11) << 3)) : data;
-
-    wire [31:0] rdata_processed;
-
-    assign rdata_processed = (lw_lh_lb == 3'b001) ? 
-                             (bit_sext ? {{24{result[ 7]}}, result[ 7:0]} 
-                                       : {24'b0          , result[ 7:0]} ) :
-                             (lw_lh_lb == 3'b010) ? 
-                             (half_sext ? {{16{result[15]}}, result[15:0]} 
-                                        : {16'b0          , result[15:0]}) :
-                             result;
 
     wire         final_gpr_we;
     wire [31: 0] final_result;

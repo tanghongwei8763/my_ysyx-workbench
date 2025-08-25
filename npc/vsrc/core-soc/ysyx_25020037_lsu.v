@@ -59,23 +59,36 @@ module ysyx_25020037_lsu (
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
-    assign {
-        du_to_gu_bus,
-        du_to_lu_bus,
-        du_to_wu_bus,    
-        csr_wcsr_data,     
-        addr,
-        data
-    } = eu_to_lu_bus;
+    assign {du_to_gu_bus,
+            du_to_lu_bus,
+            du_to_wu_bus,    
+            csr_wcsr_data,     
+            addr,
+            data
+           } = eu_to_lu_bus;
     wire [31:0] addr;
     wire [31:0] csr_wcsr_data;
     wire [31:0] data;
     wire [31:0] addr_off = addr & 32'b11;
     wire [31:0] aligned_wdata = data << (addr_off << 3);
-    wire [ 2:0] data_rop = du_to_lu_bus[7:5];
-    wire [ 2:0] data_wop = du_to_lu_bus[4:2];
-    wire        is_write = du_to_lu_bus[0];
-    wire        is_read  = du_to_lu_bus[1];
+
+    wire        inst_l;
+    wire        inst_s;
+    wire [ 2:0] data_rop;
+    wire [ 2:0] data_wop;
+    wire        bit_sext;
+    wire        half_sext;
+    wire        is_write;
+    wire        is_read;
+    assign {inst_l,
+            inst_s,
+            data_rop,    
+            data_wop,     
+            bit_sext,
+            half_sext,
+            is_read,
+            is_write
+           } = du_to_lu_bus;
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
@@ -103,6 +116,17 @@ module ysyx_25020037_lsu (
             default: next_state = IDLE;
         endcase
     end
+
+    wire [31: 0] lsu_rdata;
+    wire [31:0] rdata_processed;
+    assign lsu_rdata = inst_l ? (rdata >> ((addr & 32'b11) << 3)) : rdata;
+    assign rdata_processed = (data_rop == 3'b001) ? 
+                             (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 
+                                       : {24'b0          , lsu_rdata[ 7:0]} ) :
+                             (data_rop == 3'b010) ? 
+                             (half_sext ? {{16{lsu_rdata[15]}}, lsu_rdata[15:0]} 
+                                        : {16'b0          , lsu_rdata[15:0]}) :
+                             lsu_rdata;
 
     assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
     always @(posedge clk or posedge rst) begin
@@ -172,8 +196,8 @@ module ysyx_25020037_lsu (
                                 du_to_wu_bus,
                                 du_to_gu_bus,
                                 csr_wcsr_data,
-                                eu_to_lu_bus[63:32],
-                                eu_to_lu_bus[63:32]
+                                addr,
+                                addr
                             };
                         end
                     end
@@ -191,8 +215,8 @@ module ysyx_25020037_lsu (
                                 du_to_wu_bus,
                                 du_to_gu_bus,
                                 csr_wcsr_data,
-                                eu_to_lu_bus[63:32], 
-                                rdata
+                                addr, 
+                                rdata_processed
                                 };
                             lsu_valid <= 1'b1;
                             access_fault <= (rresp != 2'b00);

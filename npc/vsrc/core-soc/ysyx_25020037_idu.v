@@ -64,17 +64,16 @@ module ysyx_25020037_idu (
         mret_en       
     };
     assign du_to_lu_bus = {
+        inst_l,
+        inst_s,
         lw_lh_lb,   
         sw_sh_sb,
+        bit_sext,        
+        half_sext,
         rlsu_we,         
         wlsu_we   
     };
     assign du_to_wu_bus = {
-        inst_l,
-        inst_s,
-        lw_lh_lb,  
-        bit_sext,        
-        half_sext,
         gpr_we,
         rlsu_we,        
         csr_w_gpr_we,
