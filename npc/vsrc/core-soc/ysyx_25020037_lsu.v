@@ -6,6 +6,7 @@ module ysyx_25020037_lsu (
     input  wire          wbu_ready,
     output wire          lsu_ready,
     output reg           lsu_valid,
+    input  wire         exu_dnpc_valid,
     input  wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
     output reg          access_fault,
@@ -54,7 +55,7 @@ module ysyx_25020037_lsu (
     localparam AXI_SIZE_BYTE   = 3'h0;
     localparam AXI_SIZE_HALF   = 3'h1;
     localparam AXI_SIZE_WORD   = 3'h2;
-
+    reg                          exu_dnpc_valid_r;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
@@ -103,7 +104,7 @@ module ysyx_25020037_lsu (
         endcase
     end
 
-    assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast)) ? 1'b1 : ~(is_write | is_read);
+    assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
@@ -130,6 +131,7 @@ module ysyx_25020037_lsu (
             rready <= 1'b0;
         end else begin
             state <= next_state;
+            exu_dnpc_valid_r <= exu_dnpc_valid;
             case (state)
                 IDLE: begin
                     lsu_valid <= 1'b0;
