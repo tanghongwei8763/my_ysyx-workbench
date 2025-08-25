@@ -7,6 +7,7 @@ module ysyx_25020037_ifu #(
     input  wire         rst,
     input  wire         exu_dnpc_valid,
     input  wire [31: 0] exu_dnpc,
+    output wire         pc_updata,
     input  wire         idu_ready,
     output reg          ifu_valid,
     output reg  [`FU_TO_DU_BUS_WD-1: 0] fu_to_du_bus,
@@ -62,7 +63,7 @@ module ysyx_25020037_ifu #(
         .dout        (pc       ),
         .wen         (pc_updata)
     );
-    wire        pc_updata = (next_state == IDLE) & idu_ready;
+    assign      pc_updata = (next_state == IDLE) & idu_ready;
     assign      inst = fu_to_du_bus[31:0];
     assign      snpc = pc + 32'h4;
     assign      dnpc = exu_dnpc_valid ? exu_dnpc : snpc;

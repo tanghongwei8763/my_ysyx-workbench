@@ -100,6 +100,7 @@ module ysyx_25020037 (
     wire [`RS_DATA-1: 0] rs_data;
     wire [31: 0] exu_dnpc;
     wire         exu_dnpc_valid;
+    wire         pc_updata;
 
     wire         ifu_valid;
     wire         idu_valid;
@@ -203,6 +204,7 @@ module ysyx_25020037 (
         .rst           (reset            ),
         .exu_dnpc_valid(exu_dnpc_valid   ),
         .exu_dnpc      (exu_dnpc         ),
+        .pc_updata     (pc_updata        ),
         .idu_ready     (idu_ready        ),
         .ifu_valid     (ifu_valid        ),
         .access_fault  (ifu_access_fault ),
@@ -427,6 +429,7 @@ ysyx_25020037_clint u_clint (
         .du_to_eu_bus  (du_to_eu_bus  ),
         .eu_to_lu_bus  (eu_to_lu_bus  ),
         .eu_to_ic_bus  (eu_to_ic_bus  ),
+        .pc_updata     (pc_updata     ),
         .exu_dnpc_valid(exu_dnpc_valid),
         .exu_dnpc      (exu_dnpc      )
     );
