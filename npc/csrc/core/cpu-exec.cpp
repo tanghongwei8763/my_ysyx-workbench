@@ -240,7 +240,7 @@ void cpu_exec(int n){
 #endif
                 if(NPC_STATE == NPC_RUNING) {
                     exec_once();
-                    if(NPC_STATE == NPC_RUNING) printf("0x%08x: %08lx\n", pc, inst);
+                    if(NPC_STATE == NPC_RUNING) printf("0x%08x: %08x\n", pc, inst);
                 }
                 else if (NPC_STATE == NPC_STOP) {
                     NPC_STATE = NPC_RUNING;
