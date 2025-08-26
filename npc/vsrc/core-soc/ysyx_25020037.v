@@ -98,7 +98,6 @@ module ysyx_25020037 (
     wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
 
     wire [`RS_DATA-1: 0] rs_data;
-    wire [31: 0] pc;
     wire [31: 0] exu_dnpc;
     wire         exu_dnpc_valid;
     wire         pc_updata;
@@ -192,7 +191,7 @@ module ysyx_25020037 (
         .exu_ready        (exu_ready       ),
         .gpr_ready        (gpr_ready       ),
 //////////////////////////////////////////
-        .pc               (pc              ),
+        .pc_reg           (                ),
 //////////////////////////////////////////
         .gpr_valid        (gpr_valid       ),
         .clk              (clock           ),
