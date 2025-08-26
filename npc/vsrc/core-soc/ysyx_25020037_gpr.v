@@ -25,6 +25,7 @@ module ysyx_25020037_gpr (
   localparam BUSY   = 1'b1;
   reg state, next_state;
   reg  [31: 0] pc_reg;
+  reg  [31: 0] inst_reg;
   reg  [31: 0] regs [16:0];
   reg  [31: 0] mtvec;
   reg  [31: 0] mepc;
@@ -63,6 +64,7 @@ module ysyx_25020037_gpr (
           rs2
          } = rs_data;
   wire [31: 0] pc;
+  wire [31: 0] inst;
   wire [ 4: 0] rd;
   wire         csrs_mtvec_wen;
   wire         csrs_mepc_wen;
@@ -73,6 +75,7 @@ module ysyx_25020037_gpr (
   wire         ecall_en;
   wire         mret_en;
   assign {pc,
+          inst,
           rd,
           csrs_mtvec_wen,
           csrs_mepc_wen,
@@ -88,6 +91,13 @@ module ysyx_25020037_gpr (
     .rst         (rst              ),
     .din         (pc               ),
     .dout        (pc_reg           ),
+    .wen         (wbu_valid        )
+  );
+  ysyx_25020037_Reg #(32, 32'h0) u_inst_reg (
+    .clk         (clk              ),
+    .rst         (rst              ),
+    .din         (inst             ),
+    .dout        (inst_reg         ),
     .wen         (wbu_valid        )
   );
   wire [31: 0] src1;
