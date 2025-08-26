@@ -21,16 +21,16 @@ module ysyx_25020037_wbu (
             csr_wcsr_data,
             rdata_processed
            } = lu_to_wu_bus;
-    wire [31: 0] pc;
     wire         gpr_we;
     wire         rlsu_we;
     wire         csr_w_gpr_we;
     wire [31: 0] csr_data;
-    assign {pc,
-            gpr_we,
+    wire [31: 0] pc;
+    assign {gpr_we,
             rlsu_we,
             csr_w_gpr_we,
-            csr_data
+            csr_data,
+            pc
            } = du_to_wu_bus;
 
     wire         final_gpr_we;
