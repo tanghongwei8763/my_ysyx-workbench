@@ -166,6 +166,8 @@ module ysyx_25020037_ifu #(
                     end
                 end
                 READ: begin
+                    mem_ready <= 1'b0;
+                    mem_data <= 'b0;
                     if (idu_ready) begin
                         fu_to_du_bus <= {pc, icache_data};
                         ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
