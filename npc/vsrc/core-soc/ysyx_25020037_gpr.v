@@ -6,9 +6,6 @@ module ysyx_25020037_gpr (
   input  wire         wbu_valid,
   input  wire         exu_ready,
   output reg          gpr_ready,
-//////////////////////////////////////////
-  output reg  [31: 0] pc_reg,
-//////////////////////////////////////////
   output reg          gpr_valid,
   input  wire         clk,
   input  wire         rst,
@@ -27,6 +24,7 @@ module ysyx_25020037_gpr (
   localparam IDLE   = 1'b0;
   localparam BUSY   = 1'b1;
   reg state, next_state;
+  reg  [31: 0] pc_reg;
   reg  [31: 0] regs [16:0];
   reg  [31: 0] mtvec;
   reg  [31: 0] mepc;
@@ -85,11 +83,13 @@ module ysyx_25020037_gpr (
           ecall_en,
           mret_en
          } = du_to_gu_bus;
-/////////////////////////////////////////
-  always @(*) begin
-    pc_reg = pc;
-  end
-/////////////////////////////////////////
+  ysyx_25020037_Reg #(32, 32'h0) u_pc_reg (
+    .clk         (clk              ),
+    .rst         (rst              ),
+    .din         (pc               ),
+    .dout        (pc_reg           ),
+    .wen         (wbu_valid        )
+  );
   wire [31: 0] src1;
   wire [31: 0] src2;
   wire [31: 0] csr_data; 
