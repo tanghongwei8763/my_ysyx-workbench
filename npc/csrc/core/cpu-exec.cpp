@@ -15,6 +15,7 @@
 extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__pc_reg
 #define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__inst_reg
+#define exu_dnpc_valid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__exu_dnpc_valid
 #define ifu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_access_fault
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
 #define araddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_araddr
@@ -293,6 +294,6 @@ static void exec_once() {
     stats.g_timer += time_spent;
     stats.types[stats.current_type].clk += clk_sum_reg;
     stats.types[stats.current_type].time += time_spent;
-
-    trace_and_difftest();
+    
+    if(!exu_dnpc_valid) trace_and_difftest();
 }
