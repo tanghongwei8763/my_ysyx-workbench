@@ -29,7 +29,8 @@ module ysyx_25020037_wbu (
     assign {gpr_we,
             rlsu_we,
             csr_w_gpr_we,
-            csr_data
+            csr_data,
+            pc
            } = du_to_wu_bus;
 
     wire         final_gpr_we;

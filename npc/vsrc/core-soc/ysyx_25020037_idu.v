@@ -77,7 +77,8 @@ module ysyx_25020037_idu (
         gpr_we,
         rlsu_we,        
         csr_w_gpr_we,
-        csr_data
+        csr_data,
+        pc
     };
 
     wire [ 4: 0] rs1;
