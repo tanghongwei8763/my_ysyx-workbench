@@ -25,15 +25,11 @@ module ysyx_25020037_wbu (
     wire         rlsu_we;
     wire         csr_w_gpr_we;
     wire [31: 0] csr_data;
-    wire [31: 0] pc;
-    assign {pc,
-            gpr_we,
+    assign {gpr_we,
             rlsu_we,
             csr_w_gpr_we,
             csr_data
            } = du_to_wu_bus;
-    wire [31: 0] pc_r;
-    assign pc_r = pc;
     wire         final_gpr_we;
     wire [31: 0] final_result;
     assign final_result = rst          ? 32'b0 :
