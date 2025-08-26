@@ -30,6 +30,7 @@ module ysyx_25020037_wbu (
             csr_w_gpr_we,
             csr_data
            } = du_to_wu_bus;
+
     wire         final_gpr_we;
     wire [31: 0] final_result;
     assign final_result = rst          ? 32'b0 :
