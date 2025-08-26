@@ -6,7 +6,9 @@ module ysyx_25020037_gpr (
   input  wire         wbu_valid,
   input  wire         exu_ready,
   output reg          gpr_ready,
+//////////////////////////////////////////
   output      [31: 0] pc,
+//////////////////////////////////////////
   output reg          gpr_valid,
   input  wire         clk,
   input  wire         rst,
