@@ -188,7 +188,7 @@ module ysyx_25020037_exu (
                     bypass_is_load[i]  <= bypass_is_load[i - 1];
                 end
                 bypass_rd[0]       <= gpr_we ? rd     : bypass_rd[1];
-                bypass_data[0]     <= gpr_we ? result : bypass_data[1];
+                bypass_data[0]     <= gpr_we ? inst_l ? 32'b0 : result : bypass_data[1];
                 bypass_valid[0]    <= gpr_we ? 1'b1   : bypass_valid[1];
                 bypass_is_load[0]  <= gpr_we ? inst_l : bypass_is_load[1];
             end
