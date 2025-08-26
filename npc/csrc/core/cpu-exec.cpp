@@ -294,6 +294,6 @@ static void exec_once() {
     stats.g_timer += time_spent;
     stats.types[stats.current_type].clk += clk_sum_reg;
     stats.types[stats.current_type].time += time_spent;
-    
+
     if(!exu_dnpc_valid) trace_and_difftest();
 }
