@@ -190,6 +190,9 @@ module ysyx_25020037 (
         .wbu_valid        (wbu_valid       ),
         .exu_ready        (exu_ready       ),
         .gpr_ready        (gpr_ready       ),
+//////////////////////////////////////////
+        .pc               (),
+//////////////////////////////////////////
         .gpr_valid        (gpr_valid       ),
         .clk              (clock           ),
         .rst              (reset           ),

@@ -6,6 +6,7 @@ module ysyx_25020037_gpr (
   input  wire         wbu_valid,
   input  wire         exu_ready,
   output reg          gpr_ready,
+  output      [31: 0] pc,
   output reg          gpr_valid,
   input  wire         clk,
   input  wire         rst,
@@ -61,7 +62,6 @@ module ysyx_25020037_gpr (
           rs1,
           rs2
          } = rs_data;
-  wire [31: 0] pc;
   wire [ 4: 0] rd;
   wire         csrs_mtvec_wen;
   wire         csrs_mepc_wen;
@@ -82,7 +82,6 @@ module ysyx_25020037_gpr (
           ecall_en,
           mret_en
          } = du_to_gu_bus;
-  wire [31: 0] pc_r = pc;
   wire [31: 0] src1;
   wire [31: 0] src2;
   wire [31: 0] csr_data; 
