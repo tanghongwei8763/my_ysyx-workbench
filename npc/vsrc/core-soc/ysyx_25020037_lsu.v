@@ -184,7 +184,7 @@ module ysyx_25020037_lsu (
                             awsize <= axi_wsize;
                             awburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
                             wlast <= 1'b1;
-                            case (du_to_lu_bus[4:2])
+                            case (data_wop)
                                 3'b001: wstrb <= (4'b0001 << addr_off);
                                 3'b010: wstrb <= (4'b0011 << addr_off);
                                 3'b100: wstrb <= (4'b1111 << addr_off);
