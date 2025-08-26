@@ -56,7 +56,6 @@ module ysyx_25020037_exu (
     assign {du_to_gu_bus,
             du_to_lu_bus,
             du_to_wu_bus,
-            pc,
             inst_l,
             inst_s,
             is_fence_i,

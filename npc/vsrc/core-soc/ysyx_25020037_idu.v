@@ -74,11 +74,11 @@ module ysyx_25020037_idu (
         wlsu_we   
     };
     assign du_to_wu_bus = {
+        pc,
         gpr_we,
         rlsu_we,        
         csr_w_gpr_we,
-        csr_data,
-        pc
+        csr_data
     };
 
     wire [ 4: 0] rs1;
@@ -357,7 +357,6 @@ module ysyx_25020037_idu (
                         du_to_gu_bus,
                         du_to_lu_bus,
                         du_to_wu_bus,
-                        pc,
                         inst_l,
                         inst_s,
                         is_fence_i,         
