@@ -74,6 +74,7 @@ module ysyx_25020037_idu (
         wlsu_we   
     };
     assign du_to_wu_bus = {
+        pc,
         gpr_we,
         rlsu_we,        
         csr_w_gpr_we,
