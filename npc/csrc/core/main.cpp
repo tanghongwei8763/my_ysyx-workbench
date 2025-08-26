@@ -94,10 +94,10 @@ void finish(){
 #ifdef CONFIG_ITRACE
         iringbuf_printf();
 #endif
-        Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT ABORT TRAP", ANSI_FG_RED), pc-4);
+        Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT ABORT TRAP", ANSI_FG_RED), pc-0xc);
     } 
-    else if(gpr[10]) Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED), pc-4);
-    else Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN), pc-4);
+    else if(gpr[10]) Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED), pc-0xc);
+    else Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN), pc-0xc);
     return;
 }
 
