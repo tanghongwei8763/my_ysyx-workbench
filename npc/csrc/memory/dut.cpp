@@ -31,8 +31,8 @@ bool isa_difftest_checkregs(diff_context_t *ref_r, vaddr_t pc) {
       return false;
     }
   }
-  if (ref_r->pc != dut_pc) {
-    printf("dut->pc: 0x%08x != ref->pc: 0x%08x\n", dut_pc, ref_r->pc);
+  if (ref_r->pc-4 != dut_pc) {
+    printf("dut->pc: 0x%08x != ref->pc: 0x%08x\n", dut_pc, ref_r->pc-4);
     return false;
   }
   if (ref_r->mstatus != dut_mstatus) {
