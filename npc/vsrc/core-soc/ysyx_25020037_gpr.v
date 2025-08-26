@@ -82,7 +82,7 @@ module ysyx_25020037_gpr (
           ecall_en,
           mret_en
          } = du_to_gu_bus;
-
+  wire [31: 0] pc_r = pc;
   wire [31: 0] src1;
   wire [31: 0] src2;
   wire [31: 0] csr_data; 
