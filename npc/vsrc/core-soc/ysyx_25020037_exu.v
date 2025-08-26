@@ -24,8 +24,6 @@ module ysyx_25020037_exu (
     reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
     reg        bypass_valid[  BYPASS_DEPTH-1:0];
     reg        bypass_is_load[BYPASS_DEPTH-1:0];
-    reg [1 :0] lsu_update_idx;
-    reg        lsu_update_en;
 
     wire [31: 0] src1;
     wire [31: 0] src2;
@@ -161,24 +159,16 @@ module ysyx_25020037_exu (
                 bypass_valid[i]    <= 1'b0;
                 bypass_is_load[i]  <= 1'b0;
             end
-            lsu_update_idx <= 2'd0;
-            lsu_update_en  <= 1'b0;
         end else begin
-            lsu_update_en  <= 1'b0;
-            lsu_update_idx <= 2'd0;
 
             if (lsu_ready) begin
                 for (integer i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
                     if (bypass_valid[i] && bypass_is_load[i]) begin
-                        lsu_update_idx <= i[1:0];
-                        lsu_update_en  <= 1'b1;
+                        bypass_data[i]    = rdata_processed;
+                        bypass_is_load[i] = 1'b0;
                         break;
                     end
                 end
-            end
-            if (lsu_update_en) begin
-                bypass_data[lsu_update_idx]    <= rdata_processed;
-                bypass_is_load[lsu_update_idx] <= 1'b0;
             end
             if (exu_ready && idu_valid && !exu_dnpc_valid) begin
                 for (integer i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
