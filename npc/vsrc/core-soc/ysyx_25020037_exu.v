@@ -194,9 +194,9 @@ module ysyx_25020037_exu (
             exu_dnpc <= 32'b0;
         end else begin
             if(exu_ready) begin
-                if(dnpc_r != 32'b0) begin
+                if(dnpc_r != 32'b0 && exu_dnpc_valid == 1'b0) begin
                     exu_dnpc_valid <= idu_valid & (dnpc_r != pc + 32'h4);
-                    exu_dnpc <= exu_dnpc_valid ? exu_dnpc : dnpc_r;
+                    exu_dnpc <= dnpc_r;
                 end else if (pc_updata) begin
                     exu_dnpc_valid <=1'b0;
                     exu_dnpc <= 32'b0;
