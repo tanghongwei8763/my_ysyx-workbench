@@ -22,6 +22,9 @@ static const uint32_t img [] = {
 0x00000717,          	//auipc	a4,0x0
 0x02c70713,          	//addi	a4,a4,44 # a0000558 <__am_asm_trap>
 0x30571073,          	//.4byte	0x30571073
+0x342022f3,          	//.4byte	0x342022f3
+0x30002373,          	//.4byte	0x30002373
+0x341023f3,          	//.4byte	0x341023f3
 0x00100513,          	//li	a0,1
 0x00001717,          	//auipc	a4,0x1
 0x92f72023,          	//sw	a5,-1760(a4) # a0000e5c <user_handler>
