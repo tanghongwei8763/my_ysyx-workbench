@@ -402,23 +402,19 @@ ysyx_25020037_arbiter u_arbiter(
 ysyx_25020037_clint u_clint (
         .clk        (clock        ),
         .rst        (reset        ),
-        .araddr     (clint_araddr ),
-        .arvalid    (clint_arvalid),
         .arready    (clint_arready),
-        .rdata      (clint_rdata  ),
-        .rresp      (clint_rresp  ),
-        .rvalid     (clint_rvalid ),
+        .arvalid    (clint_arvalid),
+        .araddr     (clint_araddr ),
+        .arid       (clint_arid   ),
+        .arlen      (clint_arlen  ),
+        .arsize     (clint_arsize ),
+        .arburst    (clint_arburst),
         .rready     (clint_rready ),
-        .awaddr     (32'b0        ),
-        .awvalid    (1'b0         ),
-        .awready    (             ),
-        .wdata      (32'b0        ),
-        .wstrb      (4'b0         ),
-        .wvalid     (1'b0         ),
-        .wready     (             ),
-        .bresp      (             ),
-        .bvalid     (             ),
-        .bready     (1'b0         )
+        .rvalid     (clint_rvalid ),
+        .rresp      (clint_rresp  ),
+        .rdata      (clint_rdata  ),
+        .rlast      (clint_rlast  ),
+        .rid        (clint_rid    )
 );
 
     ysyx_25020037_exu exu_cpu(
