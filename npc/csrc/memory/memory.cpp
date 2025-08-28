@@ -25,7 +25,7 @@ static const uint32_t img [] = {
 0x00100513,          	//li	a0,1
 0x00001717,          	//auipc	a4,0x1
 0x92f72023,          	//sw	a5,-1760(a4) # a0000e5c <user_handler>
-
+0x00000073,          	//ecall
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
