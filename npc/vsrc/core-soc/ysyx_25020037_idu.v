@@ -322,7 +322,7 @@ module ysyx_25020037_idu (
     assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
     assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
                       
-    assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
+    assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B;
     assign double_cal   = TYPE_B;
     assign ebreak       = inst_ebreak;
     assign is_fence_i   = inst_fence_i;

@@ -17,8 +17,8 @@ module ysyx_25020037_wbu (
     wire [31: 0] rdata_processed;
     assign {du_to_wu_bus,
             du_to_gu_bus,
-            addr,
             csr_wcsr_data,
+            addr,
             rdata_processed
            } = lu_to_wu_bus;
     wire         gpr_we;
