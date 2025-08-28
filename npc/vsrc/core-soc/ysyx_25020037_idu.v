@@ -197,7 +197,7 @@ module ysyx_25020037_idu (
     assign rs1     = inst[19:15];
     assign rs2     = inst[24:20];
     assign rd      = inst[11: 7];
-    assign rs_data = {imm[11:0], rs1, rs2};
+    assign rs_data = {inst_ecall, inst_mret, imm[11:0], rs1, rs2};
 
     assign immI  = {{20{inst[31]}}, inst[31:20]};
     assign immS  = {{20{inst[31]}}, inst[31:25], inst[11:7]};
@@ -322,7 +322,7 @@ module ysyx_25020037_idu (
     assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
     assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
                       
-    assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B;
+    assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
     assign ebreak       = inst_ebreak;
     assign is_fence_i   = inst_fence_i;

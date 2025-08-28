@@ -56,10 +56,14 @@ module ysyx_25020037_gpr (
           gpr_wen,
           gpr_wdata
          } = wu_to_gu_bus;
+  wire         inst_ecall;
+  wire         inst_mret;
   wire [11: 0] imm;
   wire [ 4: 0] rs1;
   wire [ 4: 0] rs2;
-  assign {imm,
+  assign {inst_ecall,
+          inst_mret,
+          imm,
           rs1,
           rs2
          } = rs_data;
@@ -102,13 +106,17 @@ module ysyx_25020037_gpr (
   );
   wire [31: 0] src1;
   wire [31: 0] src2;
+  wire [31: 0] imm_csr_data; 
   wire [31: 0] csr_data; 
-  assign csr_data    = ({32{imm == MTVEC    }} & mtvec)
-                     | ({32{imm == MEPC     }} & mepc)
-                     | ({32{imm == MSTATUS  }} & mstatus)
-                     | ({32{imm == MCAUSE   }} & mcause)
-                     | ({32{imm == MVENDORID}} & mvendorid)
-                     | ({32{imm == MARCHID  }} & marchid);
+  assign imm_csr_data    = ({32{imm == MTVEC    }} & mtvec)
+                         | ({32{imm == MEPC     }} & mepc)
+                         | ({32{imm == MSTATUS  }} & mstatus)
+                         | ({32{imm == MCAUSE   }} & mcause)
+                         | ({32{imm == MVENDORID}} & mvendorid)
+                         | ({32{imm == MARCHID  }} & marchid);
+  assign csr_data = inst_ecall ? mtvec :
+                    inst_mret  ? mepc  :
+                    imm_csr_data;
   wire         mepc_wen;
   wire         mcause_wen;
   wire         mstatus_wen;
