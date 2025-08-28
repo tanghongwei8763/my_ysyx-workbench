@@ -222,7 +222,7 @@ module ysyx_25020037_exu (
 
 `ifdef VERILATOR
     always @(*) begin
-       if(idu_valid & (ebreak | inst_not_realize)) begin hit({32{inst_not_realize}}); end
+       if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin hit({32{inst_not_realize}}); end
     end
 `endif
 endmodule
