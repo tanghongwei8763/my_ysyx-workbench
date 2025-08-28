@@ -74,6 +74,7 @@ static void exec_once();
 static uint64_t us;
 extern uint64_t get_time();
 static uint64_t current_total_clk_reg = 0;
+static int last_pc;
 
 static void update_module_stats(int valid, uint64_t current_total_clk) {
     if(valid == 0) return;
@@ -263,7 +264,7 @@ void cpu_exec(int n){
 
 static void exec_once() {
     stats.inst_sum++;
-    int last_pc = pc;
+    last_pc = pc;
 
     uint64_t timer_start, timer_end, time_spent = 0;
     uint64_t clk_sum_reg = 0;
