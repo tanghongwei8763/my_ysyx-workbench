@@ -39,7 +39,7 @@ module ysyx_25020037_clint(
             rvalid <= 1'b0;
             rresp <= 2'b00;
             rdata <= 32'b0;
-            rlast <= 1'b1;
+            rlast <= 1'b0;
             rid <= 4'b0;
             mtimel <= 32'h0;
             mtimeh <= 32'h0;
@@ -54,6 +54,7 @@ module ysyx_25020037_clint(
             case (state)
                 IDLE: begin
                     rvalid <= 1'b0;
+                    rlast <= 1'b0;
                     if (arvalid & arready) begin
                         read_addr <= araddr;
                         arready <= 1'b0;
@@ -69,6 +70,7 @@ module ysyx_25020037_clint(
                              (clint_offset == 32'h4) ? mtimeh :
                              32'b0;
                     rvalid <= 1'b1;
+                    rlast <= 1'b1;
                     rresp <= 2'b00;
                 end
             endcase
@@ -78,7 +80,7 @@ module ysyx_25020037_clint(
     always @(*) begin
         case (state)
             IDLE: next_state = (arvalid) ? BUSY : IDLE;      
-            BUSY: next_state = (rready & rvalid) ? IDLE : BUSY; 
+            BUSY: next_state = (rready & rlast) ? IDLE : BUSY; 
             default: next_state = IDLE;
         endcase
     end
