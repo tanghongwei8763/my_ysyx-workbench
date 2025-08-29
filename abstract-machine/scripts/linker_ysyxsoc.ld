@@ -67,7 +67,7 @@ SECTIONS {
     _bss_end = .;
   } > sdram AT> flash
 
-  _heap_start = _bss_end;
+  _heap_start = _psram_start;
 
   .stack (NOLOAD) : ALIGN(8) {
     . = ORIGIN(sram) + LENGTH(sram) - _stack_size;

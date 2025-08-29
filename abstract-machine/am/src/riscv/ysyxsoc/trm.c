@@ -4,7 +4,7 @@
 #include "include/ysyxsoc.h"
 
 extern char _heap_start;
-extern char _sdram_end;
+extern char _psram_end;
 extern char _data_start;
 extern char _data_end;
 int main(const char *args);
@@ -13,7 +13,7 @@ extern char _sram_start;
 #define SRAM_SIZE (8 * 1024)
 #define SRAM_END ((uintptr_t)&_sram_start + SRAM_SIZE)
 
-Area heap = RANGE(&_heap_start, &_sdram_end);
+Area heap = RANGE(&_heap_start, &_psram_end);
 static const char mainargs[MAINARGS_MAX_LEN] = MAINARGS_PLACEHOLDER; // defined in CFLAGS
 
 void init_uart(uint32_t baud_rate) {
