@@ -171,9 +171,6 @@ module ysyx_25020037_ifu #(
                     if (idu_ready) begin
                         fu_to_du_bus <= {pc, icache_data};
                         ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
-                    end else begin
-                        fu_to_du_bus <= fu_to_du_bus;
-                        ifu_valid <= 1'b0;
                     end
                 end
                 default: begin 
