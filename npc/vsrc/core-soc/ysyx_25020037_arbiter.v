@@ -110,7 +110,7 @@ always @(posedge clk or posedge rst) begin
                 is_clint_addr <= (lsu_arvalid & ((lsu_araddr == CLINT_BASE) |
                                                 (lsu_araddr == CLINT_BASE + 4)));
             end
-            default: begin end
+            default: begin is_clint_addr <= is_clint_addr; end
         endcase
     end
 end
