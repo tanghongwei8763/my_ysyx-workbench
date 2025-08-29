@@ -119,7 +119,7 @@ module ysyx_25020037_ifu #(
                             arid <= 4'h0;
                             arsize <= 3'h2;
                             if (is_sdram) begin
-                                arlen <= 8'(TRANSFER_COUNT - 1);
+                                arlen <= 8'h3;  // 8'(TRANSFER_COUNT - 1);
                                 arburst <= 2'h1;
                             end else begin
                                 arlen <= 8'h0;
