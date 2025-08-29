@@ -24,9 +24,9 @@ module ysyx_25020037_clint(
     output reg          bvalid,
     input  wire         bready
 );
-`ifdef VERILATOR
-    import "DPI-C" function void difftest_skip_ref();
-`endif
+
+    //import "DPI-C" function void difftest_skip_ref();
+
     reg  [31: 0] mtimel, mtimeh;
     wire [31: 0] clint_offset;
     localparam CLINT_BASE   = 32'h02000000;
@@ -90,9 +90,7 @@ module ysyx_25020037_clint(
                 BUSY: begin
                     if (is_read_req) begin
                         arready <= 1'b1;
-`ifdef VERILATOR
-                        difftest_skip_ref();
-`endif
+                        //difftest_skip_ref();
                         rdata <= (clint_offset == 32'h0) ? mtimel :
                                  (clint_offset == 32'h4) ? mtimeh :
                                  32'b0;
@@ -107,9 +105,7 @@ module ysyx_25020037_clint(
                             write_strb <= wstrb;
                         end else if (wvalid_reg) begin
                             wvalid_reg <= 1'b0;
-`ifdef VERILATOR
-                            difftest_skip_ref();
-`endif
+                            //difftest_skip_ref();
                             bvalid <= 1'b1;
                             bresp <= 2'b00;
                         end

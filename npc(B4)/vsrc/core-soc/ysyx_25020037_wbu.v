@@ -1,4 +1,4 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/core-npc/ysyx_25020037_config.vh"
+`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
 
 module ysyx_25020037_wbu (
     input  wire         lsu_valid,
@@ -10,7 +10,6 @@ module ysyx_25020037_wbu (
     input  wire         clk,
     input  wire         rst,
     input  wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus,
-    input  wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus,
     input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
     input  wire [31: 0] csr_wgpr_data,
     output reg  [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus
@@ -21,14 +20,14 @@ module ysyx_25020037_wbu (
     reg state, next_state;
 
     reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus_r;
-    reg  [`EU_TO_WU_BUS_WD -1:0] lu_to_wu_bus_r;
-    wire [ 3: 0] rstrb;
+    reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus_r;
+    wire [ 2: 0] lw_lh_lb;
     wire         bit_sext;
     wire         half_sext;
     wire         gpr_we;
     wire         rlsu_we;
     wire         csr_w_gpr_we;
-    assign {rstrb,  
+    assign {lw_lh_lb,  
             bit_sext, 
             half_sext,
             gpr_we,
@@ -36,14 +35,14 @@ module ysyx_25020037_wbu (
             csr_w_gpr_we
            } = du_to_wu_bus_r;
     wire [31: 0] result;
-    assign result = lu_to_wu_bus_r;
+    assign result = inst_l ? (lu_to_wu_bus_r[31: 0] >> ((lu_to_wu_bus_r[63:32] & 32'b11) << 3)) : lu_to_wu_bus_r[31: 0];
 
     wire [31:0] rdata_processed;
 
-    assign rdata_processed = (rstrb == 4'd1) ? 
+    assign rdata_processed = (lw_lh_lb == 3'b001) ? 
                              (bit_sext ? {{24{result[ 7]}}, result[ 7:0]} 
                                        : {24'b0          , result[ 7:0]} ) :
-                             (rstrb == 4'd2) ? 
+                             (lw_lh_lb == 3'b010) ? 
                              (half_sext ? {{16{result[15]}}, result[15:0]} 
                                         : {16'b0          , result[15:0]}) :
                              result;
@@ -75,7 +74,6 @@ module ysyx_25020037_wbu (
             case (state)
                 IDLE: begin
                     if (lsu_valid) begin
-                        lu_to_wu_bus_r <= eu_to_wu_bus;
                         lu_to_wu_bus_r <= lu_to_wu_bus;
                         du_to_wu_bus_r <= du_to_wu_bus;
                         wbu_ready <= 1'b0;

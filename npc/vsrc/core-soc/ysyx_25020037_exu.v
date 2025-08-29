@@ -3,34 +3,44 @@
 module ysyx_25020037_exu (
     input  wire         clk,
     input  wire         rst,
-    input  wire         inst_l,
-    input  wire         inst_s,
     input  wire         idu_valid,
     input  wire         lsu_ready,
     output reg          exu_valid,
-    output reg          exu_ready,
-    input  wire [31: 0] pc,
-    input  wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus,
+    output wire         exu_ready,
+    input  wire [31: 0] rdata_processed,
     input  wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
-
-    output reg  [31: 0] dnpc
+    input  wire         pc_updata,
+    output reg          exu_dnpc_valid,
+    output reg  [31: 0] exu_dnpc
 );
 `ifdef VERILATOR
     import "DPI-C" function void hit(input int inst_not_realize);
 `endif
-    localparam IDLE  = 1'b0;
-    localparam BUSY  = 1'b1;
 
-    reg          state, next_state;
-    wire [31: 0] snpc;
+    localparam BYPASS_DEPTH = 4;
+    reg [ 4:0] bypass_rd[     BYPASS_DEPTH-1:0];
+    reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
+    reg        bypass_valid[  BYPASS_DEPTH-1:0];
+    reg        bypass_is_load[BYPASS_DEPTH-1:0];
 
-    reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus_r;
-    reg  [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus_r;
-
+    wire [31: 0] src1;
+    wire [31: 0] src2;
+    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+    wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
+    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    wire [31: 0] pc;
+    wire         inst_l;
+    wire         inst_s;
     wire         is_fence_i;
     wire [31: 0] imm;
+    wire [ 4: 0] rd;
+    wire [ 4: 0] rs1;
+    wire [ 4: 0] rs2;
+    wire [31: 0] src1_r;
+    wire [31: 0] src2_r;
+    wire         gpr_we;
     wire [16: 0] alu_op;
     wire         src1_is_pc;
     wire         src2_is_imm;
@@ -40,10 +50,23 @@ module ysyx_25020037_exu (
     wire         inst_not_realize;
     wire         ecall_en;
     wire         mret_en;
+    wire [31: 0] csr_data;
     wire         csrrs_op;
     wire         csrrw_op;
-    assign {is_fence_i,
+    assign {du_to_gu_bus,
+            du_to_lu_bus,
+            du_to_wu_bus,
+            pc,
+            inst_l,
+            inst_s,
+            is_fence_i,
             imm,
+            rd,
+            rs1,
+            rs2,
+            src1_r,
+            src2_r, 
+            gpr_we,
             alu_op,
             src1_is_pc,
             src2_is_imm,
@@ -53,19 +76,47 @@ module ysyx_25020037_exu (
             inst_not_realize,
             ecall_en,
             mret_en,
+            csr_data,
             csrrs_op,
             csrrw_op
-           } = du_to_eu_bus_r;
+           } = du_to_eu_bus;
 
-    wire [31: 0] src1;
-    wire [31: 0] src2;
-    wire [31: 0] mtvec;
-    wire [31: 0] mepc;
-    assign {src1,
-            src2,
-            mtvec,
-            mepc
-           } = gu_to_eu_bus_r;
+    reg src1_wait;
+    reg src2_wait;
+    reg [31:0] bypass_src1;
+    reg [31:0] bypass_src2;
+    always @(*) begin
+        bypass_src1 = src1_r;
+        src1_wait = 1'b0;
+        for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+            if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 5'd0)) begin
+                bypass_src1 = bypass_data[i];
+                if (bypass_is_load[i]) begin
+                    src1_wait = 1'b1;
+                end
+                break;
+            end
+        end
+    end
+
+    always @(*) begin
+        bypass_src2 = src2_r;
+        src2_wait = 1'b0;
+        for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+            if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 5'd0)) begin
+                bypass_src2 = bypass_data[i];
+                if (bypass_is_load[i]) begin
+                    src2_wait = 1'b1;
+                end
+                break;
+            end
+        end
+    end
+
+    assign src1 = bypass_src1;
+    assign src2 = bypass_src2;
+    assign exu_ready = lsu_ready && !src1_wait && !src2_wait;
+
     wire [31: 0] dnpc_r;
     wire [31: 0] result;
     wire [31: 0] alu_src1;
@@ -74,6 +125,7 @@ module ysyx_25020037_exu (
     wire [31: 0] alu_src4;
     wire [31: 0] alu_result1;
     wire [31: 0] alu_result2;
+    wire [31: 0] csr_wcsr_data;
 
     assign alu_src1 = src1_is_pc  ? pc  : src1;
     assign alu_src2 = src2_is_imm ? imm : src2;
@@ -91,62 +143,86 @@ module ysyx_25020037_exu (
         .alu_result2    (alu_result2)
         );
 
-    assign snpc   = pc + 32'h4;
-    assign dnpc_r = ecall_en    ? mtvec :
-                    mret_en     ? mepc  :
-                    is_pc_jump  ? (alu_result2 == 32'b1) ? alu_result1 : snpc
-                                : snpc;
+    assign csr_wcsr_data    = ({32{csrrw_op}} & src1)
+                            | ({32{csrrs_op}} & (src1 | csr_data));
+    assign dnpc_r = (ecall_en | mret_en) ? csr_data :
+                    is_pc_jump           ? (alu_result2 == 32'b1) ? alu_result1 : 32'b0
+                                         : 32'b0;
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
-    assign snpc   = pc + 32'h4;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            state <= IDLE;
-            exu_valid <= 0;
-            exu_ready <= 1'b1;
-            eu_to_lu_bus <= `EU_TO_LU_BUS_WD'b0;
-            eu_to_ic_bus <= `EU_TO_IC_BUS_WD'b0;
-            dnpc <= 32'b0;
+            for (integer i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+                bypass_rd[i]       <= 5'd0;
+                bypass_data[i]     <= 32'd0;
+                bypass_valid[i]    <= 1'b0;
+                bypass_is_load[i]  <= 1'b0;
+            end
         end else begin
-            state <= next_state;
-            
-            case (state)
-                IDLE: begin
-                    if (idu_valid & exu_ready) begin
-                        gu_to_eu_bus_r <= gu_to_eu_bus;
-                        du_to_eu_bus_r <= du_to_eu_bus;
-                        exu_ready <= 1'b0;
+
+            if (lsu_ready) begin
+                for (integer i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+                    if (bypass_valid[i] && bypass_is_load[i]) begin
+                        bypass_data[i]    = rdata_processed;
+                        bypass_is_load[i] = 1'b0;
+                        break;
                     end
-                    exu_valid <= 1'b0;
-                    eu_to_ic_bus <= 'b0;
                 end
-                BUSY: begin
-                    if (lsu_ready) begin
-                        dnpc <= dnpc_r;
-                        eu_to_lu_bus <= {           
-                            result,
-                            src2
-                        };
-                        exu_valid <= 1'b1;
-                        exu_ready <= 1'b1;
-                    end
-                    eu_to_ic_bus <= is_fence_i;
+            end
+            if (exu_ready && idu_valid && !exu_dnpc_valid) begin
+                for (integer i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
+                    bypass_rd[i]       <= bypass_rd[i - 1];
+                    bypass_data[i]     <= bypass_data[i - 1];
+                    bypass_valid[i]    <= bypass_valid[i - 1];
+                    bypass_is_load[i]  <= bypass_is_load[i - 1];
                 end
-            endcase
+                bypass_rd[0]       <= gpr_we ? rd     : bypass_rd[0];
+                bypass_data[0]     <= gpr_we ? inst_l ? 32'b0 : (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
+                bypass_valid[0]    <= gpr_we ? 1'b1   : bypass_valid[0];
+                bypass_is_load[0]  <= gpr_we ? inst_l : bypass_is_load[0];
+            end
         end
     end
 
-    always @(*) begin
-        case (state)
-            IDLE: next_state = (idu_valid & exu_ready) ? BUSY : IDLE;
-            BUSY: next_state = (exu_valid & lsu_ready) ? IDLE : BUSY;
-            default: next_state = IDLE;
-        endcase
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            exu_valid <= 0;
+            eu_to_lu_bus <= `EU_TO_LU_BUS_WD'b0;
+            eu_to_ic_bus <= `EU_TO_IC_BUS_WD'b0;
+            exu_dnpc_valid <=1'b0;
+            exu_dnpc <= 32'b0;
+        end else begin
+            if(exu_ready) begin
+                if(dnpc_r != 32'b0 && exu_dnpc_valid == 1'b0) begin
+                    exu_dnpc_valid <= idu_valid & (dnpc_r != pc + 32'h4);
+                    exu_dnpc <= dnpc_r;
+                end else if (pc_updata) begin
+                    exu_dnpc_valid <=1'b0;
+                    exu_dnpc <= 32'b0;
+                end
+                exu_valid <= 1'b0;
+                eu_to_ic_bus <= 'b0;
+                eu_to_lu_bus <= 'b0;
+                if (idu_valid) begin
+                    exu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
+                    eu_to_lu_bus <= {
+                        du_to_gu_bus,
+                        du_to_lu_bus,
+                        du_to_wu_bus,  
+                        csr_wcsr_data,       
+                        result,
+                        src2
+                    };
+                    eu_to_ic_bus <= is_fence_i;
+                end
+            end
+        end
     end
+
 `ifdef VERILATOR
     always @(*) begin
-       if(ebreak | inst_not_realize) begin hit({32{inst_not_realize}}); end
+       if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin hit({32{inst_not_realize}}); end
     end
 `endif
 endmodule

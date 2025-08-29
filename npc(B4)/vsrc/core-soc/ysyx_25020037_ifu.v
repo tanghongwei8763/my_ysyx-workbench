@@ -5,12 +5,10 @@ module ysyx_25020037_ifu #(
 ) (
     input  wire         clk,
     input  wire         rst,
-    input  wire         exu_dnpc_valid,
-    input  wire [31: 0] exu_dnpc,
-    output wire         pc_updata,
+    input  wire [31: 0] pc,
     input  wire         idu_ready,
     output reg          ifu_valid,
-    output reg  [`FU_TO_DU_BUS_WD-1: 0] fu_to_du_bus,
+    output reg  [31: 0] inst,
     output reg          access_fault,
 
     input  wire         arready,
@@ -27,7 +25,8 @@ module ysyx_25020037_ifu #(
     input  wire         rlast,
     input  wire [ 3: 0] rid,
 
-    output wire [31: 0] icache_addr,
+    output reg  [31: 0] icache_addr,
+    output reg          icache_req,
     input  wire [31: 0] icache_data,
     input  wire         icache_hit,
     input  wire         icache_ready,
@@ -42,45 +41,35 @@ module ysyx_25020037_ifu #(
     localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);
     localparam TRANSFER_COUNT = BLOCK_SIZE / 4;
     localparam IDLE    = 2'b00;
-    localparam BUSY    = 2'b01;
-    localparam READ    = 2'b10;
+    localparam CHECK   = 2'b01;
+    localparam BUSY    = 2'b10;
+    localparam READ    = 2'b11;
     
     reg  [ 1:0] state, next_state;
-    wire [31:0] pc;
-    wire [31:0] inst;
-    wire [31:0] snpc;
-    wire [31:0] dnpc;
+    reg  [31:0] last_pc;
+    reg         icache_hit_reg;
+    reg  [31:0] block_base_addr;
     reg  [31:0] read_len;
-    wire [31:0] block_base_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
-    wire        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
+    reg         is_sdram;
+    wire [31:0] aligned_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
     reg  [1:0]  burst_cnt;
     reg         is_burst_done;
 
-    ysyx_25020037_Reg #(32, 32'h30000000) PC (
-        .clk         (clk      ),
-        .rst         (rst      ),
-        .din         (dnpc     ),
-        .dout        (pc       ),
-        .wen         (pc_updata)
-    );
-    assign      pc_updata = (next_state == IDLE) & idu_ready;
-    assign      inst = fu_to_du_bus[31:0];
-    assign      snpc = pc + 32'h4;
-    assign      dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
-
     always @(*) begin
+        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
         case (state)
-            IDLE:  begin next_state = (idu_ready) ? (icache_hit) ? IDLE : BUSY : IDLE; end
+            IDLE:  begin next_state = (pc != last_pc && idu_ready) ? CHECK : IDLE; end
+            CHECK: begin next_state = (icache_hit_reg) ? IDLE : (mem_req) ? BUSY : CHECK; end
             BUSY:  begin next_state = (mem_ready) ? READ : BUSY; end
             READ:  begin next_state = (idu_ready) ? IDLE : READ; end
             default: next_state = IDLE;
         endcase
     end
 
-    assign icache_addr = pc;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
+            inst <= 32'b0;
             ifu_valid <= 1'b0;
             araddr <= 32'h0;
             arvalid <= 1'b0;
@@ -89,30 +78,45 @@ module ysyx_25020037_ifu #(
             arsize <= 3'h0;
             arburst <= 2'h0;
             rready <= 1'b0;
+            last_pc <= 32'h0;
+            icache_addr <= 32'h0;
+            icache_req <= 1'b0;
             mem_data <= 'b0;
             mem_ready <= 1'b0;
+            block_base_addr <= 32'h0;
             read_len <= 32'b0;
             access_fault <= 1'b0;
             burst_cnt <= 2'd0;
             is_burst_done <= 1'b0;
         end else begin
             state <= next_state;
+            icache_hit_reg <= icache_hit;
             case (state)
                 IDLE: begin
+                    if (pc != last_pc && idu_ready) begin
+                        last_pc <= pc;
+                        icache_addr <= pc;
+                        icache_req <= 1'b1;
+                        block_base_addr <= aligned_addr;
+                    end else begin
+                        icache_req <= 1'b0;
+                    end
+                    ifu_valid <= 1'b0;
+                    mem_ready <= 1'b0;
                     read_len <= 32'b0;
+                    mem_data <= 'b0;
                     arvalid <= 1'b0;
                     rready <= 1'b0;
                     access_fault <= 1'b0;
                     burst_cnt <= 2'd0;
                     is_burst_done <= 1'b0;
-                    mem_ready <= 1'b0;
-                    mem_data <= 'b0;
-                    if (idu_ready) begin
-                        ifu_valid <= 1'b0;
-                        fu_to_du_bus <= 'b0;
-                        if (icache_hit) begin
-                            fu_to_du_bus <= {pc, icache_data};
-                            ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
+                end
+                CHECK: begin
+                    icache_req <= 1'b0;
+                    if(!icache_req) begin
+                        if (icache_hit_reg) begin
+                            inst <= icache_data;
+                            ifu_valid <= 1'b1;
                         end else if (mem_req) begin
                             araddr <= block_base_addr;
                             arvalid <= 1'b1;
@@ -144,6 +148,7 @@ module ysyx_25020037_ifu #(
                         end else begin
                             mem_data[burst_cnt*32 +: 32] <= rdata;
                             burst_cnt <= burst_cnt + 1'b1;
+
                             if (is_sdram) begin
                                 if (rlast) begin
                                     mem_ready <= 1'b1;
@@ -166,18 +171,13 @@ module ysyx_25020037_ifu #(
                     end
                 end
                 READ: begin
-                    mem_ready <= 1'b0;
-                    mem_data <= 'b0;
-                    if (idu_ready) begin
-                        fu_to_du_bus <= {pc, icache_data};
-                        ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
-                    end
+                    inst <= icache_data;
+                    ifu_valid <= 1'b1;
                 end
                 default: begin 
                     arvalid <= 1'b0;
                     rready <= 1'b0;
                     ifu_valid <= 1'b0;
-                    fu_to_du_bus <= 'b0;
                 end
             endcase
         end

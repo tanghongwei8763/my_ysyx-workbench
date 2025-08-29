@@ -12,13 +12,13 @@ AM_SRCS := riscv/ysyxsoc/start.S \
 
 CFLAGS    += -fdata-sections -ffunction-sections
 LDSCRIPTS += $(AM_HOME)/scripts/linker_ysyxsoc.ld
-LDFLAGS   += --defsym=_stack_size=4k --defsym=_entry_offset=0x0
+LDFLAGS   += --defsym=_stack_size=1k --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _start
 NPCFLAGS += -l $(shell dirname $(IMAGE).elf)/ysyxsoc-log.txt -b
 NPCFLAGS += -e $(IMAGE).elf
 NPCFLAGS += -d /home/tanghongwei/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
 
-MAINARGS_MAX_LEN = 32
+MAINARGS_MAX_LEN = 64
 MAINARGS_PLACEHOLDER = The insert-arg rule in Makefile will insert mainargs here.
 CFLAGS += -DMAINARGS_MAX_LEN=$(MAINARGS_MAX_LEN) -DMAINARGS_PLACEHOLDER=\""$(MAINARGS_PLACEHOLDER)"\"
 
