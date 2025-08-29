@@ -89,13 +89,12 @@ module ysyx_25020037_exu (
     always @(*) begin
         bypass_src1 = src1_r;
         src1_wait = 1'b0;
-        for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
             if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 5'd0)) begin
                 bypass_src1 = bypass_data[i];
                 if (bypass_is_load[i]) begin
                     src1_wait = 1'b1;
                 end
-                break;
             end
         end
     end
@@ -103,13 +102,12 @@ module ysyx_25020037_exu (
     always @(*) begin
         bypass_src2 = src2_r;
         src2_wait = 1'b0;
-        for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
             if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 5'd0)) begin
                 bypass_src2 = bypass_data[i];
                 if (bypass_is_load[i]) begin
                     src2_wait = 1'b1;
                 end
-                break;
             end
         end
     end
@@ -163,11 +161,10 @@ module ysyx_25020037_exu (
         end else begin
 
             if (lsu_ready) begin
-                for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+                for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
                     if (bypass_valid[i] && bypass_is_load[i]) begin
                         bypass_data[i]    = rdata_processed;
                         bypass_is_load[i] = 1'b0;
-                        break;
                     end
                 end
             end
