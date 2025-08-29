@@ -18,7 +18,7 @@ NPCFLAGS += -l $(shell dirname $(IMAGE).elf)/ysyxsoc-log.txt -b
 NPCFLAGS += -e $(IMAGE).elf
 NPCFLAGS += -d /home/tanghongwei/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
 
-MAINARGS_MAX_LEN = 64
+MAINARGS_MAX_LEN = 32
 MAINARGS_PLACEHOLDER = The insert-arg rule in Makefile will insert mainargs here.
 CFLAGS += -DMAINARGS_MAX_LEN=$(MAINARGS_MAX_LEN) -DMAINARGS_PLACEHOLDER=\""$(MAINARGS_PLACEHOLDER)"\"
 
