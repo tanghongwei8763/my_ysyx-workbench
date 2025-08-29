@@ -127,22 +127,51 @@ always @(*) begin
 end
 
 always @(*) begin
-    ifu_arready     = 1'b0;
-    ifu_rvalid      = 1'b0;
-    lsu_arready     = 1'b0;
-    lsu_awready     = 1'b0;
-    lsu_wready      = 1'b0;
-    lsu_bvalid      = 1'b0;
-    lsu_rvalid      = 1'b0;
+    ifu_arready = 1'b0;
+    ifu_rvalid  = 1'b0;
+    ifu_rresp   = 2'b00;
+    ifu_rdata   = 32'b0;
+    ifu_rlast   = 1'b0;
+    ifu_rid     = 4'b0;
+
+    lsu_arready = 1'b0;
+    lsu_awready = 1'b0;
+    lsu_wready  = 1'b0;
+    lsu_bvalid  = 1'b0;
+    lsu_bresp   = 2'b00;
+    lsu_bid     = 4'b0;
+    lsu_rvalid  = 1'b0;
+    lsu_rresp   = 2'b00;
+    lsu_rdata   = 32'b0;
+    lsu_rlast   = 1'b0;
+    lsu_rid     = 4'b0;
     
     io_master_arvalid = 1'b0;
+    io_master_araddr  = 32'b0;
+    io_master_arid    = 4'b0;
+    io_master_arlen   = 8'b0;
+    io_master_arsize  = 3'b0;
+    io_master_arburst = 2'b0;
     io_master_awvalid = 1'b0;
+    io_master_awaddr  = 32'b0;
+    io_master_awid    = 4'b0;
+    io_master_awlen   = 8'b0;
+    io_master_awsize  = 3'b0;
+    io_master_awburst = 2'b0;
     io_master_wvalid  = 1'b0;
-    io_master_rready  = 1'b0;
+    io_master_wdata   = 32'b0;
+    io_master_wstrb   = 4'b0;
+    io_master_wlast   = 1'b0;
     io_master_bready  = 1'b0;
+    io_master_rready  = 1'b0;
     
-    clint_arvalid   = 1'b0;
-    clint_rready    = 1'b0;
+    clint_arvalid = 1'b0;
+    clint_araddr  = 32'b0;
+    clint_arid    = 4'b0;
+    clint_arlen   = 8'b0;
+    clint_arsize  = 3'b0;
+    clint_arburst = 2'b0;
+    clint_rready  = 1'b0;
     
     case (current_master)
         IFU_ACCESS: begin
