@@ -97,21 +97,6 @@ module ysyx_25020037_ifu #(
             is_burst_done <= 1'b0;
         end else begin
             state <= next_state;
-            ifu_valid <= ifu_valid;
-            fu_to_du_bus <= fu_to_du_bus;
-            araddr <= araddr;
-            arvalid <= 1'b0;
-            arid <= arid;
-            arlen <= arlen;
-            arsize <= arsize;
-            arburst <= arburst;
-            rready <= rready;
-            mem_data <= mem_data;
-            mem_ready <= 1'b0;
-            read_len <= read_len;
-            access_fault <= 1'b0;
-            burst_cnt <= burst_cnt;
-            is_burst_done <= is_burst_done;
             case (state)
                 IDLE: begin
                     read_len <= 32'b0;
@@ -141,9 +126,6 @@ module ysyx_25020037_ifu #(
                                 arburst <= 2'h0;
                             end
                         end
-                    end else begin
-                        ifu_valid <= 1'b0;
-                        fu_to_du_bus <= 'b0;
                     end
                 end
                 BUSY: begin
@@ -189,9 +171,6 @@ module ysyx_25020037_ifu #(
                     if (idu_ready) begin
                         fu_to_du_bus <= {pc, icache_data};
                         ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
-                    end else begin
-                        fu_to_du_bus <= fu_to_du_bus;
-                        ifu_valid <= 1'b0;
                     end
                 end
                 default: begin 
