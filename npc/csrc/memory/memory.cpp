@@ -10,7 +10,7 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__pc_reg
 #else
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
@@ -19,13 +19,22 @@ extern Vysyx_25020037 *top;
 #endif
 
 static const uint32_t img [] = {
-0x100007b7,          	//lui	a5,0x10000
-0x04100713,          	//li	a4,65
-0x00e78023,          	//sb	a4,0(a5) # 10000000 <_sram_end+0xffe000>
-0x00e78023,          	//sb	a4,0(a5)
-0x00e78023,          	//sb	a4,0(a5)
-0x00a00713,          	//li	a4,10
-0x00e78023,          	//sb	a4,0(a5)
+0x00000717,          	//auipc	a4,0x0
+0x02c70713,          	//addi	a4,a4,44 # a0000558 <__am_asm_trap>
+0x30571073,          	//.4byte	0x30571073
+0x342022f3,          	//.4byte	0x342022f3
+0x30002373,          	//.4byte	0x30002373
+0x341023f3,          	//.4byte	0x341023f3
+0x00100513,          	//li	a0,1
+0x00001717,          	//auipc	a4,0x1
+0x92f72023,          	//sw	a5,-1760(a4) # a0000e5c <user_handler>
+0x00000073,          	//ecall
+0x00000513,           //li  a0 0
+0x00000513,           //li  a0 0
+0x00000513,           //li  a0 0
+0x00000513,           //li  a0 0
+0x00000513,           //li  a0 0
+0x00000513,           //li  a0 0
 0x00100073
 };
 

@@ -18,15 +18,13 @@ extern void nvboard_bind_all_pins(VysyxSoCFull* top);
 #endif
 
 VysyxSoCFull *top = new VysyxSoCFull("top");
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
-#define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_cpu__DOT__pc
 #define gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
 #else
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
 Vysyx_25020037 *top = new Vysyx_25020037("top");
 #define pc top->rootp->ysyx_25020037__DOT__pc
-#define inst top->rootp->ysyx_25020037__DOT__inst
 #define gpr top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__regs
 #endif
 
@@ -70,10 +68,10 @@ const char *tempregs[] = {
 
 extern "C" {
     void hit(int inst_not_realize) {
-        if(inst_not_realize)
-            NPC_STATE = NPC_ABORT;
-        else
-            NPC_STATE = NPC_END;
+        if(NPC_STATE == NPC_RUNING){
+            if(inst_not_realize) NPC_STATE = NPC_ABORT;
+            else NPC_STATE = NPC_END;
+        }
     }
 }
 
@@ -96,10 +94,10 @@ void finish(){
 #ifdef CONFIG_ITRACE
         iringbuf_printf();
 #endif
-        Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT ABORT TRAP", ANSI_FG_RED), pc-4);
+        Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT ABORT TRAP", ANSI_FG_RED), pc-0xc);
     } 
-    else if(gpr[10]) Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED), pc-4);
-    else Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN), pc-4);
+    else if(gpr[10]) Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED), pc-0xc);
+    else Log("npc: %s at pc = 0x%08x",ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN), pc-0xc);
     return;
 }
 

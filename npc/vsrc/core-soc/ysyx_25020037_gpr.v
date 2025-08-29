@@ -4,54 +4,72 @@
 module ysyx_25020037_gpr (
   input  wire         idu_valid,
   input  wire         wbu_valid,
-  input  wire         gpr_we,
   input  wire         exu_ready,
   output reg          gpr_ready,
   output reg          gpr_valid,
   input  wire         clk,
   input  wire         rst,
-  input  wire [31: 0] csr_wcsr_data,
-  input  wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus,
-  input  wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
-  output wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus,
-
-  output wire [31: 0] mtvec,
-  output wire [31: 0] mepc,
-  output wire [31: 0] mstatus,
-  output wire [31: 0] mcause,
-  output wire [31: 0] mvendorid,
-  output wire [31: 0] marchid
+  input  wire [`RS_DATA-1: 0] rs_data,
+  output wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
+  input  wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus
 );
+
+  parameter MSTATUS   = 12'h300;
+  parameter MTVEC     = 12'h305;
+  parameter MEPC      = 12'h341;
+  parameter MCAUSE    = 12'h342;
+  parameter MVENDORID = 12'hF11;
+  parameter MARCHID   = 12'hF12;
 
   localparam IDLE   = 1'b0;
   localparam BUSY   = 1'b1;
   reg state, next_state;
+  reg  [31: 0] pc_reg;
+  reg  [31: 0] inst_reg;
   reg  [31: 0] regs [16:0];
+  reg  [31: 0] mtvec;
+  reg  [31: 0] mepc;
+  reg  [31: 0] mstatus;
+  reg  [31: 0] mcause;
+  reg  [31: 0] mvendorid;
+  reg  [31: 0] marchid;
   //实例化寄存器
   generate
     genvar i;
     for (i = 0; i < 16; i = i+1) begin : GPR32
-      ysyx_25020037_Reg #(32, 32'b0) gpr32 (
+      ysyx_25020037_Reg #(32, 32'b0) gpr16 (
         .clk        (clk        ), 
         .rst        (rst        ), 
         .din        (gpr_wdata  ), 
         .dout       (regs[i]    ), 
-        .wen        ((rd != 5'b0) && wbu_valid && gpr_we && (rd == i))
+        .wen        ((rd != 5'b0) && wbu_valid && gpr_wen && (rd == i))
         );
     end
   endgenerate
 
-  reg  [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus_r;
-
+  wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+  wire [31: 0] csr_wcsr_data;
   wire [31: 0] gpr_wdata;
   wire         gpr_wen;
-  assign {gpr_wen,
+  assign {du_to_gu_bus,
+          csr_wcsr_data,
+          gpr_wen,
           gpr_wdata
-         } = wu_to_gu_bus_r;
-  wire [31: 0] pc;
-  wire [ 4: 0] rd;
+         } = wu_to_gu_bus;
+  wire         inst_ecall;
+  wire         inst_mret;
+  wire [11: 0] imm;
   wire [ 4: 0] rs1;
   wire [ 4: 0] rs2;
+  assign {inst_ecall,
+          inst_mret,
+          imm,
+          rs1,
+          rs2
+         } = rs_data;
+  wire [31: 0] pc;
+  wire [31: 0] inst;
+  wire [ 4: 0] rd;
   wire         csrs_mtvec_wen;
   wire         csrs_mepc_wen;
   wire         csrs_mstatus_wen;
@@ -61,9 +79,8 @@ module ysyx_25020037_gpr (
   wire         ecall_en;
   wire         mret_en;
   assign {pc,
+          inst,
           rd,
-          rs1,
-          rs2,
           csrs_mtvec_wen,
           csrs_mepc_wen,
           csrs_mstatus_wen,
@@ -73,10 +90,33 @@ module ysyx_25020037_gpr (
           ecall_en,
           mret_en
          } = du_to_gu_bus;
-
+  ysyx_25020037_Reg #(32, 32'h0) u_pc_reg (
+    .clk         (clk              ),
+    .rst         (rst              ),
+    .din         (pc               ),
+    .dout        (pc_reg           ),
+    .wen         (wbu_valid        )
+  );
+  ysyx_25020037_Reg #(32, 32'h0) u_inst_reg (
+    .clk         (clk              ),
+    .rst         (rst              ),
+    .din         (inst             ),
+    .dout        (inst_reg         ),
+    .wen         (wbu_valid        )
+  );
   wire [31: 0] src1;
   wire [31: 0] src2;
-
+  wire [31: 0] imm_csr_data; 
+  wire [31: 0] csr_data; 
+  assign imm_csr_data    = ({32{imm == MTVEC    }} & mtvec)
+                         | ({32{imm == MEPC     }} & mepc)
+                         | ({32{imm == MSTATUS  }} & mstatus)
+                         | ({32{imm == MCAUSE   }} & mcause)
+                         | ({32{imm == MVENDORID}} & mvendorid)
+                         | ({32{imm == MARCHID  }} & marchid);
+  assign csr_data = inst_ecall ? mtvec :
+                    inst_mret  ? mepc  :
+                    imm_csr_data;
   wire         mepc_wen;
   wire         mcause_wen;
   wire         mstatus_wen;
@@ -122,7 +162,7 @@ module ysyx_25020037_gpr (
     .wen         (mstatus_wen & wbu_valid & (~gpr_ready))
   );
 
-  ysyx_25020037_Reg #(32, 32'h0) CSRS_cause (
+  ysyx_25020037_Reg #(32, 32'h0) CSRS_mcause (
     .clk         (clk             ),
     .rst         (rst             ),
     .din         (mcause_data     ),
@@ -148,44 +188,10 @@ module ysyx_25020037_gpr (
   
   assign src1 = regs[rs1];
   assign src2 = regs[rs2];
-  assign gu_to_eu_bus = {           
+  assign gu_to_du_bus = {           
            src1,
            src2,
-           mtvec,
-           mepc
+           csr_data
          };
 
-  always @(*) begin
-    case (state)
-      IDLE: next_state = ((wbu_valid | idu_valid) & gpr_ready) ? BUSY : IDLE;
-      BUSY: next_state = (gpr_valid & exu_ready) ? IDLE : BUSY;
-      default: next_state = IDLE;
-    endcase
-    end
-
-    always @(posedge clk or posedge rst) begin
-      if (rst) begin
-        state <= IDLE;
-        gpr_valid <= 1'b0;
-        gpr_ready <= 1'h1;
-      end else begin
-        state <= next_state;
-
-        case (state)
-          IDLE: begin
-            if (wbu_valid & gpr_ready) begin
-              wu_to_gu_bus_r <= wu_to_gu_bus;
-              gpr_ready <= 1'b0;
-            end
-            gpr_valid <= 1'b0;
-          end
-          BUSY: begin
-            if (exu_ready) begin
-              gpr_ready <= 1'b1;
-              gpr_valid <= 1'b1;
-            end
-          end
-        endcase
-      end
-    end
 endmodule

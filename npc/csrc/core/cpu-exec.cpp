@@ -13,10 +13,16 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
-#define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__pc_reg
+#define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__inst_reg
+#define exu_dnpc_valid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__exu_dnpc_valid
 #define ifu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_access_fault
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
+#define araddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_araddr
+#define arvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_arvalid
+#define awaddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awaddr
+#define wdata top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_wdata
+#define awvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awvalid
 #else
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
@@ -69,6 +75,7 @@ static void exec_once();
 static uint64_t us;
 extern uint64_t get_time();
 static uint64_t current_total_clk_reg = 0;
+static int last_pc;
 
 static void update_module_stats(int valid, uint64_t current_total_clk) {
     if(valid == 0) return;
@@ -258,12 +265,22 @@ void cpu_exec(int n){
 
 static void exec_once() {
     stats.inst_sum++;
-    int last_pc = pc;
+    last_pc = pc;
 
     uint64_t timer_start, timer_end, time_spent = 0;
     uint64_t clk_sum_reg = 0;
     int prev_valid_reg = 0x10;
     do{
+#ifdef CONFIG_YSYXSOC
+#ifdef CONFIG_DIFFTEST
+        if((((araddr < 0x30000000) | (araddr > 0x3fffffff)) & arvalid) & 
+           (((araddr < 0x0f000000) | (araddr > 0x0f002000)) & arvalid) & 
+           (((araddr < 0xa0000000) | (araddr > 0xbfffffff)) & arvalid)) {difftest_skip_ref();}
+        if((((awaddr < 0x30000000) | (awaddr > 0x3fffffff)) & awvalid) & 
+           (((awaddr < 0x0f000000) | (awaddr > 0x0f002000)) & awvalid) & 
+           (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
+#endif
+#endif
         if(prev_valid_reg != prev_valid){
             prev_valid_reg = prev_valid;
             update_module_stats(prev_valid_reg, clk_sum_reg);
@@ -274,17 +291,11 @@ static void exec_once() {
         time_spent += timer_end - timer_start;
         clk_sum_reg++;
     } while (pc == last_pc);
-
-    timer_start = get_time();
-    single_cycle();
-    timer_end = get_time();
-    time_spent += timer_end - timer_start;
-    clk_sum_reg++;
     
     stats.clk_sum += clk_sum_reg;
     stats.g_timer += time_spent;
     stats.types[stats.current_type].clk += clk_sum_reg;
     stats.types[stats.current_type].time += time_spent;
 
-    trace_and_difftest();
+    if(!exu_dnpc_valid) trace_and_difftest();
 }

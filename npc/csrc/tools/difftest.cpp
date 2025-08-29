@@ -9,12 +9,12 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
-#define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__pc_reg
 #define dut_gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
-#define dut_mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mtvec
-#define dut_mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mepc
-#define dut_mstatus top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mstatus
-#define dut_mcause top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mcause
+#define dut_mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__mtvec
+#define dut_mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__mepc
+#define dut_mstatus top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__mstatus
+#define dut_mcause top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__mcause
 #else
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
@@ -78,12 +78,12 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
            "If it is not necessary, you can turn it off in switch.h\n\x1B[0m", ref_so_file);
 
   ref_difftest_init(port);
-  ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), 4*1024, DIFFTEST_TO_REF);
+  ref_difftest_memcpy(FLASH_RESET_VECTOR, SoC_to_host(FLASH_RESET_VECTOR), img_size, DIFFTEST_TO_REF);
   diff_context_t* dut_r = (diff_context_t*)malloc(sizeof(diff_context_t));
   for(int i = 0; i < 32; i++){
     dut_r->gpr[i] = dut_gpr[i];
   }
-  dut_r->pc  = RESET_VECTOR;
+  dut_r->pc  = FLASH_RESET_VECTOR;
   dut_r->mtvec   = dut_mtvec;
   dut_r->mepc    = dut_mepc;
   dut_r->mstatus = dut_mstatus;

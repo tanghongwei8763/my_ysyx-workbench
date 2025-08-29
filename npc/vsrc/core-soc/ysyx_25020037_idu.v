@@ -3,19 +3,15 @@
 module ysyx_25020037_idu (
     input  wire         clk,
     input  wire         rst,
-    input  wire [31: 0] pc,
-    input  wire [31: 0] inst,
     input  wire         ifu_valid,
     input  wire         exu_ready,
     output reg          idu_valid,
-    output reg          idu_ready,
-    output reg          inst_l,
-    output reg          inst_s,
-    output reg          gpr_we,
-    output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
-    output reg  [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus,
-    output reg  [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
-    output reg  [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus
+    output wire         idu_ready,
+    output wire [`RS_DATA-1: 0] rs_data,
+    input  wire         exu_dnpc_valid,
+    input  wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
+    input  wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus,
+    output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
 );
 `ifdef VERILATOR
     import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
@@ -30,11 +26,61 @@ module ysyx_25020037_idu (
     parameter MVENDORID = 12'hF11;
     parameter MARCHID   = 12'hF12;
 
-    localparam IDLE   = 1'b0;
-    localparam BUSY   = 1'b1;
-    reg state, next_state;
+    reg  [31: 0] inst;
 
-    reg  [31: 0] inst_r;
+    wire [31: 0] src1;
+    wire [31: 0] src2;
+    wire [31: 0] csr_data;
+    assign {src1,
+            src2,
+            csr_data
+           } = gu_to_du_bus;
+
+    wire [31: 0] pc;
+    wire [31: 0] inst;
+    assign {pc,
+            inst
+           } = fu_to_du_bus;
+
+    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+    wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
+    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    wire  inst_l;
+    wire  inst_s;
+    wire  gpr_we;
+    assign inst_s = inst_sw | inst_sh | inst_sb;
+    assign inst_l = inst_lw | inst_lh | inst_lb | inst_lhu | inst_lbu;
+    assign gpr_we = gpr_we_r;
+    assign du_to_gu_bus = {
+        pc,
+        inst,
+        rd,
+        csrs_mtvec_wen,
+        csrs_mepc_wen,
+        csrs_mstatus_wen,
+        csrs_mcause_wen,
+        csrs_mvendorid_wen,
+        csrs_marchid_wen,
+        ecall_en,
+        mret_en       
+    };
+    assign du_to_lu_bus = {
+        inst_l,
+        inst_s,
+        lw_lh_lb,   
+        sw_sh_sb,
+        bit_sext,        
+        half_sext,
+        rlsu_we,         
+        wlsu_we   
+    };
+    assign du_to_wu_bus = {
+        gpr_we,
+        rlsu_we,        
+        csr_w_gpr_we,
+        csr_data
+    };
+
     wire [ 4: 0] rs1;
     wire [ 4: 0] rs2;
     wire [ 4: 0] rd;
@@ -54,6 +100,7 @@ module ysyx_25020037_idu (
     wire         ebreak;
     wire         inst_not_realize;
     wire         csr_w_gpr_we;
+    wire [31: 0] csr_data;
     wire         csrrw_op;
     wire         csrrs_op;
     wire         ecall_en;
@@ -87,6 +134,8 @@ module ysyx_25020037_idu (
     wire         rw_word_1;
     wire         rw_word_2;
     wire         rw_word_4;
+
+    wire        is_fence_i;
 
     wire        inst_add;
     wire        inst_and;
@@ -128,6 +177,7 @@ module ysyx_25020037_idu (
     wire        inst_auipc;
     wire        inst_lui;
     wire        inst_jal;
+    wire        inst_fence_i;
     wire        inst_ebreak;
     wire        inst_waiting;
 
@@ -139,20 +189,21 @@ module ysyx_25020037_idu (
     wire        TYPE_J;
     wire        TYPE_N;
 
-    assign opcode_31_25  = inst_r[31:25];
-    assign opcode_31_26  = inst_r[31:26];
-    assign opcode_14_12  = inst_r[14:12];
-    assign opcode_06_00  = inst_r[ 6: 0];
+    assign opcode_31_25  = inst[31:25];
+    assign opcode_31_26  = inst[31:26];
+    assign opcode_14_12  = inst[14:12];
+    assign opcode_06_00  = inst[ 6: 0];
 
-    assign rs1   = inst_r[19:15];
-    assign rs2   = inst_r[24:20];
-    assign rd    = inst_r[11: 7];
+    assign rs1     = inst[19:15];
+    assign rs2     = inst[24:20];
+    assign rd      = inst[11: 7];
+    assign rs_data = {inst_ecall, inst_mret, imm[11:0], rs1, rs2};
 
-    assign immI  = {{20{inst_r[31]}}, inst_r[31:20]};
-    assign immS  = {{20{inst_r[31]}}, inst_r[31:25], inst_r[11:7]};
-    assign immB  = {{20{inst_r[31]}}, inst_r[7], inst_r[30:25], inst_r[11:8], 1'b0};
-    assign immU  = {inst_r[31:12], 12'b0};
-    assign immJ  = {{12{inst_r[31]}}, inst_r[19:12], inst_r[20], inst_r[30:21], 1'b0};
+    assign immI  = {{20{inst[31]}}, inst[31:20]};
+    assign immS  = {{20{inst[31]}}, inst[31:25], inst[11:7]};
+    assign immB  = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
+    assign immU  = {inst[31:12], 12'b0};
+    assign immJ  = {{12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
     
     decoder_7_128 u_dec0(.in(opcode_31_25 ), .out(opcode_31_25_d ));
     decoder_6_64  u_dec1(.in(opcode_31_26 ), .out(opcode_31_26_d ));
@@ -201,6 +252,7 @@ module ysyx_25020037_idu (
     assign inst_auipc     = opcode_06_00_d[7'h17];
     assign inst_lui       = opcode_06_00_d[7'h37];
     assign inst_jal       = opcode_06_00_d[7'h6f];
+    assign inst_fence_i   = opcode_06_00_d[7'h0f] & rd_d[5'h00] & opcode_14_12_d[3'h1] & rs1_d[5'h00] & rs2_d[5'h00] & opcode_31_25_d[7'h00];
     assign inst_mret      = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h02] & opcode_31_25_d[7'h18];
     assign inst_ecall     = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h00] & opcode_31_25_d[7'h00];
     assign inst_ebreak    = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h01] & opcode_31_25_d[7'h00];
@@ -232,7 +284,7 @@ module ysyx_25020037_idu (
     assign TYPE_I = inst_addi   | inst_jarl | inst_lw  | inst_sltiu | inst_srai | 
                     inst_lbu    | inst_lh   | inst_lhu |inst_andi   | inst_xori | 
                     inst_srli   | inst_slli | inst_lb  | inst_ori   | inst_csrrw|
-                    inst_csrrs;
+                    inst_csrrs  | inst_fence_i;
     assign TYPE_S = inst_sw     | inst_sh   | inst_sb;
     assign TYPE_B = inst_bne    | inst_beq  | inst_bge | inst_bgeu  | inst_blt  | inst_bltu;
     assign TYPE_U = inst_auipc  | inst_lui;
@@ -273,6 +325,7 @@ module ysyx_25020037_idu (
     assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
     assign ebreak       = inst_ebreak;
+    assign is_fence_i   = inst_fence_i;
 
     assign csr_w_gpr_we = inst_csrrw | inst_csrrs;
     assign csrrw_op     = inst_csrrw;
@@ -289,86 +342,47 @@ module ysyx_25020037_idu (
 
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
-    always @(*) begin
-        case (state)
-            IDLE: next_state = (ifu_valid & idu_ready) ? BUSY : IDLE;
-            BUSY: next_state = (idu_valid & exu_ready) ? IDLE : BUSY;
-            default: next_state = IDLE;
-        endcase
-    end
-
+    assign idu_ready = exu_ready;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            state <= IDLE;
             idu_valid <= 1'b0;
-            idu_ready <= 1'h1;
             du_to_eu_bus <= `DU_TO_EU_BUS_WD'b0;
-            du_to_gu_bus <= `DU_TO_GU_BUS_WD'b0;
-            du_to_lu_bus <= `DU_TO_LU_BUS_WD'b0;
-            du_to_wu_bus <= `DU_TO_WU_BUS_WD'b0;
         end else begin
-            state <= next_state;
-
-            case (state)
-                IDLE: begin
-                    if (ifu_valid & idu_ready) begin
-                        inst_r <= inst;
-                        idu_ready <= 1'b0;
-                    end
-                    idu_valid <= 1'b0;
+            if (exu_ready) begin
+                idu_valid <= 1'b0;
+                du_to_eu_bus <= 'b0;
+                if (ifu_valid) begin
+                    idu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
+                    du_to_eu_bus <= {
+                        du_to_gu_bus,
+                        du_to_lu_bus,
+                        du_to_wu_bus,
+                        pc,
+                        inst_l,
+                        inst_s,
+                        is_fence_i,         
+                        imm,
+                        rd,
+                        rs1,
+                        rs2,
+                        src1,
+                        src2,
+                        gpr_we,  
+                        alu_op,             
+                        src1_is_pc,      
+                        src2_is_imm,     
+                        is_pc_jump,      
+                        double_cal,      
+                        ebreak,          
+                        inst_not_realize,
+                        ecall_en,
+                        mret_en,
+                        csr_data,
+                        csrrs_op,
+                        csrrw_op
+                    };
                 end
-                BUSY: begin
-                    if (exu_ready) begin
-                        inst_s <= inst_sw | inst_sh | inst_sb;
-                        inst_l <= inst_lw | inst_lh | inst_lb | inst_lhu | inst_lbu;
-                        gpr_we <= gpr_we_r;
-                        du_to_eu_bus <= {           
-                            imm,             
-                            alu_op,             
-                            src1_is_pc,      
-                            src2_is_imm,     
-                            is_pc_jump,      
-                            double_cal,      
-                            ebreak,          
-                            inst_not_realize,
-                            ecall_en,
-                            mret_en,
-                            csrrs_op,
-                            csrrw_op
-                        };
-                        du_to_gu_bus <= {
-                            pc,
-                            rd,
-                            rs1,             
-                            rs2,
-                            csrs_mtvec_wen,
-                            csrs_mepc_wen,
-                            csrs_mstatus_wen,
-                            csrs_mcause_wen,
-                            csrs_mvendorid_wen,
-                            csrs_marchid_wen,
-                            ecall_en,
-                            mret_en       
-                        };
-                        du_to_lu_bus <= {
-                            lw_lh_lb,   
-                            sw_sh_sb,
-                            rlsu_we,         
-                            wlsu_we   
-                        };
-                        du_to_wu_bus <= {
-                            lw_lh_lb,  
-                            bit_sext,        
-                            half_sext,
-                            gpr_we,
-                            rlsu_we,        
-                            csr_w_gpr_we
-                        };
-                        idu_valid <= 1'b1;
-                        idu_ready <= 1'b1;
-                    end
-                end
-            endcase
+            end
         end
     end
 

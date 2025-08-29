@@ -11,7 +11,7 @@ static uint64_t get_time()
   uint32_t high = inl(RTC_ADDR + 4);
   uint32_t low = inl(RTC_ADDR);
   uint64_t time = ((uint64_t)high << 32) + low;
-  return time / 3 * 2;
+  return time;
 }
 
 void __am_timer_init() {
