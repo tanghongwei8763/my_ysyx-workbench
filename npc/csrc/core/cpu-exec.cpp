@@ -21,6 +21,7 @@ extern VysyxSoCFull *top;
 #define araddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_araddr
 #define arvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_arvalid
 #define awaddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awaddr
+#define wdata top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_wdata
 #define awvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awvalid
 #else
 #include "Vysyx_25020037___024root.h"
@@ -280,6 +281,7 @@ static void exec_once() {
            (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
 #endif
 #endif
+        if(awaddr == 0xa0060f0f) printf("0x%08x\n", wdata);
         if(prev_valid_reg != prev_valid){
             prev_valid_reg = prev_valid;
             update_module_stats(prev_valid_reg, clk_sum_reg);
