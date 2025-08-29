@@ -281,7 +281,7 @@ static void exec_once() {
            (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
 #endif
 #endif
-        if(awaddr == 0xa0060f0f) printf("0x%08x\n", wdata);
+        if(awaddr >= 0xa0060f00 && awaddr <= 0xa0060f20) printf("0x%08x\n", wdata); // 0xa0060f0f
         if(prev_valid_reg != prev_valid){
             prev_valid_reg = prev_valid;
             update_module_stats(prev_valid_reg, clk_sum_reg);
