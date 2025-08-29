@@ -1,14 +1,13 @@
 `include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
 module ysyx_25020037_lsu (
-    input  wire         clk,
-    input  wire         rst,
-    input  wire         exu_valid,
-    input  wire         wbu_ready,
-    output wire         lsu_ready,
-    output reg          lsu_valid,
-    input  wire         exu_dnpc_valid,
-    output wire [31: 0] rdata_processed,
+    input  wire          clk,
+    input  wire          rst,
+    input  wire          exu_valid,
+    input  wire          wbu_ready,
+    output reg           lsu_ready,
+    output reg           lsu_valid,
     input  wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
+    input  wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus,
     output reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
     output reg          access_fault,
 
@@ -56,40 +55,12 @@ module ysyx_25020037_lsu (
     localparam AXI_SIZE_BYTE   = 3'h0;
     localparam AXI_SIZE_HALF   = 3'h1;
     localparam AXI_SIZE_WORD   = 3'h2;
-    reg                          exu_dnpc_valid_r;
-    wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
-    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
-    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
-    assign {du_to_gu_bus,
-            du_to_lu_bus,
-            du_to_wu_bus, 
-            csr_wcsr_data,     
-            addr,
-            data
-           } = eu_to_lu_bus;
-    wire [31:0] addr;
-    wire [31:0] csr_wcsr_data;
-    wire [31:0] data;
-    wire [31:0] addr_off = addr & 32'b11;
-    wire [31:0] aligned_wdata = data << (addr_off << 3);
 
-    wire        inst_l;
-    wire        inst_s;
-    wire [ 2:0] data_rop;
-    wire [ 2:0] data_wop;
-    wire        bit_sext;
-    wire        half_sext;
-    wire        is_write;
-    wire        is_read;
-    assign {inst_l,
-            inst_s,
-            data_rop,    
-            data_wop,     
-            bit_sext,
-            half_sext,
-            is_read,
-            is_write
-           } = du_to_lu_bus;
+    wire [31:0] addr = eu_to_lu_bus[63:32];
+    wire [31:0] addr_off = addr & 32'b11;
+    wire [31:0] aligned_wdata = eu_to_lu_bus[31:0] << (addr_off << 3);
+    wire [ 2:0] data_rop = du_to_lu_bus[7:5];
+    wire [ 2:0] data_wop = du_to_lu_bus[4:2];
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
@@ -112,26 +83,16 @@ module ysyx_25020037_lsu (
 
     always @(*) begin
         case (state)
-            IDLE: begin next_state = (exu_valid & (is_write | is_read)) ? BUSY : IDLE; end
-            BUSY: begin next_state = (lsu_valid | (bvalid & wlast) | (rvalid & rlast)) ? IDLE : BUSY; end
+            IDLE: begin next_state = (lsu_ready & exu_valid) ? BUSY : IDLE; end
+            BUSY: begin next_state = (lsu_valid & wbu_ready) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
 
-    wire [31: 0] lsu_rdata;
-    assign lsu_rdata = inst_l ? (rdata >> ((addr & 32'b11) << 3)) : rdata;
-    assign rdata_processed = (data_rop == 3'b001) ? 
-                             (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 
-                                       : {24'b0          , lsu_rdata[ 7:0]} ) :
-                             (data_rop == 3'b010) ? 
-                             (half_sext ? {{16{lsu_rdata[15]}}, lsu_rdata[15:0]} 
-                                        : {16'b0          , lsu_rdata[15:0]}) :
-                             lsu_rdata;
-
-    assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
+            lsu_ready <= 1'b1;
             lsu_valid <= 1'b0;
             access_fault <= 1'b0;
             lu_to_wu_bus <= 'b0;
@@ -155,26 +116,26 @@ module ysyx_25020037_lsu (
             rready <= 1'b0;
         end else begin
             state <= next_state;
-            exu_dnpc_valid_r <= exu_dnpc_valid;
+
             case (state)
                 IDLE: begin
                     lsu_valid <= 1'b0;
-                    lu_to_wu_bus <= 'b0;
                     access_fault <= 1'b0;
                     awvalid <= 1'b0;
                     wvalid <= 1'b0;
                     arvalid <= 1'b0;
                     bready <= 1'b0;
                     rready <= 1'b0;
-                    if (exu_valid) begin
-                        if (is_read) begin
+                    if (lsu_ready & exu_valid) begin
+                        lsu_ready <= 1'b0;
+                        if (du_to_lu_bus[1]) begin
                             araddr  <= addr;
                             arvalid <= 1'b1;
                             arid <= 4'h0;
                             arlen <= AXI_LEN_SINGLE;
                             arsize <= axi_rsize;
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
-                        end else if (is_write) begin
+                        end else if (du_to_lu_bus[0]) begin
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
                             awaddr  <= addr;
@@ -184,45 +145,33 @@ module ysyx_25020037_lsu (
                             awsize <= axi_wsize;
                             awburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
                             wlast <= 1'b1;
-                            case (data_wop)
+                            case (du_to_lu_bus[4:2])
                                 3'b001: wstrb <= (4'b0001 << addr_off);
                                 3'b010: wstrb <= (4'b0011 << addr_off);
                                 3'b100: wstrb <= (4'b1111 << addr_off);
                                 default: wstrb <= 4'b0000;
                             endcase
                         end else begin
+                            lu_to_wu_bus <= {eu_to_lu_bus[63:32], eu_to_lu_bus[63:32]};
                             lsu_valid <= 1'b1;
-                            lu_to_wu_bus <= {
-                                du_to_wu_bus,
-                                du_to_gu_bus,
-                                csr_wcsr_data,
-                                addr,
-                                addr
-                            };
+                            lsu_ready <= 1'b1;
                         end
                     end
                 end
                 BUSY: begin
-                    lsu_valid <= 1'b0;
-                    lu_to_wu_bus <= 'b0;
-                    if (is_read) begin
+                    if (du_to_lu_bus[1]) begin
                         if (arvalid && arready) begin
                             arvalid <= 1'b0;
                             rready <= 1'b1;
                         end
                         if (rvalid && rready) begin
-                            lu_to_wu_bus <= {
-                                du_to_wu_bus,
-                                du_to_gu_bus,
-                                csr_wcsr_data,
-                                addr, 
-                                rdata_processed
-                                };
+                            lu_to_wu_bus <= {eu_to_lu_bus[63:32], rdata};
                             lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
                             access_fault <= (rresp != 2'b00);
                             rready <= 1'b0;
                         end
-                    end else if (is_write) begin 
+                    end else if (du_to_lu_bus[0]) begin 
                         if (awvalid && awready && wvalid && wready) begin
                             awvalid <= 1'b0;
                             wvalid <= 1'b0;
@@ -230,6 +179,7 @@ module ysyx_25020037_lsu (
                         end
                         if (bvalid && bready) begin
                             lsu_valid <= 1'b1;
+                            lsu_ready <= 1'b1;
                             access_fault <= (bresp != 2'b00);
                             bready <= 1'b0;
                         end
