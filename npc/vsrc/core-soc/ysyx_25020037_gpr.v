@@ -30,9 +30,9 @@ module ysyx_25020037_gpr (
   wire [31: 0] mvendorid = 32'h79737978;
   wire [31: 0] marchid   = 32'h017DC685;
   //实例化寄存器
+  integer i;
   always @(posedge clk or posedge rst) begin
     if (rst) begin
-      integer i;
       for (i = 0; i < 16; i = i + 1) regs[i] <= 32'b0;
     end else if (wbu_valid && gpr_wen && rd != 4'b0) begin
       regs[rd] <= gpr_wdata;
