@@ -55,7 +55,7 @@ module ysyx_25020037_ifu #(
     reg  [1:0]  burst_cnt;
 
     always @(posedge clk or posedge rst) begin
-        if(rst) pc <= 32'b0;
+        if(rst) pc <= 32'h30000000;
         else if (pc_updata) pc <= dnpc;
     end
     assign      pc_updata = (next_state == IDLE) & idu_ready;
