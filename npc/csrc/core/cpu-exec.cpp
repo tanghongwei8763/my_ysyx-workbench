@@ -112,54 +112,54 @@ extern "C" void performance_counter(int valid, int type_, int cache_hit) {
 }
 
 static void inst_infomation() {
-    printf("+----------------+----------------------+\n");
-    printf("| cache\t\t | 命中率\t\t|\n");
-    printf("+----------------+----------------------+\n");
-    printf("| -icache\t | %-15.4f\t|\n", (double)icache_hit / stats.inst_sum);
-    printf("+----------------+----------------------+\n");
-#ifdef CONFIG_YSYXSOC
-    printf("| 模块耗时统计   | 时钟占比\t\t|\n");
-    printf("+----------------+----------------------+\n");
-    const char* module_names[5] = {"ifu", "idu", "exu", "lsu", "wbu"};
-    TypeStats* modules[5] = {
-        &stats.perf.ifu, &stats.perf.idu, 
-        &stats.perf.exu, &stats.perf.lsu, &stats.perf.wbu
-    };
+//     printf("+----------------+----------------------+\n");
+//     printf("| cache\t\t | 命中率\t\t|\n");
+//     printf("+----------------+----------------------+\n");
+//     printf("| -icache\t | %-15.4f\t|\n", (double)icache_hit / stats.inst_sum);
+//     printf("+----------------+----------------------+\n");
+// #ifdef CONFIG_YSYXSOC
+//     printf("| 模块耗时统计   | 时钟占比\t\t|\n");
+//     printf("+----------------+----------------------+\n");
+//     const char* module_names[5] = {"ifu", "idu", "exu", "lsu", "wbu"};
+//     TypeStats* modules[5] = {
+//         &stats.perf.ifu, &stats.perf.idu, 
+//         &stats.perf.exu, &stats.perf.lsu, &stats.perf.wbu
+//     };
     
-    for (int i = 0; i < 5; i++) {
-        double clk_ratio = stats.clk_sum > 0 ? 
-            (double)modules[i]->clk / stats.clk_sum * 100 : 0;
-        double time_ratio = stats.g_timer > 0 ? 
-            (double)modules[i]->time / stats.g_timer * 100 : 0;
+//     for (int i = 0; i < 5; i++) {
+//         double clk_ratio = stats.clk_sum > 0 ? 
+//             (double)modules[i]->clk / stats.clk_sum * 100 : 0;
+//         double time_ratio = stats.g_timer > 0 ? 
+//             (double)modules[i]->time / stats.g_timer * 100 : 0;
         
-        printf("| - %-12s | %-10ld(%.1f%%)\t|\n",
-               module_names[i],
-               modules[i]->clk,
-               clk_ratio);
-    }
-    printf("+----------------+----------------------------------------------+\n");
+//         printf("| - %-12s | %-10ld(%.1f%%)\t|\n",
+//                module_names[i],
+//                modules[i]->clk,
+//                clk_ratio);
+//     }
+//     printf("+----------------+----------------------------------------------+\n");
     
-    // 打印指令类型统计表格
-    printf("| 指令类型统计   | 时钟占比             时间占比\t\t|\n");
-    printf("+----------------+----------------------------------------------+\n");
+//     // 打印指令类型统计表格
+//     printf("| 指令类型统计   | 时钟占比             时间占比\t\t|\n");
+//     printf("+----------------+----------------------------------------------+\n");
     
-    const char* type_names[INST_TYPE_COUNT] = {"R", "I", "S", "B", "U", "J", "N"};
-    for (int i = 0; i < INST_TYPE_COUNT; i++) {
-        double clk_ratio = stats.clk_sum > 0 ? 
-            (double)stats.types[i].clk / stats.clk_sum * 100 : 0;
-        double time_ratio = stats.g_timer > 0 ? 
-            (double)stats.types[i].time / stats.g_timer * 100 : 0;
+//     const char* type_names[INST_TYPE_COUNT] = {"R", "I", "S", "B", "U", "J", "N"};
+//     for (int i = 0; i < INST_TYPE_COUNT; i++) {
+//         double clk_ratio = stats.clk_sum > 0 ? 
+//             (double)stats.types[i].clk / stats.clk_sum * 100 : 0;
+//         double time_ratio = stats.g_timer > 0 ? 
+//             (double)stats.types[i].time / stats.g_timer * 100 : 0;
         
-        printf("| %-5s %-8ld | %-10ld(%.1f%%)\t%-10ld(%.1f%%)\t|\n",
-               type_names[i],
-               stats.types[i].count / 2,
-               stats.types[i].clk,
-               clk_ratio,
-               stats.types[i].time,
-               time_ratio);
-    }
-    printf("+---------------------------------------------------------------+\n");
-#endif
+//         printf("| %-5s %-8ld | %-10ld(%.1f%%)\t%-10ld(%.1f%%)\t|\n",
+//                type_names[i],
+//                stats.types[i].count / 2,
+//                stats.types[i].clk,
+//                clk_ratio,
+//                stats.types[i].time,
+//                time_ratio);
+//     }
+//     printf("+---------------------------------------------------------------+\n");
+// #endif
     Log("IPC = %.4f", (double)stats.inst_sum / stats.clk_sum);
     Log("host time spent = %ld us", stats.g_timer);
     Log("total guest instructions = %ld", stats.inst_sum);
@@ -199,19 +199,19 @@ void cpu_exec(int n){
 #ifdef CONFIG_YSYXSOC
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
-                    // inst_infomation();
+                    inst_infomation();
                     finish();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
-                    // inst_infomation();
+                    inst_infomation();
                     finish();
                     break;
                 }
 #endif
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
-                    // inst_infomation();
+                    inst_infomation();
                     finish();
                     break;
                 }
@@ -230,13 +230,13 @@ void cpu_exec(int n){
 #ifdef CONFIG_YSYXSOC
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
-                    // inst_infomation();
+                    inst_infomation();
                     finish();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
-                    // inst_infomation();
+                    inst_infomation();
                     finish();
                     break;
                 }
@@ -250,7 +250,7 @@ void cpu_exec(int n){
                     break;
                 }
                 else if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT) {
-                    // inst_infomation();
+                    inst_infomation();
                     finish();
                     break;
                 }
