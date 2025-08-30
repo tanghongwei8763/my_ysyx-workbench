@@ -24,8 +24,6 @@ module ysyx_25020037_gpr (
   localparam IDLE   = 1'b0;
   localparam BUSY   = 1'b1;
   reg state, next_state;
-  reg  [31: 0] pc_reg;
-  reg  [31: 0] inst_reg;
   reg  [31: 0] regs [16:0];
   reg  [31: 0] mtvec;
   reg  [31: 0] mepc;
