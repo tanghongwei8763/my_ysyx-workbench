@@ -236,7 +236,7 @@ module ysyx_25020037 (
     ysyx_25020037_icache #(
         .ADDR_WIDTH    (32),
         .DATA_WIDTH    (32),
-        .CACHE_BLOCKS  (16),
+        .CACHE_BLOCKS  ( 8),
         .BLOCK_SIZE    (BLOCK_SIZE)
     ) u_icache (
         .clk           (clock           ),
