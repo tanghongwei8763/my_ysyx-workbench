@@ -5,8 +5,6 @@ module ysyx_25020037_gpr (
   input  wire         idu_valid,
   input  wire         wbu_valid,
   input  wire         exu_ready,
-  output reg          gpr_ready,
-  output reg          gpr_valid,
   input  wire         clk,
   input  wire         rst,
   input  wire [`RS_DATA-1: 0] rs_data,
@@ -29,21 +27,17 @@ module ysyx_25020037_gpr (
   reg  [31: 0] mepc;
   reg  [31: 0] mstatus;
   reg  [31: 0] mcause;
-  reg  [31: 0] mvendorid;
-  reg  [31: 0] marchid;
+  wire [31: 0] mvendorid = 32'h79737978;
+  wire [31: 0] marchid   = 32'h017DC685;
   //实例化寄存器
-  generate
-    genvar i;
-    for (i = 0; i < 16; i = i+1) begin : GPR32
-      ysyx_25020037_Reg #(32, 32'b0) gpr16 (
-        .clk        (clk        ), 
-        .rst        (rst        ), 
-        .din        (gpr_wdata  ), 
-        .dout       (regs[i]    ), 
-        .wen        ((rd != 4'b0) && wbu_valid && gpr_wen && (rd == i))
-        );
+  always @(posedge clk or posedge rst) begin
+    if (rst) begin
+      integer i;
+      for (i = 0; i < 16; i = i + 1) regs[i] <= 32'b0;
+    end else if (wbu_valid && gpr_wen && rd != 4'b0) begin
+      regs[rd] <= gpr_wdata;
     end
-  endgenerate
+  end
 
   wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
   wire [31: 0] csr_wcsr_data;
@@ -116,53 +110,27 @@ module ysyx_25020037_gpr (
                       csr_wcsr_data;
 
   //实例CSR处理器
-  ysyx_25020037_Reg #(32, 32'h0) CSRS_mtvec (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (csr_wcsr_data   ),
-    .dout        (mtvec           ),
-    .wen         (csrs_mtvec_wen & wbu_valid & (~gpr_ready))
-  );
-
-  ysyx_25020037_Reg #(32, 32'h0) CSRS_mepc (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (mepc_data       ),
-    .dout        (mepc            ),
-    .wen         (mepc_wen & wbu_valid & (~gpr_ready))
-  );
-
-  ysyx_25020037_Reg #(32, 32'h1800) CSRS_mstatus (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (mstatus_data    ),
-    .dout        (mstatus         ),
-    .wen         (mstatus_wen & wbu_valid & (~gpr_ready))
-  );
-
-  ysyx_25020037_Reg #(32, 32'h0) CSRS_mcause (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (mcause_data     ),
-    .dout        (mcause          ),
-    .wen         (mcause_wen & wbu_valid & (~gpr_ready))
-  );
-
-  ysyx_25020037_Reg #(32, 32'h79737978) CSRS_mvendorid (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (32'b0           ),
-    .dout        (mvendorid       ),
-    .wen         (1'b0            )
-  );
-
-  ysyx_25020037_Reg #(32, 32'h017DC685) CSRS_marchid (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (32'b0           ),
-    .dout        (marchid         ),
-    .wen         (1'b0            )
-  );
+  always @(posedge clk or posedge rst) begin
+    if (rst) begin
+      mtvec  <= 32'h0;
+      mepc   <= 32'h0;
+      mstatus<= 32'h1800;
+      mcause <= 32'h0;
+    end else if (wbu_valid) begin
+      if (csrs_mtvec_wen) begin
+        mtvec <= csr_wcsr_data;
+      end
+      if (mepc_wen) begin
+        mepc <= mepc_data;
+      end
+      if (mcause_wen) begin
+        mcause <= mcause_data;
+      end
+      if (mstatus_wen) begin
+        mstatus <= mstatus_data;
+      end
+    end
+  end
   
   assign src1 = regs[rs1];
   assign src2 = regs[rs2];

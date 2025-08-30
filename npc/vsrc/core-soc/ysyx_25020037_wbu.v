@@ -2,7 +2,6 @@
 
 module ysyx_25020037_wbu (
     input  wire         lsu_valid,
-    input  wire         gpr_ready,
     output reg          wbu_valid,
     output reg          wbu_ready,
     input  wire         clk,

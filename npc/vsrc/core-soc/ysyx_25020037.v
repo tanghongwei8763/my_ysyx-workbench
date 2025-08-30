@@ -113,8 +113,6 @@ module ysyx_25020037 (
     wire         lsu_ready;
     wire         wbu_ready;
     wire         wbu_valid;
-    wire         gpr_valid;
-    wire         gpr_ready;
 
     wire         ifu_arready;
     wire         ifu_arvalid;
@@ -190,8 +188,6 @@ module ysyx_25020037 (
         .idu_valid        (idu_valid       ),
         .wbu_valid        (wbu_valid       ),
         .exu_ready        (exu_ready       ),
-        .gpr_ready        (gpr_ready       ),
-        .gpr_valid        (gpr_valid       ),
         .clk              (clock           ),
         .rst              (reset           ),
         .rs_data          (rs_data         ),
@@ -436,7 +432,6 @@ ysyx_25020037_clint u_clint (
 
     ysyx_25020037_wbu wbu_cpu(
         .lsu_valid    (lsu_valid    ),
-        .gpr_ready    (gpr_ready    ),
         .wbu_valid    (wbu_valid    ),
         .wbu_ready    (wbu_ready    ),
         .clk          (clock        ),
