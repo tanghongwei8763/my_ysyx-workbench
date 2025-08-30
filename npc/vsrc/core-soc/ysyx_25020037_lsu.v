@@ -73,17 +73,13 @@ module ysyx_25020037_lsu (
     wire [31:0] addr_off = addr & 32'b11;
     wire [31:0] aligned_wdata = data << (addr_off << 3);
 
-    wire        inst_l;
-    wire        inst_s;
     wire [ 2:0] data_rop;
     wire [ 2:0] data_wop;
     wire        bit_sext;
     wire        half_sext;
     wire        is_write;
     wire        is_read;
-    assign {inst_l,
-            inst_s,
-            data_rop,    
+    assign {data_rop,    
             data_wop,     
             bit_sext,
             half_sext,
@@ -119,7 +115,7 @@ module ysyx_25020037_lsu (
     end
 
     wire [31: 0] lsu_rdata;
-    assign lsu_rdata = inst_l ? (rdata >> ((addr & 32'b11) << 3)) : rdata;
+    assign lsu_rdata = |data_rop ? (rdata >> ((addr & 32'b11) << 3)) : rdata;
     assign rdata_processed = (data_rop == 3'b001) ? 
                              (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 
                                        : {24'b0          , lsu_rdata[ 7:0]} ) :

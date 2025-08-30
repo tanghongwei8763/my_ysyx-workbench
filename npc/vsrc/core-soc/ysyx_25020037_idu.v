@@ -45,11 +45,7 @@ module ysyx_25020037_idu (
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
-    wire  inst_l;
-    wire  inst_s;
     wire  gpr_we;
-    assign inst_s = inst_sw | inst_sh | inst_sb;
-    assign inst_l = inst_lw | inst_lh | inst_lb | inst_lhu | inst_lbu;
     assign du_to_gu_bus = {
         pc,
         rd,
@@ -63,8 +59,6 @@ module ysyx_25020037_idu (
         inst_mret       
     };
     assign du_to_lu_bus = {
-        inst_l,
-        inst_s,
         lw_lh_lb,   
         sw_sh_sb,
         inst_lb,        
@@ -338,8 +332,8 @@ module ysyx_25020037_idu (
                         du_to_lu_bus,
                         du_to_wu_bus,
                         pc,
-                        inst_l,
-                        inst_s,
+                        |lw_lh_lb,
+                        |sw_sh_sb,
                         inst_fence_i,         
                         imm,
                         rd,
