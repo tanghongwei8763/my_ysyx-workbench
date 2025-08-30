@@ -199,19 +199,19 @@ void cpu_exec(int n){
 #ifdef CONFIG_YSYXSOC
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
-                    inst_infomation();
+                    // inst_infomation();
                     finish();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
-                    inst_infomation();
+                    // inst_infomation();
                     finish();
                     break;
                 }
 #endif
                 if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT){
-                    inst_infomation();
+                    // inst_infomation();
                     finish();
                     break;
                 }
@@ -230,13 +230,13 @@ void cpu_exec(int n){
 #ifdef CONFIG_YSYXSOC
                 if(ifu_access_fault) {
                     printf("ifu_access_fault\n");
-                    inst_infomation();
+                    // inst_infomation();
                     finish();
                     break;
                 }
                 if(lsu_access_fault) {
                     printf("lsu_access_fault\n");
-                    inst_infomation();
+                    // inst_infomation();
                     finish();
                     break;
                 }
@@ -250,7 +250,7 @@ void cpu_exec(int n){
                     break;
                 }
                 else if(NPC_STATE == NPC_END || NPC_STATE == NPC_ABORT) {
-                    inst_infomation();
+                    // inst_infomation();
                     finish();
                     break;
                 }
