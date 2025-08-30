@@ -19,7 +19,7 @@ module ysyx_25020037_exu (
     import "DPI-C" function void hit(input int inst_not_realize);
 `endif
 
-    localparam BYPASS_DEPTH = 3;
+    localparam BYPASS_DEPTH = 4;
     reg [ 4:0] bypass_rd[     BYPASS_DEPTH-1:0];
     reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
     reg        bypass_valid[  BYPASS_DEPTH-1:0];
