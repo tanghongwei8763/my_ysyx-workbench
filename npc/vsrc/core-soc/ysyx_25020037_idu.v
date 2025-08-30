@@ -48,13 +48,11 @@ module ysyx_25020037_idu (
     wire  gpr_we;
     assign du_to_gu_bus = {
         pc,
-        rd,
+        rd[3:0],
         csrs_mtvec_wen,
         csrs_mepc_wen,
         csrs_mstatus_wen,
         csrs_mcause_wen,
-        csrs_mvendorid_wen,
-        csrs_marchid_wen,
         inst_ecall,
         inst_mret       
     };
@@ -94,8 +92,6 @@ module ysyx_25020037_idu (
     wire         csrs_mepc_wen;
     wire         csrs_mstatus_wen;
     wire         csrs_mcause_wen;
-    wire         csrs_mvendorid_wen;
-    wire         csrs_marchid_wen;
 
     wire [ 6:0] opcode_31_25;
     wire [ 5:0] opcode_31_26;
@@ -179,7 +175,7 @@ module ysyx_25020037_idu (
     assign rs1     = inst[19:15];
     assign rs2     = inst[24:20];
     assign rd      = inst[11: 7];
-    assign rs_data = {inst_ecall, inst_mret, imm[11:0], rs1, rs2};
+    assign rs_data = {inst_ecall, inst_mret, imm[11:0], rs1[3:0], rs2[3:0]};
 
     assign immI  = {{20{inst[31]}}, inst[31:20]};
     assign immS  = {{20{inst[31]}}, inst[31:25], inst[11:7]};
@@ -311,8 +307,6 @@ module ysyx_25020037_idu (
     assign csrs_mepc_wen      = (imm[11:0] == MEPC) & is_csr_op;
     assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & is_csr_op;
     assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & is_csr_op;
-    assign csrs_mvendorid_wen = (imm[11:0] == MVENDORID) & is_csr_op;
-    assign csrs_marchid_wen   = (imm[11:0] == MARCHID) & is_csr_op;
 
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
@@ -336,9 +330,9 @@ module ysyx_25020037_idu (
                         |sw_sh_sb,
                         inst_fence_i,         
                         imm,
-                        rd,
-                        rs1,
-                        rs2,
+                        rd[3:0],
+                        rs1[3:0],
+                        rs2[3:0],
                         src1,
                         src2,
                         gpr_we,  

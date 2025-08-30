@@ -20,7 +20,7 @@ module ysyx_25020037_exu (
 `endif
 
     localparam BYPASS_DEPTH = 4;
-    reg [ 4:0] bypass_rd[     BYPASS_DEPTH-1:0];
+    reg [ 3:0] bypass_rd[     BYPASS_DEPTH-1:0];
     reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
     reg        bypass_valid[  BYPASS_DEPTH-1:0];
     reg        bypass_is_load[BYPASS_DEPTH-1:0];
@@ -35,9 +35,9 @@ module ysyx_25020037_exu (
     wire         inst_s;
     wire         is_fence_i;
     wire [31: 0] imm;
-    wire [ 4: 0] rd;
-    wire [ 4: 0] rs1;
-    wire [ 4: 0] rs2;
+    wire [ 3: 0] rd;
+    wire [ 3: 0] rs1;
+    wire [ 3: 0] rs2;
     wire [31: 0] src1_r;
     wire [31: 0] src2_r;
     wire         gpr_we;
@@ -90,7 +90,7 @@ module ysyx_25020037_exu (
         bypass_src1 = src1_r;
         src1_wait = 1'b0;
         for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 5'd0)) begin
+            if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
                 bypass_src1 = bypass_data[i];
                 if (bypass_is_load[i]) begin
                     src1_wait = 1'b1;
@@ -103,7 +103,7 @@ module ysyx_25020037_exu (
         bypass_src2 = src2_r;
         src2_wait = 1'b0;
         for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 5'd0)) begin
+            if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
                 bypass_src2 = bypass_data[i];
                 if (bypass_is_load[i]) begin
                     src2_wait = 1'b1;
@@ -153,7 +153,7 @@ module ysyx_25020037_exu (
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
-                bypass_rd[i]       <= 5'd0;
+                bypass_rd[i]       <= 4'd0;
                 bypass_data[i]     <= 32'd0;
                 bypass_valid[i]    <= 1'b0;
                 bypass_is_load[i]  <= 1'b0;
@@ -221,6 +221,10 @@ module ysyx_25020037_exu (
 `ifdef VERILATOR
     always @(*) begin
        if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin hit({32{inst_not_realize}}); end
+    end
+`else
+    always @(*) begin
+       if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin $finish; end
     end
 `endif
 endmodule

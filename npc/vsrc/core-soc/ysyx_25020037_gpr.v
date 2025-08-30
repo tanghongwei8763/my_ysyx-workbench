@@ -24,7 +24,7 @@ module ysyx_25020037_gpr (
   localparam IDLE   = 1'b0;
   localparam BUSY   = 1'b1;
   reg state, next_state;
-  reg  [31: 0] regs [16:0];
+  reg  [31: 0] regs [15:0];
   reg  [31: 0] mtvec;
   reg  [31: 0] mepc;
   reg  [31: 0] mstatus;
@@ -40,7 +40,7 @@ module ysyx_25020037_gpr (
         .rst        (rst        ), 
         .din        (gpr_wdata  ), 
         .dout       (regs[i]    ), 
-        .wen        ((rd != 5'b0) && wbu_valid && gpr_wen && (rd == i))
+        .wen        ((rd != 4'b0) && wbu_valid && gpr_wen && (rd == i))
         );
     end
   endgenerate
@@ -57,8 +57,8 @@ module ysyx_25020037_gpr (
   wire         inst_ecall;
   wire         inst_mret;
   wire [11: 0] imm;
-  wire [ 4: 0] rs1;
-  wire [ 4: 0] rs2;
+  wire [ 3: 0] rs1;
+  wire [ 3: 0] rs2;
   assign {inst_ecall,
           inst_mret,
           imm,
@@ -66,13 +66,11 @@ module ysyx_25020037_gpr (
           rs2
          } = rs_data;
   wire [31: 0] pc;
-  wire [ 4: 0] rd;
+  wire [ 3: 0] rd;
   wire         csrs_mtvec_wen;
   wire         csrs_mepc_wen;
   wire         csrs_mstatus_wen;
   wire         csrs_mcause_wen;
-  wire         csrs_mvendorid_wen;
-  wire         csrs_marchid_wen;
   wire         ecall_en;
   wire         mret_en;
   assign {pc,
@@ -81,8 +79,6 @@ module ysyx_25020037_gpr (
           csrs_mepc_wen,
           csrs_mstatus_wen,
           csrs_mcause_wen,
-          csrs_mvendorid_wen,
-          csrs_marchid_wen,
           ecall_en,
           mret_en
          } = du_to_gu_bus;
@@ -155,7 +151,7 @@ module ysyx_25020037_gpr (
   ysyx_25020037_Reg #(32, 32'h79737978) CSRS_mvendorid (
     .clk         (clk             ),
     .rst         (rst             ),
-    .din         (csr_wcsr_data   ),
+    .din         (32'b0           ),
     .dout        (mvendorid       ),
     .wen         (1'b0            )
   );
@@ -163,7 +159,7 @@ module ysyx_25020037_gpr (
   ysyx_25020037_Reg #(32, 32'h017DC685) CSRS_marchid (
     .clk         (clk             ),
     .rst         (rst             ),
-    .din         (csr_wcsr_data   ),
+    .din         (32'b0           ),
     .dout        (marchid         ),
     .wen         (1'b0            )
   );
