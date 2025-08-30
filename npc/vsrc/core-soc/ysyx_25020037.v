@@ -78,7 +78,8 @@ module ysyx_25020037 (
     assign io_slave_rlast   = 1'b0;
     assign io_slave_rid     = 4'b0;
 
-    parameter BLOCK_SIZE = 32'd16;
+    parameter BLOCK_SIZE   = 32'd8;
+    parameter CACHE_BLOCKS = 32'd8;
 
 `ifdef VERILATOR
     import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
@@ -236,7 +237,7 @@ module ysyx_25020037 (
     ysyx_25020037_icache #(
         .ADDR_WIDTH    (32),
         .DATA_WIDTH    (32),
-        .CACHE_BLOCKS  ( 8),
+        .CACHE_BLOCKS  (CACHE_BLOCKS),
         .BLOCK_SIZE    (BLOCK_SIZE)
     ) u_icache (
         .clk           (clock           ),
