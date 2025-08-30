@@ -222,9 +222,5 @@ module ysyx_25020037_exu (
     always @(*) begin
        if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin hit({32{inst_not_realize}}); end
     end
-`else
-    always @(*) begin
-       if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin $finish; end
-    end
 `endif
 endmodule
