@@ -33,10 +33,8 @@ module ysyx_25020037_wbu (
 
     wire         final_gpr_we;
     wire [31: 0] final_result;
-    assign final_result = rst          ? 32'b0 :
-                          csr_w_gpr_we ? csr_data :
-                          rdata_processed;
-    assign final_gpr_we = rst ? 1'b0   : gpr_we | rlsu_we;
+    wire         final_gpr_we = ~rst & (gpr_we | rlsu_we);
+    wire [31: 0] final_result = ~{32{rst}} & (csr_w_gpr_we ? csr_data : rdata_processed);
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
