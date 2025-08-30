@@ -46,7 +46,7 @@ module ysyx_25020037_ifu #(
     localparam READ    = 2'b10;
     
     reg  [ 1:0] state, next_state;
-    reg  [31:0] pc;
+    wire [31:0] pc;
     wire [31:0] inst = fu_to_du_bus[31:0];
     wire [31:0] snpc = pc + 32'h4;
     wire [31:0] dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
@@ -54,10 +54,13 @@ module ysyx_25020037_ifu #(
     wire        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
     reg  [1:0]  burst_cnt;
 
-    always @(posedge clk or posedge rst) begin
-        if(rst) pc <= 32'h30000000;
-        else if (pc_updata) pc <= dnpc;
-    end
+    ysyx_25020037_Reg #(32, 32'h30000000) PC (
+        .clk         (clk      ),
+        .rst         (rst      ),
+        .din         (dnpc     ),
+        .dout        (pc       ),
+        .wen         (pc_updata)
+    );
     assign      pc_updata = (next_state == IDLE) & idu_ready;
 
     always @(*) begin
