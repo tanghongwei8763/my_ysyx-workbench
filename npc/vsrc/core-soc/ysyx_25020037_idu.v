@@ -50,7 +50,6 @@ module ysyx_25020037_idu (
     wire  gpr_we;
     assign inst_s = inst_sw | inst_sh | inst_sb;
     assign inst_l = inst_lw | inst_lh | inst_lb | inst_lhu | inst_lbu;
-    assign gpr_we = gpr_we_r;
     assign du_to_gu_bus = {
         pc,
         rd,
@@ -60,16 +59,16 @@ module ysyx_25020037_idu (
         csrs_mcause_wen,
         csrs_mvendorid_wen,
         csrs_marchid_wen,
-        ecall_en,
-        mret_en       
+        inst_ecall,
+        inst_mret       
     };
     assign du_to_lu_bus = {
         inst_l,
         inst_s,
         lw_lh_lb,   
         sw_sh_sb,
-        bit_sext,        
-        half_sext,
+        inst_lb,        
+        inst_lh,
         rlsu_we,         
         wlsu_we   
     };
@@ -85,25 +84,17 @@ module ysyx_25020037_idu (
     wire [ 4: 0] rd;
     wire [31: 0] imm;
     wire [16: 0] alu_op;
-    wire         gpr_we_r;
     wire         rlsu_we;
     wire         wlsu_we;
-    wire         bit_sext;
-    wire         half_sext;
     wire [ 2: 0] lw_lh_lb;
     wire [ 2: 0] sw_sh_sb;
     wire         src1_is_pc;
     wire         src2_is_imm;
     wire         is_pc_jump;
     wire         double_cal;
-    wire         ebreak;
     wire         inst_not_realize;
     wire         csr_w_gpr_we;
     wire [31: 0] csr_data;
-    wire         csrrw_op;
-    wire         csrrs_op;
-    wire         ecall_en;
-    wire         mret_en;
     wire         is_csr_op;
     wire         csrs_mtvec_wen;
     wire         csrs_mepc_wen;
@@ -133,8 +124,6 @@ module ysyx_25020037_idu (
     wire         rw_word_1;
     wire         rw_word_2;
     wire         rw_word_4;
-
-    wire        is_fence_i;
 
     wire        inst_add;
     wire        inst_and;
@@ -296,7 +285,7 @@ module ysyx_25020037_idu (
                | ({32{TYPE_U}} & immU)
                | ({32{TYPE_J}} & immJ);
 
-    assign gpr_we_r = inst_add  | inst_and  | inst_sub  | inst_or    | inst_xor  | 
+    assign gpr_we = inst_add  | inst_and  | inst_sub  | inst_or    | inst_xor  | 
                       inst_sra  | inst_srl  | inst_slt  | inst_sltu  | inst_sll  | 
                       inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
                       inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
@@ -304,8 +293,6 @@ module ysyx_25020037_idu (
                       inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
     assign rlsu_we  = inst_lw | inst_lbu | inst_lh  | inst_lhu   | inst_lb;
     assign wlsu_we  = inst_sw | inst_sh  | inst_sb;
-    assign bit_sext   = inst_lb;
-    assign half_sext  = inst_lh;
 
     assign src1_is_pc    = inst_jal | inst_auipc | TYPE_B;
     assign src2_is_imm   = TYPE_I     |
@@ -323,14 +310,8 @@ module ysyx_25020037_idu (
                       
     assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
-    assign ebreak       = inst_ebreak;
-    assign is_fence_i   = inst_fence_i;
 
     assign csr_w_gpr_we = inst_csrrw | inst_csrrs;
-    assign csrrw_op     = inst_csrrw;
-    assign csrrs_op     = inst_csrrs;
-    assign ecall_en     = inst_ecall;
-    assign mret_en      = inst_mret;
     assign is_csr_op    = inst_csrrw | inst_csrrs | inst_ecall | inst_mret;
     assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & is_csr_op;
     assign csrs_mepc_wen      = (imm[11:0] == MEPC) & is_csr_op;
@@ -359,7 +340,7 @@ module ysyx_25020037_idu (
                         pc,
                         inst_l,
                         inst_s,
-                        is_fence_i,         
+                        inst_fence_i,         
                         imm,
                         rd,
                         rs1,
@@ -372,13 +353,13 @@ module ysyx_25020037_idu (
                         src2_is_imm,     
                         is_pc_jump,      
                         double_cal,      
-                        ebreak,          
+                        inst_ebreak,          
                         inst_not_realize,
-                        ecall_en,
-                        mret_en,
+                        inst_ecall,
+                        inst_mret,
                         csr_data,
-                        csrrs_op,
-                        csrrw_op
+                        inst_csrrs,
+                        inst_csrrw
                     };
                 end
             end

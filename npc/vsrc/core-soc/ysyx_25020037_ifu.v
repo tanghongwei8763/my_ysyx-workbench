@@ -47,9 +47,9 @@ module ysyx_25020037_ifu #(
     
     reg  [ 1:0] state, next_state;
     wire [31:0] pc;
-    wire [31:0] inst;
-    wire [31:0] snpc;
-    wire [31:0] dnpc;
+    wire [31:0] inst = fu_to_du_bus[31:0];
+    wire [31:0] snpc = pc + 32'h4;
+    wire [31:0] dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
     wire [31:0] block_base_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
     wire        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
     reg  [1:0]  burst_cnt;
@@ -62,9 +62,6 @@ module ysyx_25020037_ifu #(
         .wen         (pc_updata)
     );
     assign      pc_updata = (next_state == IDLE) & idu_ready;
-    assign      inst = fu_to_du_bus[31:0];
-    assign      snpc = pc + 32'h4;
-    assign      dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
 
     always @(*) begin
         case (state)

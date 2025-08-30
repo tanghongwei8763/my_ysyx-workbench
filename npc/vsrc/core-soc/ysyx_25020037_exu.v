@@ -86,25 +86,31 @@ module ysyx_25020037_exu (
     reg [31:0] bypass_src1;
     reg [31:0] bypass_src2;
     integer i;
-always @(*) begin
-    bypass_src1 = src1_r;
-    bypass_src2 = src2_r;
-    src1_wait = 1'b0;
-    src2_wait = 1'b0;
-    
-    for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-        if (bypass_valid[i]) begin
-            if (bypass_rd[i] == rs1 && rs1 != 5'd0) begin
+    always @(*) begin
+        bypass_src1 = src1_r;
+        src1_wait = 1'b0;
+        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+            if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 5'd0)) begin
                 bypass_src1 = bypass_data[i];
-                src1_wait = bypass_is_load[i];
-            end
-            if (bypass_rd[i] == rs2 && rs2 != 5'd0) begin
-                bypass_src2 = bypass_data[i];
-                src2_wait = bypass_is_load[i];
+                if (bypass_is_load[i]) begin
+                    src1_wait = 1'b1;
+                end
             end
         end
     end
-end
+
+    always @(*) begin
+        bypass_src2 = src2_r;
+        src2_wait = 1'b0;
+        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+            if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 5'd0)) begin
+                bypass_src2 = bypass_data[i];
+                if (bypass_is_load[i]) begin
+                    src2_wait = 1'b1;
+                end
+            end
+        end
+    end
 
     assign src1 = bypass_src1;
     assign src2 = bypass_src2;
