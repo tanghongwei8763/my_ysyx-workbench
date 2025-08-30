@@ -53,6 +53,7 @@ module ysyx_25020037_idu (
     assign gpr_we = gpr_we_r;
     assign du_to_gu_bus = {
         pc,
+        inst,
         rd,
         csrs_mtvec_wen,
         csrs_mepc_wen,

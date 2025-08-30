@@ -68,6 +68,7 @@ module ysyx_25020037_gpr (
           rs2
          } = rs_data;
   wire [31: 0] pc;
+  wire [31: 0] inst;
   wire [ 4: 0] rd;
   wire         csrs_mtvec_wen;
   wire         csrs_mepc_wen;
@@ -78,6 +79,7 @@ module ysyx_25020037_gpr (
   wire         ecall_en;
   wire         mret_en;
   assign {pc,
+          inst,
           rd,
           csrs_mtvec_wen,
           csrs_mepc_wen,
@@ -88,6 +90,20 @@ module ysyx_25020037_gpr (
           ecall_en,
           mret_en
          } = du_to_gu_bus;
+  ysyx_25020037_Reg #(32, 32'h0) u_pc_reg (
+    .clk         (clk              ),
+    .rst         (rst              ),
+    .din         (pc               ),
+    .dout        (pc_reg           ),
+    .wen         (wbu_valid        )
+  );
+  ysyx_25020037_Reg #(32, 32'h0) u_inst_reg (
+    .clk         (clk              ),
+    .rst         (rst              ),
+    .din         (inst             ),
+    .dout        (inst_reg         ),
+    .wen         (wbu_valid        )
+  );
   wire [31: 0] src1;
   wire [31: 0] src2;
   wire [31: 0] imm_csr_data; 
