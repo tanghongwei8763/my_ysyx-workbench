@@ -14,7 +14,7 @@
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_cpu__DOT__pc
-#define inst (uint32_t)(top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__fu_to_du_bus & 0xFFFFFFFF)
+#define inst 32//(uint32_t)(top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__fu_to_du_bus & 0xFFFFFFFF)
 #define exu_dnpc_valid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__exu_dnpc_valid
 #define ifu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_access_fault
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault

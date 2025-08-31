@@ -10,7 +10,7 @@ module ysyx_25020037_ifu #(
     output wire         pc_updata,
     input  wire         idu_ready,
     output reg          ifu_valid,
-    output reg  [`FU_TO_DU_BUS_WD-1: 0] fu_to_du_bus,
+    output wire  [`FU_TO_DU_BUS_WD-1: 0] fu_to_du_bus,
     output reg          access_fault,
 
     input  wire         arready,
@@ -73,6 +73,7 @@ module ysyx_25020037_ifu #(
     end
 
     assign icache_addr = pc;
+    assign fu_to_du_bus = ifu_valid ? {pc, icache_data} : 'b0;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
@@ -100,9 +101,7 @@ module ysyx_25020037_ifu #(
                     mem_data <= 'b0;
                     if (idu_ready) begin
                         ifu_valid <= 1'b0;
-                        fu_to_du_bus <= 'b0;
                         if (icache_hit) begin
-                            fu_to_du_bus <= {pc, icache_data};
                             ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                         end else if (mem_req) begin
                             araddr <= block_base_addr;
@@ -156,7 +155,6 @@ module ysyx_25020037_ifu #(
                     mem_ready <= 1'b0;
                     mem_data <= 'b0;
                     if (idu_ready) begin
-                        fu_to_du_bus <= {pc, icache_data};
                         ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     end
                 end
@@ -164,7 +162,6 @@ module ysyx_25020037_ifu #(
                     arvalid <= 1'b0;
                     rready <= 1'b0;
                     ifu_valid <= 1'b0;
-                    fu_to_du_bus <= 'b0;
                 end
             endcase
         end
