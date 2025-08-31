@@ -103,14 +103,6 @@ module ysyx_25020037_idu (
     wire [31:0] immU;
     wire [31:0] immJ;
 
-    // wire [127:0] opcode_31_25_d;
-    // wire [63:0]  opcode_31_26_d;
-    // wire [ 7:0]  opcode_14_12_d;
-    // wire [127:0] opcode_06_00_d;
-
-    // wire [31:0]  rs1_d;
-    // wire [31:0]  rs2_d;
-    // wire [31:0]  rd_d;
     wire         rw_word_1;
     wire         rw_word_2;
     wire         rw_word_4;
@@ -182,15 +174,6 @@ module ysyx_25020037_idu (
     assign immB  = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
     assign immU  = {inst[31:12], 12'b0};
     assign immJ  = {{12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
-    
-    // decoder_7_128 u_dec0(.in(opcode_31_25 ), .out(opcode_31_25_d ));
-    // decoder_6_64  u_dec1(.in(opcode_31_26 ), .out(opcode_31_26_d ));
-    // decoder_3_8   u_dec2(.in(opcode_14_12 ), .out(opcode_14_12_d ));
-    // decoder_7_128 u_dec3(.in(opcode_06_00 ), .out(opcode_06_00_d ));
-
-    // decoder_5_32  u_dec4(.in(rs1 ), .out(rs1_d ));
-    // decoder_5_32  u_dec5(.in(rs2 ), .out(rs2_d ));
-    // decoder_5_32  u_dec6(.in(rd  ), .out(rd_d  ));
 
     assign inst_add       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h0) & (opcode_31_25 == 7'h00);
     assign inst_and       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h7) & (opcode_31_25 == 7'h00);
