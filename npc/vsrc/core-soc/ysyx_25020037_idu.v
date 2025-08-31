@@ -47,28 +47,28 @@ module ysyx_25020037_idu (
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
     wire  gpr_we;
     assign du_to_gu_bus = {
-        pc,
-        rd[3:0],
+        //pc,
+        //rd[3:0],
         csrs_mtvec_wen,
         csrs_mepc_wen,
         csrs_mstatus_wen,
-        csrs_mcause_wen,
-        inst_ecall,
-        inst_mret       
+        csrs_mcause_wen
+        //inst_ecall,
+        //inst_mret       
     };
     assign du_to_lu_bus = {
-        lw_lh_lb,   
-        sw_sh_sb,
+        //lw_lh_lb,   
+        //sw_sh_sb,
         inst_lb,        
         inst_lh,
         rlsu_we,         
         wlsu_we   
     };
     assign du_to_wu_bus = {
-        gpr_we,
-        rlsu_we,        
-        csr_w_gpr_we,
-        csr_data
+        //gpr_we,
+        //rlsu_we,        
+        csr_w_gpr_we
+        //csr_data
     };
 
     wire [ 4: 0] rs1;
@@ -303,8 +303,8 @@ module ysyx_25020037_idu (
                         du_to_lu_bus,
                         du_to_wu_bus,
                         pc,
-                        |lw_lh_lb,
-                        |sw_sh_sb,
+                        lw_lh_lb,
+                        sw_sh_sb,
                         inst_fence_i,         
                         imm,
                         rd[3:0],

@@ -30,8 +30,10 @@ module ysyx_25020037_exu (
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
     wire [31: 0] pc;
-    wire         inst_l;
-    wire         inst_s;
+    wire [ 2: 0] lw_lh_lb;
+    wire [ 2: 0] sw_sh_sb;
+    wire         inst_l = |lw_lh_lb;
+    wire         inst_s = |sw_sh_sb;
     wire         is_fence_i;
     wire [31: 0] imm;
     wire [ 3: 0] rd;
@@ -56,8 +58,8 @@ module ysyx_25020037_exu (
             du_to_lu_bus,
             du_to_wu_bus,
             pc,
-            inst_l,
-            inst_s,
+            lw_lh_lb,
+            sw_sh_sb,
             is_fence_i,
             imm,
             rd,
@@ -201,8 +203,16 @@ module ysyx_25020037_exu (
                 if (idu_valid) begin
                     exu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     eu_to_lu_bus <= {
+                        pc,
+                        rd,
+                        ecall_en,
+                        mret_en,
                         du_to_gu_bus,
+                        lw_lh_lb,
+                        sw_sh_sb,
                         du_to_lu_bus,
+                        gpr_we,
+                        csr_data,
                         du_to_wu_bus,  
                         csr_wcsr_data,       
                         result,
