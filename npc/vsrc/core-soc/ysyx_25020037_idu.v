@@ -103,10 +103,6 @@ module ysyx_25020037_idu (
     wire [31:0] immU;
     wire [31:0] immJ;
 
-    wire         rw_word_1;
-    wire         rw_word_2;
-    wire         rw_word_4;
-
     wire        inst_add;
     wire        inst_and;
     wire        inst_or;
@@ -259,11 +255,11 @@ module ysyx_25020037_idu (
                | ({32{TYPE_J}} & immJ);
 
     assign gpr_we = inst_add  | inst_and  | inst_sub  | inst_or    | inst_xor  | 
-                      inst_sra  | inst_srl  | inst_slt  | inst_sltu  | inst_sll  | 
-                      inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
-                      inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
-                      inst_csrrs| inst_jal  | inst_auipc| inst_lui   | inst_lw   |
-                      inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
+                    inst_sra  | inst_srl  | inst_slt  | inst_sltu  | inst_sll  | 
+                    inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
+                    inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
+                    inst_csrrs| inst_jal  | inst_auipc| inst_lui   | inst_lw   |
+                    inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
     assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
     assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
     assign wlsu_we  = |sw_sh_sb;
@@ -271,12 +267,10 @@ module ysyx_25020037_idu (
 
     assign src1_is_pc    = inst_jal | inst_auipc | TYPE_B;
     assign src2_is_imm   = TYPE_I     |
-                           inst_sw    |
-                           inst_sh    |
-                           inst_sb    |
+                           TYPE_S     |
                            inst_lui   |
                            inst_auipc |
-                           inst_jal   |
+                           TYPE_J     |
                            TYPE_B     |   //B型指令使用参数类型都一致
                            inst_jarl  ;
 
