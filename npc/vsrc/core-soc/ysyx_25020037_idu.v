@@ -11,7 +11,7 @@ module ysyx_25020037_idu (
     input  wire         exu_dnpc_valid,
     input  wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
     input  wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus,
-    output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
+    output wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
 );
 `ifdef VERILATOR
     import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
@@ -311,44 +311,42 @@ module ysyx_25020037_idu (
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
     assign idu_ready = exu_ready;
+    assign du_to_eu_bus = idu_valid ? {
+        du_to_gu_bus,
+        du_to_lu_bus,
+        du_to_wu_bus,
+        pc,
+        |lw_lh_lb,
+        |sw_sh_sb,
+        inst_fence_i,         
+        imm,
+        rd[3:0],
+        rs1[3:0],
+        rs2[3:0],
+        src1,
+        src2,
+        gpr_we,  
+        alu_op,             
+        src1_is_pc,      
+        src2_is_imm,     
+        is_pc_jump,      
+        double_cal,      
+        inst_ebreak,          
+        inst_not_realize,
+        inst_ecall,
+        inst_mret,
+        csr_data,
+        inst_csrrs,
+        inst_csrrw
+    } : 'b0;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             idu_valid <= 1'b0;
-            du_to_eu_bus <= `DU_TO_EU_BUS_WD'b0;
         end else begin
             if (exu_ready) begin
                 idu_valid <= 1'b0;
-                du_to_eu_bus <= 'b0;
                 if (ifu_valid) begin
                     idu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
-                    du_to_eu_bus <= {
-                        du_to_gu_bus,
-                        du_to_lu_bus,
-                        du_to_wu_bus,
-                        pc,
-                        |lw_lh_lb,
-                        |sw_sh_sb,
-                        inst_fence_i,         
-                        imm,
-                        rd[3:0],
-                        rs1[3:0],
-                        rs2[3:0],
-                        src1,
-                        src2,
-                        gpr_we,  
-                        alu_op,             
-                        src1_is_pc,      
-                        src2_is_imm,     
-                        is_pc_jump,      
-                        double_cal,      
-                        inst_ebreak,          
-                        inst_not_realize,
-                        inst_ecall,
-                        inst_mret,
-                        csr_data,
-                        inst_csrrs,
-                        inst_csrrw
-                    };
                 end
             end
         end
