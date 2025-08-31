@@ -89,22 +89,14 @@ module ysyx_25020037_lsu (
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
-    reg  [ 2:0] axi_rsize;
-    reg  [ 2:0] axi_wsize;
-    always @(*) begin
-        case (data_rop)
-            3'b001: axi_rsize = AXI_SIZE_BYTE; 
-            3'b010: axi_rsize = AXI_SIZE_HALF; 
-            3'b100: axi_rsize = AXI_SIZE_WORD; 
-            default: axi_rsize = AXI_SIZE_WORD;
-        endcase
-        case (data_wop)
-            3'b001: axi_wsize = AXI_SIZE_BYTE;
-            3'b010: axi_wsize = AXI_SIZE_HALF;
-            3'b100: axi_wsize = AXI_SIZE_WORD;
-            default: axi_wsize = AXI_SIZE_WORD;
-        endcase
-    end
+    wire [ 2:0] axi_rsize;
+    wire [ 2:0] axi_wsize;
+    assign axi_rsize = ({3{data_rop == 3'b001}} & AXI_SIZE_BYTE)
+                     | ({3{data_rop == 3'b010}} & AXI_SIZE_HALF)
+                     | ({3{data_rop == 3'b100}} & AXI_SIZE_WORD);
+    assign axi_wsize = ({3{data_wop == 3'b001}} & AXI_SIZE_BYTE)
+                     | ({3{data_wop == 3'b010}} & AXI_SIZE_HALF)
+                     | ({3{data_wop == 3'b100}} & AXI_SIZE_WORD);
 
     always @(*) begin
         case (state)
