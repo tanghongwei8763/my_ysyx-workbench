@@ -281,8 +281,10 @@ module ysyx_25020037_idu (
                       inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
                       inst_csrrs| inst_jal  | inst_auipc| inst_lui   | inst_lw   |
                       inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
-    assign rlsu_we  = inst_lw | inst_lbu | inst_lh  | inst_lhu   | inst_lb;
-    assign wlsu_we  = inst_sw | inst_sh  | inst_sb;
+    assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
+    assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
+    assign wlsu_we  = |sw_sh_sb;
+    assign rlsu_we  = |lw_lh_lb;
 
     assign src1_is_pc    = inst_jal | inst_auipc | TYPE_B;
     assign src2_is_imm   = TYPE_I     |
@@ -295,8 +297,6 @@ module ysyx_25020037_idu (
                            TYPE_B     |   //B型指令使用参数类型都一致
                            inst_jarl  ;
 
-    assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
-    assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
                       
     assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
