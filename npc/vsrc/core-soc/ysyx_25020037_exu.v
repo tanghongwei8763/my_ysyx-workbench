@@ -20,10 +20,13 @@ module ysyx_25020037_exu (
 `endif
 
     localparam BYPASS_DEPTH = 4;
-    reg [ 3:0] bypass_rd[     BYPASS_DEPTH-1:0];
-    reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
-    reg        bypass_valid[  BYPASS_DEPTH-1:0];
-    reg        bypass_is_load[BYPASS_DEPTH-1:0];
+    localparam RD_WD = 4;
+    localparam DATA_WD = 32;
+    
+    reg [RD_WD*BYPASS_DEPTH-1:0]   bypass_rd;
+    reg [DATA_WD*BYPASS_DEPTH-1:0] bypass_data;
+    reg [BYPASS_DEPTH-1:0]         bypass_valid;
+    reg [BYPASS_DEPTH-1:0]         bypass_is_load;
 
     wire [31: 0] src1;
     wire [31: 0] src2;
@@ -85,30 +88,39 @@ module ysyx_25020037_exu (
     reg src2_wait;
     reg [31:0] bypass_src1;
     reg [31:0] bypass_src2;
-    integer i;
     always @(*) begin
         bypass_src1 = src1_r;
         src1_wait = 1'b0;
-        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
-                bypass_src1 = bypass_data[i];
-                if (bypass_is_load[i]) begin
-                    src1_wait = 1'b1;
-                end
-            end
+        if (bypass_valid[3] && (bypass_rd[RD_WD*3 +: RD_WD] == rs1) && (rs1 != 4'd0)) begin
+            bypass_src1 = bypass_data[DATA_WD*3 +: DATA_WD];
+            src1_wait = bypass_is_load[3];
+        end else if (bypass_valid[2] && (bypass_rd[RD_WD*2 +: RD_WD] == rs1) && (rs1 != 4'd0)) begin
+            bypass_src1 = bypass_data[DATA_WD*2 +: DATA_WD];
+            src1_wait = bypass_is_load[2];
+        end else if (bypass_valid[1] && (bypass_rd[RD_WD*1 +: RD_WD] == rs1) && (rs1 != 4'd0)) begin
+            bypass_src1 = bypass_data[DATA_WD*1 +: DATA_WD];
+            src1_wait = bypass_is_load[1];
+        end else if (bypass_valid[0] && (bypass_rd[RD_WD*0 +: RD_WD] == rs1) && (rs1 != 4'd0)) begin
+            bypass_src1 = bypass_data[DATA_WD*0 +: DATA_WD];
+            src1_wait = bypass_is_load[0];
         end
     end
 
     always @(*) begin
         bypass_src2 = src2_r;
         src2_wait = 1'b0;
-        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
-                bypass_src2 = bypass_data[i];
-                if (bypass_is_load[i]) begin
-                    src2_wait = 1'b1;
-                end
-            end
+        if (bypass_valid[3] && (bypass_rd[RD_WD*3 +: RD_WD] == rs2) && (rs2 != 4'd0)) begin
+            bypass_src2 = bypass_data[DATA_WD*3 +: DATA_WD];
+            src2_wait = bypass_is_load[3];
+        end else if (bypass_valid[2] && (bypass_rd[RD_WD*2 +: RD_WD] == rs2) && (rs2 != 4'd0)) begin
+            bypass_src2 = bypass_data[DATA_WD*2 +: DATA_WD];
+            src2_wait = bypass_is_load[2];
+        end else if (bypass_valid[1] && (bypass_rd[RD_WD*1 +: RD_WD] == rs2) && (rs2 != 4'd0)) begin
+            bypass_src2 = bypass_data[DATA_WD*1 +: DATA_WD];
+            src2_wait = bypass_is_load[1];
+        end else if (bypass_valid[0] && (bypass_rd[RD_WD*0 +: RD_WD] == rs2) && (rs2 != 4'd0)) begin
+            bypass_src2 = bypass_data[DATA_WD*0 +: DATA_WD];
+            src2_wait = bypass_is_load[0];
         end
     end
 
@@ -149,36 +161,34 @@ module ysyx_25020037_exu (
                                          : 32'b0;
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
-
+    integer i;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
-                bypass_rd[i]       <= 4'd0;
-                bypass_data[i]     <= 32'd0;
-                bypass_valid[i]    <= 1'b0;
-                bypass_is_load[i]  <= 1'b0;
-            end
+            bypass_rd        <= 'b0;
+            bypass_data      <= 'b0;
+            bypass_valid     <= 'b0;
+            bypass_is_load   <= 'b0;
         end else begin
-
             if (lsu_ready) begin
-                for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
+                for (i = 0; i < BYPASS_DEPTH; i++) begin
                     if (bypass_valid[i] && bypass_is_load[i]) begin
-                        bypass_data[i]    = rdata_processed;
-                        bypass_is_load[i] = 1'b0;
+                        bypass_data[DATA_WD*i +: DATA_WD] <= rdata_processed;
+                        bypass_is_load[i] <= 1'b0;
                     end
                 end
             end
             if (exu_ready && idu_valid && !exu_dnpc_valid) begin
-                for (i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
-                    bypass_rd[i]       <= bypass_rd[i - 1];
-                    bypass_data[i]     <= bypass_data[i - 1];
-                    bypass_valid[i]    <= bypass_valid[i - 1];
-                    bypass_is_load[i]  <= bypass_is_load[i - 1];
+                bypass_rd      <= bypass_rd      << 4;
+                bypass_data    <= bypass_data    << 32;
+                bypass_valid   <= bypass_valid   << 1;
+                bypass_is_load <= bypass_is_load << 1;
+
+                if (gpr_we) begin
+                    bypass_rd[RD_WD*0 +: RD_WD]       <= rd;
+                    bypass_data[DATA_WD*0 +: DATA_WD] <= inst_l ? 32'b0 : (csrrs_op | csrrw_op) ? csr_data : result;
+                    bypass_valid[0]                   <= 1'b1;
+                    bypass_is_load[0]                 <= inst_l;
                 end
-                bypass_rd[0]       <= gpr_we ? rd     : bypass_rd[0];
-                bypass_data[0]     <= gpr_we ? inst_l ? 32'b0 : (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
-                bypass_valid[0]    <= gpr_we ? 1'b1   : bypass_valid[0];
-                bypass_is_load[0]  <= gpr_we ? inst_l : bypass_is_load[0];
             end
         end
     end
