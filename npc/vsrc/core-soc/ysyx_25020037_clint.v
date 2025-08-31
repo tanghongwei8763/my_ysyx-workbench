@@ -84,5 +84,4 @@ module ysyx_25020037_clint(
         endcase
     end
 
-
 endmodule
