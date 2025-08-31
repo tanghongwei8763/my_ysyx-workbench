@@ -125,29 +125,23 @@ module ysyx_25020037_ifu #(
                         rready <= 1'b1;
                     end
                     if (rvalid && rready) begin
-                        if (rresp != 2'b00) begin
-                            access_fault <= 1'b1;
-                            mem_ready <= 1'b1;
-                            rready <= 1'b0;
-                            burst_cnt <= 2'd0;
+                        access_fault <= (rresp != 2'b00);
+                        mem_data[burst_cnt*32 +: 32] <= rdata;
+                        burst_cnt <= burst_cnt + 1'b1;
+                        if (is_sdram) begin
+                            if (rlast) begin
+                                mem_ready <= 1'b1;
+                                rready <= 1'b0;
+                                burst_cnt <= 2'd0;
+                            end
                         end else begin
-                            mem_data[burst_cnt*32 +: 32] <= rdata;
-                            burst_cnt <= burst_cnt + 1'b1;
-                            if (is_sdram) begin
-                                if (rlast) begin
-                                    mem_ready <= 1'b1;
-                                    rready <= 1'b0;
-                                    burst_cnt <= 2'd0;
-                                end
+                            if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
+                                mem_ready <= 1'b1;
+                                rready <= 1'b0;
+                                burst_cnt <= 2'd0;
                             end else begin
-                                if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
-                                    mem_ready <= 1'b1;
-                                    rready <= 1'b0;
-                                    burst_cnt <= 2'd0;
-                                end else begin
-                                    araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) * 32'd4;
-                                    arvalid <= 1'b1;
-                                end
+                                araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) * 32'd4;
+                                arvalid <= 1'b1;
                             end
                         end
                     end
