@@ -55,7 +55,6 @@ CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
 VSRCS += $(wildcard $(CURDIR)/vsrc/include/*.v)
-VSRCS += $(wildcard $(CURDIR)/vsrc/tools/*.v)
 ifeq ($(ARCH), riscv32e-npc)
 VSRCS += $(wildcard $(CURDIR)/vsrc/core-npc/*.v)
 else
@@ -89,8 +88,9 @@ run: $(BIN)
 
 yosys:
 	cd $(NPC_HOME)/../../yosys-sta && make sta DESIGN=$(YOSYSTOP) \
-											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core-soc $(NPC_HOME)/vsrc/tools -name "*.v")" \
-											CLK_FREQ_MHZ=500 \
+											SDC_FILE=$(NPC_HOME)/ysyx_25020037.sdc \
+											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core-soc -name "*.v")" \
+											CLK_FREQ_MHZ=250 \
 											INCLUDE_PATH=$(NPC_HOME)/vsrc/include
 	cd $(NPC_HOME)
 
@@ -99,7 +99,7 @@ perf:
 clean:
 	rm -rf $(BUILD_DIR)
 
-clean-yosys:
+yosys-clean:
 	cd $(NPC_HOME)/../../yosys-sta && make clean
 	cd $(NPC_HOME)
 

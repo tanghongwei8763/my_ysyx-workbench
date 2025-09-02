@@ -45,40 +45,30 @@ module ysyx_25020037_idu (
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
-    wire  inst_l;
-    wire  inst_s;
     wire  gpr_we;
-    assign inst_s = inst_sw | inst_sh | inst_sb;
-    assign inst_l = inst_lw | inst_lh | inst_lb | inst_lhu | inst_lbu;
-    assign gpr_we = gpr_we_r;
     assign du_to_gu_bus = {
-        pc,
-        inst,
-        rd,
+        //pc,
+        //rd[3:0],
         csrs_mtvec_wen,
         csrs_mepc_wen,
         csrs_mstatus_wen,
-        csrs_mcause_wen,
-        csrs_mvendorid_wen,
-        csrs_marchid_wen,
-        ecall_en,
-        mret_en       
+        csrs_mcause_wen
+        //inst_ecall,
+        //inst_mret       
     };
     assign du_to_lu_bus = {
-        inst_l,
-        inst_s,
-        lw_lh_lb,   
-        sw_sh_sb,
-        bit_sext,        
-        half_sext,
+        //lw_lh_lb,   
+        //sw_sh_sb,
+        inst_lb,        
+        inst_lh,
         rlsu_we,         
         wlsu_we   
     };
     assign du_to_wu_bus = {
-        gpr_we,
-        rlsu_we,        
-        csr_w_gpr_we,
-        csr_data
+        //gpr_we,
+        //rlsu_we,        
+        csr_w_gpr_we
+        //csr_data
     };
 
     wire [ 4: 0] rs1;
@@ -86,32 +76,22 @@ module ysyx_25020037_idu (
     wire [ 4: 0] rd;
     wire [31: 0] imm;
     wire [16: 0] alu_op;
-    wire         gpr_we_r;
     wire         rlsu_we;
     wire         wlsu_we;
-    wire         bit_sext;
-    wire         half_sext;
     wire [ 2: 0] lw_lh_lb;
     wire [ 2: 0] sw_sh_sb;
     wire         src1_is_pc;
     wire         src2_is_imm;
     wire         is_pc_jump;
     wire         double_cal;
-    wire         ebreak;
     wire         inst_not_realize;
     wire         csr_w_gpr_we;
     wire [31: 0] csr_data;
-    wire         csrrw_op;
-    wire         csrrs_op;
-    wire         ecall_en;
-    wire         mret_en;
     wire         is_csr_op;
     wire         csrs_mtvec_wen;
     wire         csrs_mepc_wen;
     wire         csrs_mstatus_wen;
     wire         csrs_mcause_wen;
-    wire         csrs_mvendorid_wen;
-    wire         csrs_marchid_wen;
 
     wire [ 6:0] opcode_31_25;
     wire [ 5:0] opcode_31_26;
@@ -122,20 +102,6 @@ module ysyx_25020037_idu (
     wire [31:0] immB;
     wire [31:0] immU;
     wire [31:0] immJ;
-
-    wire [127:0] opcode_31_25_d;
-    wire [63:0]  opcode_31_26_d;
-    wire [ 7:0]  opcode_14_12_d;
-    wire [127:0] opcode_06_00_d;
-
-    wire [31:0]  rs1_d;
-    wire [31:0]  rs2_d;
-    wire [31:0]  rd_d;
-    wire         rw_word_1;
-    wire         rw_word_2;
-    wire         rw_word_4;
-
-    wire        is_fence_i;
 
     wire        inst_add;
     wire        inst_and;
@@ -197,66 +163,57 @@ module ysyx_25020037_idu (
     assign rs1     = inst[19:15];
     assign rs2     = inst[24:20];
     assign rd      = inst[11: 7];
-    assign rs_data = {inst_ecall, inst_mret, imm[11:0], rs1, rs2};
+    assign rs_data = {inst_ecall, inst_mret, imm[11:0], rs1[3:0], rs2[3:0]};
 
     assign immI  = {{20{inst[31]}}, inst[31:20]};
     assign immS  = {{20{inst[31]}}, inst[31:25], inst[11:7]};
     assign immB  = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
     assign immU  = {inst[31:12], 12'b0};
     assign immJ  = {{12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
-    
-    decoder_7_128 u_dec0(.in(opcode_31_25 ), .out(opcode_31_25_d ));
-    decoder_6_64  u_dec1(.in(opcode_31_26 ), .out(opcode_31_26_d ));
-    decoder_3_8   u_dec2(.in(opcode_14_12 ), .out(opcode_14_12_d ));
-    decoder_7_128 u_dec3(.in(opcode_06_00 ), .out(opcode_06_00_d ));
 
-    decoder_5_32  u_dec4(.in(rs1 ), .out(rs1_d ));
-    decoder_5_32  u_dec5(.in(rs2 ), .out(rs2_d ));
-    decoder_5_32  u_dec6(.in(rd  ), .out(rd_d  ));
-
-    assign inst_add       = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h0] & opcode_31_25_d[7'h00];
-    assign inst_and       = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h7] & opcode_31_25_d[7'h00];
-    assign inst_or        = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h6] & opcode_31_25_d[7'h00];
-    assign inst_xor       = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h4] & opcode_31_25_d[7'h00];
-    assign inst_sll       = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h1] & opcode_31_25_d[7'h00];
-    assign inst_sub       = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h0] & opcode_31_25_d[7'h20];
-    assign inst_slt       = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h2] & opcode_31_25_d[7'h00];
-    assign inst_sltu      = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h3] & opcode_31_25_d[7'h00];
-    assign inst_addi      = opcode_06_00_d[7'h13] & opcode_14_12_d[3'h0];
-    assign inst_andi      = opcode_06_00_d[7'h13] & opcode_14_12_d[3'h7];
-    assign inst_jarl      = opcode_06_00_d[7'h67] & opcode_14_12_d[3'h0];
-    assign inst_lb        = opcode_06_00_d[7'h03] & opcode_14_12_d[3'h0];
-    assign inst_lbu       = opcode_06_00_d[7'h03] & opcode_14_12_d[3'h4];
-    assign inst_lh        = opcode_06_00_d[7'h03] & opcode_14_12_d[3'h1];
-    assign inst_lhu       = opcode_06_00_d[7'h03] & opcode_14_12_d[3'h5];
-    assign inst_lw        = opcode_06_00_d[7'h03] & opcode_14_12_d[3'h2];
-    assign inst_slli      = opcode_06_00_d[7'h13] & opcode_14_12_d[3'h1] & opcode_31_26_d[6'h00];
-    assign inst_sltiu     = opcode_06_00_d[7'h13] & opcode_14_12_d[3'h3];
-    assign inst_sra       = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h5] & opcode_31_26_d[6'h10];
-    assign inst_srai      = opcode_06_00_d[7'h13] & opcode_14_12_d[3'h5] & opcode_31_26_d[6'h10];
-    assign inst_srl       = opcode_06_00_d[7'h33] & opcode_14_12_d[3'h5] & opcode_31_26_d[6'h00];
-    assign inst_srli      = opcode_06_00_d[7'h13] & opcode_14_12_d[3'h5] & opcode_31_26_d[6'h00];
-    assign inst_ori       = opcode_06_00_d[7'h13] & opcode_14_12_d[3'h6];
-    assign inst_xori      = opcode_06_00_d[7'h13] & opcode_14_12_d[3'h4];
-    assign inst_csrrw     = opcode_06_00_d[7'h73] & opcode_14_12_d[3'h1];
-    assign inst_csrrs     = opcode_06_00_d[7'h73] & opcode_14_12_d[3'h2];
-    assign inst_sb        = opcode_06_00_d[7'h23] & opcode_14_12_d[3'h0];
-    assign inst_sh        = opcode_06_00_d[7'h23] & opcode_14_12_d[3'h1];
-    assign inst_sw        = opcode_06_00_d[7'h23] & opcode_14_12_d[3'h2];
-    assign inst_beq       = opcode_06_00_d[7'h63] & opcode_14_12_d[3'h0];
-    assign inst_bne       = opcode_06_00_d[7'h63] & opcode_14_12_d[3'h1];
-    assign inst_bge       = opcode_06_00_d[7'h63] & opcode_14_12_d[3'h5];
-    assign inst_bgeu      = opcode_06_00_d[7'h63] & opcode_14_12_d[3'h7];
-    assign inst_blt       = opcode_06_00_d[7'h63] & opcode_14_12_d[3'h4];
-    assign inst_bltu      = opcode_06_00_d[7'h63] & opcode_14_12_d[3'h6];
-    assign inst_auipc     = opcode_06_00_d[7'h17];
-    assign inst_lui       = opcode_06_00_d[7'h37];
-    assign inst_jal       = opcode_06_00_d[7'h6f];
-    assign inst_fence_i   = opcode_06_00_d[7'h0f] & rd_d[5'h00] & opcode_14_12_d[3'h1] & rs1_d[5'h00] & rs2_d[5'h00] & opcode_31_25_d[7'h00];
-    assign inst_mret      = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h02] & opcode_31_25_d[7'h18];
-    assign inst_ecall     = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h00] & opcode_31_25_d[7'h00];
-    assign inst_ebreak    = opcode_06_00_d[7'h73] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h01] & opcode_31_25_d[7'h00];
-    assign inst_waiting   = opcode_06_00_d[7'h00] & rd_d[5'h00] & opcode_14_12_d[3'h0] & rs1_d[5'h00] & rs2_d[5'h00] & opcode_31_25_d[7'h00];
+    assign inst_add       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h0) & (opcode_31_25 == 7'h00);
+    assign inst_and       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h7) & (opcode_31_25 == 7'h00);
+    assign inst_or        = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h6) & (opcode_31_25 == 7'h00);
+    assign inst_xor       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h4) & (opcode_31_25 == 7'h00);
+    assign inst_sll       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h1) & (opcode_31_25 == 7'h00);
+    assign inst_sub       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h0) & (opcode_31_25 == 7'h20);
+    assign inst_slt       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h2) & (opcode_31_25 == 7'h00);
+    assign inst_sltu      = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h3) & (opcode_31_25 == 7'h00);
+    assign inst_addi      = (opcode_06_00 == 7'h13) & (opcode_14_12 == 3'h0);
+    assign inst_andi      = (opcode_06_00 == 7'h13) & (opcode_14_12 == 3'h7);
+    assign inst_jarl      = (opcode_06_00 == 7'h67) & (opcode_14_12 == 3'h0);
+    assign inst_lb        = (opcode_06_00 == 7'h03) & (opcode_14_12 == 3'h0);
+    assign inst_lbu       = (opcode_06_00 == 7'h03) & (opcode_14_12 == 3'h4);
+    assign inst_lh        = (opcode_06_00 == 7'h03) & (opcode_14_12 == 3'h1);
+    assign inst_lhu       = (opcode_06_00 == 7'h03) & (opcode_14_12 == 3'h5);
+    assign inst_lw        = (opcode_06_00 == 7'h03) & (opcode_14_12 == 3'h2);
+    assign inst_sltiu     = (opcode_06_00 == 7'h13) & (opcode_14_12 == 3'h3);
+    assign inst_slli      = (opcode_06_00 == 7'h13) & (opcode_14_12 == 3'h1) & (opcode_31_26 == 6'h00);
+    assign inst_sra       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h5) & (opcode_31_26 == 6'h10);
+    assign inst_srai      = (opcode_06_00 == 7'h13) & (opcode_14_12 == 3'h5) & (opcode_31_26 == 6'h10);
+    assign inst_srl       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h5) & (opcode_31_26 == 6'h00);
+    assign inst_srli      = (opcode_06_00 == 7'h13) & (opcode_14_12 == 3'h5) & (opcode_31_26 == 6'h00);
+    assign inst_ori       = (opcode_06_00 == 7'h13) & (opcode_14_12 == 3'h6);
+    assign inst_xori      = (opcode_06_00 == 7'h13) & (opcode_14_12 == 3'h4);
+    assign inst_csrrw     = (opcode_06_00 == 7'h73) & (opcode_14_12 == 3'h1);
+    assign inst_csrrs     = (opcode_06_00 == 7'h73) & (opcode_14_12 == 3'h2);
+    assign inst_sb        = (opcode_06_00 == 7'h23) & (opcode_14_12 == 3'h0);
+    assign inst_sh        = (opcode_06_00 == 7'h23) & (opcode_14_12 == 3'h1);
+    assign inst_sw        = (opcode_06_00 == 7'h23) & (opcode_14_12 == 3'h2);
+    assign inst_beq       = (opcode_06_00 == 7'h63) & (opcode_14_12 == 3'h0);
+    assign inst_bne       = (opcode_06_00 == 7'h63) & (opcode_14_12 == 3'h1);
+    assign inst_bge       = (opcode_06_00 == 7'h63) & (opcode_14_12 == 3'h5);
+    assign inst_bgeu      = (opcode_06_00 == 7'h63) & (opcode_14_12 == 3'h7);
+    assign inst_blt       = (opcode_06_00 == 7'h63) & (opcode_14_12 == 3'h4);
+    assign inst_bltu      = (opcode_06_00 == 7'h63) & (opcode_14_12 == 3'h6);
+    assign inst_auipc     = (opcode_06_00 == 7'h17);
+    assign inst_lui       = (opcode_06_00 == 7'h37);
+    assign inst_jal       = (opcode_06_00 == 7'h6f);
+    assign inst_fence_i   = (opcode_06_00 == 7'h0f) & (rd == 5'h00) & (opcode_14_12 == 3'h1) & (rs1 == 5'h00) & (rs2 == 5'h00) & (opcode_31_25 == 7'h00);
+    assign inst_mret      = (opcode_06_00 == 7'h73) & (rd == 5'h00) & (opcode_14_12 == 3'h0) & (rs1 == 5'h00) & (rs2 == 5'h02) & (opcode_31_25 == 7'h18);
+    assign inst_ecall     = (opcode_06_00 == 7'h73) & (rd == 5'h00) & (opcode_14_12 == 3'h0) & (rs1 == 5'h00) & (rs2 == 5'h00) & (opcode_31_25 == 7'h00);
+    assign inst_ebreak    = (opcode_06_00 == 7'h73) & (rd == 5'h00) & (opcode_14_12 == 3'h0) & (rs1 == 5'h00) & (rs2 == 5'h01) & (opcode_31_25 == 7'h00);
+    assign inst_waiting   = (opcode_06_00 == 7'h00) & (rd == 5'h00) & (opcode_14_12 == 3'h0) & (rs1 == 5'h00) & (rs2 == 5'h00) & (opcode_31_25 == 7'h00);
 
     assign alu_op[ 0] = inst_add  | inst_addi | inst_auipc | inst_jal | inst_sb  |
                         inst_jarl | inst_lw   | inst_lbu   | inst_lh  | inst_lhu |
@@ -297,48 +254,36 @@ module ysyx_25020037_idu (
                | ({32{TYPE_U}} & immU)
                | ({32{TYPE_J}} & immJ);
 
-    assign gpr_we_r = inst_add  | inst_and  | inst_sub  | inst_or    | inst_xor  | 
-                      inst_sra  | inst_srl  | inst_slt  | inst_sltu  | inst_sll  | 
-                      inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
-                      inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
-                      inst_csrrs| inst_jal  | inst_auipc| inst_lui   | inst_lw   |
-                      inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
-    assign rlsu_we  = inst_lw | inst_lbu | inst_lh  | inst_lhu   | inst_lb;
-    assign wlsu_we  = inst_sw | inst_sh  | inst_sb;
-    assign bit_sext   = inst_lb;
-    assign half_sext  = inst_lh;
+    assign gpr_we = inst_add  | inst_and  | inst_sub  | inst_or    | inst_xor  | 
+                    inst_sra  | inst_srl  | inst_slt  | inst_sltu  | inst_sll  | 
+                    inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
+                    inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
+                    inst_csrrs| inst_jal  | inst_auipc| inst_lui   | inst_lw   |
+                    inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
+    assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
+    assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
+    assign wlsu_we  = |sw_sh_sb;
+    assign rlsu_we  = |lw_lh_lb;
 
     assign src1_is_pc    = inst_jal | inst_auipc | TYPE_B;
     assign src2_is_imm   = TYPE_I     |
-                           inst_sw    |
-                           inst_sh    |
-                           inst_sb    |
+                           TYPE_S     |
                            inst_lui   |
                            inst_auipc |
-                           inst_jal   |
+                           TYPE_J     |
                            TYPE_B     |   //B型指令使用参数类型都一致
                            inst_jarl  ;
 
-    assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
-    assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
                       
     assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
-    assign ebreak       = inst_ebreak;
-    assign is_fence_i   = inst_fence_i;
 
     assign csr_w_gpr_we = inst_csrrw | inst_csrrs;
-    assign csrrw_op     = inst_csrrw;
-    assign csrrs_op     = inst_csrrs;
-    assign ecall_en     = inst_ecall;
-    assign mret_en      = inst_mret;
     assign is_csr_op    = inst_csrrw | inst_csrrs | inst_ecall | inst_mret;
     assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & is_csr_op;
     assign csrs_mepc_wen      = (imm[11:0] == MEPC) & is_csr_op;
     assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & is_csr_op;
     assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & is_csr_op;
-    assign csrs_mvendorid_wen = (imm[11:0] == MVENDORID) & is_csr_op;
-    assign csrs_marchid_wen   = (imm[11:0] == MARCHID) & is_csr_op;
 
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
@@ -358,13 +303,13 @@ module ysyx_25020037_idu (
                         du_to_lu_bus,
                         du_to_wu_bus,
                         pc,
-                        inst_l,
-                        inst_s,
-                        is_fence_i,         
+                        lw_lh_lb,
+                        sw_sh_sb,
+                        inst_fence_i,         
                         imm,
-                        rd,
-                        rs1,
-                        rs2,
+                        rd[3:0],
+                        rs1[3:0],
+                        rs2[3:0],
                         src1,
                         src2,
                         gpr_we,  
@@ -373,13 +318,13 @@ module ysyx_25020037_idu (
                         src2_is_imm,     
                         is_pc_jump,      
                         double_cal,      
-                        ebreak,          
+                        inst_ebreak,          
                         inst_not_realize,
-                        ecall_en,
-                        mret_en,
+                        inst_ecall,
+                        inst_mret,
                         csr_data,
-                        csrrs_op,
-                        csrrw_op
+                        inst_csrrs,
+                        inst_csrrw
                     };
                 end
             end

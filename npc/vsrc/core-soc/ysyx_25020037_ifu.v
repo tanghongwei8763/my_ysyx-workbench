@@ -47,14 +47,12 @@ module ysyx_25020037_ifu #(
     
     reg  [ 1:0] state, next_state;
     wire [31:0] pc;
-    wire [31:0] inst;
-    wire [31:0] snpc;
-    wire [31:0] dnpc;
-    reg  [31:0] read_len;
+    wire [31:0] inst = fu_to_du_bus[31:0];
+    wire [31:0] snpc = pc + 32'h4;
+    wire [31:0] dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
     wire [31:0] block_base_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
     wire        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
     reg  [1:0]  burst_cnt;
-    reg         is_burst_done;
 
     ysyx_25020037_Reg #(32, 32'h30000000) PC (
         .clk         (clk      ),
@@ -64,9 +62,6 @@ module ysyx_25020037_ifu #(
         .wen         (pc_updata)
     );
     assign      pc_updata = (next_state == IDLE) & idu_ready;
-    assign      inst = fu_to_du_bus[31:0];
-    assign      snpc = pc + 32'h4;
-    assign      dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
 
     always @(*) begin
         case (state)
@@ -91,20 +86,16 @@ module ysyx_25020037_ifu #(
             rready <= 1'b0;
             mem_data <= 'b0;
             mem_ready <= 1'b0;
-            read_len <= 32'b0;
             access_fault <= 1'b0;
             burst_cnt <= 2'd0;
-            is_burst_done <= 1'b0;
         end else begin
             state <= next_state;
             case (state)
                 IDLE: begin
-                    read_len <= 32'b0;
                     arvalid <= 1'b0;
                     rready <= 1'b0;
                     access_fault <= 1'b0;
                     burst_cnt <= 2'd0;
-                    is_burst_done <= 1'b0;
                     mem_ready <= 1'b0;
                     mem_data <= 'b0;
                     if (idu_ready) begin
@@ -132,35 +123,25 @@ module ysyx_25020037_ifu #(
                     if (arvalid && arready) begin
                         arvalid <= 1'b0;
                         rready <= 1'b1;
-                        is_burst_done <= 1'b0;
                     end
                     if (rvalid && rready) begin
-                        if (rresp != 2'b00) begin
-                            access_fault <= 1'b1;
-                            mem_ready <= 1'b1;
-                            rready <= 1'b0;
-                            burst_cnt <= 2'd0;
-                            is_burst_done <= 1'b0;
+                        access_fault <= (rresp != 2'b00);
+                        mem_data[burst_cnt*32 +: 32] <= rdata;
+                        burst_cnt <= burst_cnt + 1'b1;
+                        if (is_sdram) begin
+                            if (rlast) begin
+                                mem_ready <= 1'b1;
+                                rready <= 1'b0;
+                                burst_cnt <= 2'd0;
+                            end
                         end else begin
-                            mem_data[burst_cnt*32 +: 32] <= rdata;
-                            burst_cnt <= burst_cnt + 1'b1;
-                            if (is_sdram) begin
-                                if (rlast) begin
-                                    mem_ready <= 1'b1;
-                                    rready <= 1'b0;
-                                    burst_cnt <= 2'd0;
-                                    is_burst_done <= 1'b1;
-                                end
+                            if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
+                                mem_ready <= 1'b1;
+                                rready <= 1'b0;
+                                burst_cnt <= 2'd0;
                             end else begin
-                                if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
-                                    mem_ready <= 1'b1;
-                                    rready <= 1'b0;
-                                    burst_cnt <= 2'd0;
-                                    is_burst_done <= 1'b1;
-                                end else begin
-                                    araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) * 32'd4;
-                                    arvalid <= 1'b1;
-                                end
+                                araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) * 32'd4;
+                                arvalid <= 1'b1;
                             end
                         end
                     end

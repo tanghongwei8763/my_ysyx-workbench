@@ -57,11 +57,27 @@ module ysyx_25020037_lsu (
     localparam AXI_SIZE_HALF   = 3'h1;
     localparam AXI_SIZE_WORD   = 3'h2;
     reg                          exu_dnpc_valid_r;
-    wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
-    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    wire [31:0] pc;
+    wire [ 3:0] rd;
+    wire        ecall_en;
+    wire        mret_en;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
-    assign {du_to_gu_bus,
+    wire [ 2:0] data_rop;
+    wire [ 2:0] data_wop;
+    wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
+    wire        gpr_we;
+    wire [31:0] csr_data;
+    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    assign {pc,
+            rd,
+            ecall_en,
+            mret_en,
+            du_to_gu_bus,
+            data_rop,
+            data_wop,
             du_to_lu_bus,
+            gpr_we,
+            csr_data,
             du_to_wu_bus, 
             csr_wcsr_data,     
             addr,
@@ -73,19 +89,11 @@ module ysyx_25020037_lsu (
     wire [31:0] addr_off = addr & 32'b11;
     wire [31:0] aligned_wdata = data << (addr_off << 3);
 
-    wire        inst_l;
-    wire        inst_s;
-    wire [ 2:0] data_rop;
-    wire [ 2:0] data_wop;
     wire        bit_sext;
     wire        half_sext;
     wire        is_write;
     wire        is_read;
-    assign {inst_l,
-            inst_s,
-            data_rop,    
-            data_wop,     
-            bit_sext,
+    assign {bit_sext,
             half_sext,
             is_read,
             is_write
@@ -93,22 +101,14 @@ module ysyx_25020037_lsu (
 
     wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
 
-    reg  [ 2:0] axi_rsize;
-    reg  [ 2:0] axi_wsize;
-    always @(*) begin
-        case (data_rop)
-            3'b001: axi_rsize = AXI_SIZE_BYTE; 
-            3'b010: axi_rsize = AXI_SIZE_HALF; 
-            3'b100: axi_rsize = AXI_SIZE_WORD; 
-            default: axi_rsize = AXI_SIZE_WORD;
-        endcase
-        case (data_wop)
-            3'b001: axi_wsize = AXI_SIZE_BYTE;
-            3'b010: axi_wsize = AXI_SIZE_HALF;
-            3'b100: axi_wsize = AXI_SIZE_WORD;
-            default: axi_wsize = AXI_SIZE_WORD;
-        endcase
-    end
+    wire [ 2:0] axi_rsize;
+    wire [ 2:0] axi_wsize;
+    assign axi_rsize = ({3{data_rop == 3'b001}} & AXI_SIZE_BYTE)
+                     | ({3{data_rop == 3'b010}} & AXI_SIZE_HALF)
+                     | ({3{data_rop == 3'b100}} & AXI_SIZE_WORD);
+    assign axi_wsize = ({3{data_wop == 3'b001}} & AXI_SIZE_BYTE)
+                     | ({3{data_wop == 3'b010}} & AXI_SIZE_HALF)
+                     | ({3{data_wop == 3'b100}} & AXI_SIZE_WORD);
 
     always @(*) begin
         case (state)
@@ -119,7 +119,7 @@ module ysyx_25020037_lsu (
     end
 
     wire [31: 0] lsu_rdata;
-    assign lsu_rdata = inst_l ? (rdata >> ((addr & 32'b11) << 3)) : rdata;
+    assign lsu_rdata = |data_rop ? (rdata >> ((addr & 32'b11) << 3)) : rdata;
     assign rdata_processed = (data_rop == 3'b001) ? 
                              (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 
                                        : {24'b0          , lsu_rdata[ 7:0]} ) :
@@ -193,8 +193,15 @@ module ysyx_25020037_lsu (
                         end else begin
                             lsu_valid <= 1'b1;
                             lu_to_wu_bus <= {
-                                du_to_wu_bus,
+                                pc,
+                                rd,
+                                ecall_en,
+                                mret_en,
                                 du_to_gu_bus,
+                                gpr_we,
+                                is_read,
+                                csr_data,
+                                du_to_wu_bus,
                                 csr_wcsr_data,
                                 addr,
                                 addr
@@ -212,8 +219,15 @@ module ysyx_25020037_lsu (
                         end
                         if (rvalid && rready) begin
                             lu_to_wu_bus <= {
-                                du_to_wu_bus,
+                                pc,
+                                rd,
+                                ecall_en,
+                                mret_en,
                                 du_to_gu_bus,
+                                gpr_we,
+                                is_read,
+                                csr_data,
+                                du_to_wu_bus,
                                 csr_wcsr_data,
                                 addr, 
                                 rdata_processed

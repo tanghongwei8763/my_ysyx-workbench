@@ -20,9 +20,8 @@ module ysyx_25020037_exu (
 `endif
 
     localparam BYPASS_DEPTH = 4;
-    reg [ 4:0] bypass_rd[     BYPASS_DEPTH-1:0];
+    reg [ 3:0] bypass_rd[     BYPASS_DEPTH-1:0];
     reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
-    reg        bypass_valid[  BYPASS_DEPTH-1:0];
     reg        bypass_is_load[BYPASS_DEPTH-1:0];
 
     wire [31: 0] src1;
@@ -31,13 +30,15 @@ module ysyx_25020037_exu (
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
     wire [31: 0] pc;
-    wire         inst_l;
-    wire         inst_s;
+    wire [ 2: 0] lw_lh_lb;
+    wire [ 2: 0] sw_sh_sb;
+    wire         inst_l = |lw_lh_lb;
+    wire         inst_s = |sw_sh_sb;
     wire         is_fence_i;
     wire [31: 0] imm;
-    wire [ 4: 0] rd;
-    wire [ 4: 0] rs1;
-    wire [ 4: 0] rs2;
+    wire [ 3: 0] rd;
+    wire [ 3: 0] rs1;
+    wire [ 3: 0] rs2;
     wire [31: 0] src1_r;
     wire [31: 0] src2_r;
     wire         gpr_we;
@@ -57,8 +58,8 @@ module ysyx_25020037_exu (
             du_to_lu_bus,
             du_to_wu_bus,
             pc,
-            inst_l,
-            inst_s,
+            lw_lh_lb,
+            sw_sh_sb,
             is_fence_i,
             imm,
             rd,
@@ -90,7 +91,7 @@ module ysyx_25020037_exu (
         bypass_src1 = src1_r;
         src1_wait = 1'b0;
         for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if (bypass_valid[i] && (bypass_rd[i] == rs1) && (rs1 != 5'd0)) begin
+            if ((bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
                 bypass_src1 = bypass_data[i];
                 if (bypass_is_load[i]) begin
                     src1_wait = 1'b1;
@@ -103,7 +104,7 @@ module ysyx_25020037_exu (
         bypass_src2 = src2_r;
         src2_wait = 1'b0;
         for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if (bypass_valid[i] && (bypass_rd[i] == rs2) && (rs2 != 5'd0)) begin
+            if ((bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
                 bypass_src2 = bypass_data[i];
                 if (bypass_is_load[i]) begin
                     src2_wait = 1'b1;
@@ -153,16 +154,15 @@ module ysyx_25020037_exu (
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
-                bypass_rd[i]       <= 5'd0;
+                bypass_rd[i]       <= 4'd0;
                 bypass_data[i]     <= 32'd0;
-                bypass_valid[i]    <= 1'b0;
                 bypass_is_load[i]  <= 1'b0;
             end
         end else begin
 
             if (lsu_ready) begin
                 for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
-                    if (bypass_valid[i] && bypass_is_load[i]) begin
+                    if (bypass_is_load[i]) begin
                         bypass_data[i]    = rdata_processed;
                         bypass_is_load[i] = 1'b0;
                     end
@@ -172,12 +172,10 @@ module ysyx_25020037_exu (
                 for (i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
                     bypass_rd[i]       <= bypass_rd[i - 1];
                     bypass_data[i]     <= bypass_data[i - 1];
-                    bypass_valid[i]    <= bypass_valid[i - 1];
                     bypass_is_load[i]  <= bypass_is_load[i - 1];
                 end
                 bypass_rd[0]       <= gpr_we ? rd     : bypass_rd[0];
                 bypass_data[0]     <= gpr_we ? inst_l ? 32'b0 : (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
-                bypass_valid[0]    <= gpr_we ? 1'b1   : bypass_valid[0];
                 bypass_is_load[0]  <= gpr_we ? inst_l : bypass_is_load[0];
             end
         end
@@ -205,8 +203,16 @@ module ysyx_25020037_exu (
                 if (idu_valid) begin
                     exu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     eu_to_lu_bus <= {
+                        pc,
+                        rd,
+                        ecall_en,
+                        mret_en,
                         du_to_gu_bus,
+                        lw_lh_lb,
+                        sw_sh_sb,
                         du_to_lu_bus,
+                        gpr_we,
+                        csr_data,
                         du_to_wu_bus,  
                         csr_wcsr_data,       
                         result,

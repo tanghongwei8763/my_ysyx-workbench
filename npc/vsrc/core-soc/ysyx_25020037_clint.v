@@ -23,13 +23,13 @@ module ysyx_25020037_clint(
 
     reg  [31: 0] mtimel, mtimeh;
     wire [31: 0] clint_offset;
+    wire [31: 0] read_addr = araddr;
     localparam CLINT_BASE   = 32'h02000000;
     assign  clint_offset = read_addr - CLINT_BASE;
 
     localparam IDLE         = 1'b0;
     localparam BUSY         = 1'b1;
     reg          state, next_state;
-    reg  [31: 0] read_addr;
 
 
     always @(posedge clk or posedge rst) begin
@@ -56,7 +56,6 @@ module ysyx_25020037_clint(
                     rvalid <= 1'b0;
                     rlast <= 1'b0;
                     if (arvalid & arready) begin
-                        read_addr <= araddr;
                         arready <= 1'b0;
                     end
                 end
@@ -84,6 +83,5 @@ module ysyx_25020037_clint(
             default: next_state = IDLE;
         endcase
     end
-
 
 endmodule

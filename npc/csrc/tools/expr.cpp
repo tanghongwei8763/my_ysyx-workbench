@@ -14,7 +14,7 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__pc_reg
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_cpu__DOT__pc
 #define gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
 #else
 #include "Vysyx_25020037___024root.h"
