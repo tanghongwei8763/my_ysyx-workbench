@@ -10,16 +10,20 @@ module ysyx_25020037_lsu (
     input  wire         wlsu_we,
     output reg  [31: 0] rlsu_data
 );
+`ifdef VERILATOR
     import "DPI-C" function int pmem_read(input int addr, input int len, input int trace_on);
     import "DPI-C" function void pmem_write(input int addr, input int len, int data, input int trace_on);
-
+`endif
 
     always @(posedge clk) begin
         if(~rst & wlsu_we) begin
+`ifdef VERILATOR
             pmem_write(wlsu_addr, wlsu_len, wlsu_data, {32{wlsu_we}});
+`endif
         end
     end
-
+`ifdef VERILATOR
     assign rlsu_data = (~rst & rlsu_we) ? {$unsigned(pmem_read(rlsu_addr, rlsu_len, {32{rlsu_we}}))} : 32'b0;
+`endif
 
 endmodule

@@ -158,6 +158,14 @@ module ysyx_25020037_lsu (
             exu_dnpc_valid_r <= exu_dnpc_valid;
             case (state)
                 IDLE: begin
+                    lsu_valid <= 1'b0;
+                    lu_to_wu_bus <= 'b0;
+                    access_fault <= 1'b0;
+                    awvalid <= 1'b0;
+                    wvalid <= 1'b0;
+                    arvalid <= 1'b0;
+                    bready <= 1'b0;
+                    rready <= 1'b0;
                     if (exu_valid) begin
                         if (is_read) begin
                             araddr  <= addr;

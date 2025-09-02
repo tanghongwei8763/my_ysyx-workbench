@@ -18,9 +18,9 @@ extern "C" {
     // DPI IMPORTS
     // DPI import at vsrc/ysyx_25020037_exu.v:15:34
     extern void hit(int inst_not_realize);
-    // DPI import at vsrc/ysyx_25020037_ifu.v:6:33
+    // DPI import at vsrc/ysyx_25020037_ifu.v:7:33
     extern int pmem_read(int addr, int len, int trace_on);
-    // DPI import at vsrc/ysyx_25020037_lsu.v:14:34
+    // DPI import at vsrc/ysyx_25020037_lsu.v:15:34
     extern void pmem_write(int addr, int len, int data, int trace_on);
 
 #ifdef __cplusplus
