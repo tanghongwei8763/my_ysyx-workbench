@@ -127,22 +127,24 @@ assign beq_result[0]    = (alu_src3 == alu_src4);
 assign bne_result[31:1] = 31'b0;
 assign bne_result[0]    = ~beq_result[0];
 
-assign alu_result1 = ({32{op_add|op_sub|double_cal}} & add_sub_result)
-                   | ({32{op_slt       }} & slt_result)
-                   | ({32{op_sltu      }} & sltu_result)
-                   | ({32{op_and       }} & and_result)
-                   | ({32{op_or        }} & or_result)
-                   | ({32{op_xor       }} & xor_result)
-                   | ({32{op_lui       }} & lui_result)
-                   | ({32{op_sll       }} & sll_result)
-                   | ({32{op_srl|op_sra}} & sr_result);
+assign alu_result1 = op_add|op_sub|double_cal ? add_sub_result :
+                     op_slt                   ? slt_result     :
+                     op_sltu                  ? sltu_result    :
+                     op_and                   ? and_result     :
+                     op_or                    ? or_result      :
+                     op_xor                   ? xor_result     :
+                     op_lui                   ? lui_result     :
+                     op_sll                   ? sll_result     :
+                     op_srl|op_sra            ? sr_result      :
+                     32'b0;
 
-assign alu_result2 = (double_cal == 1'b0) ? 32'b1 : 
-                     ({32{op_beq   }} & beq_result)
-                   | ({32{op_blt   }} & blt_result)
-                   | ({32{op_bltu  }} & bltu_result)
-                   | ({32{op_bge   }} & bge_result)
-                   | ({32{op_bgeu  }} & bgeu_result)
-                   | ({32{op_bne   }} & bne_result);
+assign alu_result2 = ~double_cal ? 32'b1 : 
+                      op_beq     ? beq_result  :
+                      op_blt     ? blt_result  :
+                      op_bltu    ? bltu_result :
+                      op_bge     ? bge_result  :
+                      op_bgeu    ? bgeu_result :
+                      op_bne     ? bne_result  :
+                      32'b0; 
 
 endmodule
