@@ -184,10 +184,7 @@ module ysyx_25020037_exu (
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             exu_valid <= 0;
-            eu_to_lu_bus <= `EU_TO_LU_BUS_WD'b0;
-            eu_to_ic_bus <= `EU_TO_IC_BUS_WD'b0;
             exu_dnpc_valid <=1'b0;
-            exu_dnpc <= 32'b0;
         end else begin
             if(exu_ready) begin
                 if(dnpc_r != 32'b0 && exu_dnpc_valid == 1'b0) begin
