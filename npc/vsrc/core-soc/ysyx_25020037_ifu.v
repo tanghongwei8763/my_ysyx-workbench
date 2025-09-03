@@ -91,7 +91,6 @@ module ysyx_25020037_ifu #(
                     access_fault <= 1'b0;
                     burst_cnt <= 2'd0;
                     mem_ready <= 1'b0;
-                    mem_data <= 'b0;
                     if (idu_ready) begin
                         ifu_valid <= 1'b0;
                         fu_to_du_bus <= 'b0;
