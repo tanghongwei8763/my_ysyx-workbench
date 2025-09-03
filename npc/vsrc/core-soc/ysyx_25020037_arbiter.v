@@ -126,7 +126,6 @@ always @(*) begin
 end
 
     assign ifu_arready       = (current_master == IFU_ACCESS) ? io_master_arready : 'b0;
-    assign ifu_arready       = (current_master == IFU_ACCESS) ? io_master_arready : 'b0;
     assign ifu_rdata         = (current_master == IFU_ACCESS) ? io_master_rdata   : 'b0;
     assign ifu_rresp         = (current_master == IFU_ACCESS) ? io_master_rresp   : 'b0;
     assign ifu_rlast         = (current_master == IFU_ACCESS) ? io_master_rlast   : 'b0;
@@ -139,11 +138,11 @@ end
     assign lsu_rlast         = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_rlast   : io_master_rlast   : 'b0;
     assign lsu_rvalid        = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_rvalid  : io_master_rvalid  : 'b0;
     assign lsu_rid           = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_rid     : io_master_rid     : 'b0;
-    assign lsu_awready       = (current_master == LSU_ACCESS) ? io_master_awready : 'b0;
-    assign lsu_wready        = (current_master == LSU_ACCESS) ? io_master_wready  : 'b0;
-    assign lsu_bvalid        = (current_master == LSU_ACCESS) ? io_master_bvalid  : 'b0;
-    assign lsu_bresp         = (current_master == LSU_ACCESS) ? io_master_bresp   : 'b0;
-    assign lsu_bid           = (current_master == LSU_ACCESS) ? io_master_bid     : 'b0;
+    assign lsu_awready       = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_awready : 'b0;
+    assign lsu_wready        = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_wready  : 'b0;
+    assign lsu_bvalid        = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_bvalid  : 'b0;
+    assign lsu_bresp         = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_bresp   : 'b0;
+    assign lsu_bid           = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_bid     : 'b0;
 
     assign io_master_arvalid = (current_master == LSU_ACCESS) ? lsu_arvalid : (current_master == IFU_ACCESS) ? ifu_arvalid : 'b0;
     assign io_master_araddr  = (current_master == LSU_ACCESS) ? lsu_araddr  : (current_master == IFU_ACCESS) ? ifu_araddr  : 'b0;
