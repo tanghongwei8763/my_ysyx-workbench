@@ -2,7 +2,7 @@ module ysyx_25020037_arbiter (
     input  wire         clk,
     input  wire         rst,
 
-    output wire         ifu_arready,
+    output reg          ifu_arready,
     input  wire         ifu_arvalid,
     input  wire [31: 0] ifu_araddr,
     input  wire [ 3: 0] ifu_arid,
@@ -10,29 +10,29 @@ module ysyx_25020037_arbiter (
     input  wire [ 2: 0] ifu_arsize,
     input  wire [ 1: 0] ifu_arburst,
     input  wire         ifu_rready,
-    output wire         ifu_rvalid,
-    output wire [ 1: 0] ifu_rresp,
-    output wire [31: 0] ifu_rdata,
-    output wire         ifu_rlast,
-    output wire [ 3: 0] ifu_rid,
+    output reg          ifu_rvalid,
+    output reg  [ 1: 0] ifu_rresp,
+    output reg  [31: 0] ifu_rdata,
+    output reg          ifu_rlast,
+    output reg  [ 3: 0] ifu_rid,
 
-    output wire         lsu_awready,
+    output reg          lsu_awready,
     input  wire         lsu_awvalid,
     input  wire [31: 0] lsu_awaddr,
     input  wire [ 3: 0] lsu_awid,
     input  wire [ 7: 0] lsu_awlen,
     input  wire [ 2: 0] lsu_awsize,
     input  wire [ 1: 0] lsu_awburst,
-    output wire         lsu_wready,
+    output reg          lsu_wready,
     input  wire         lsu_wvalid,
     input  wire [31: 0] lsu_wdata,
     input  wire [ 3: 0] lsu_wstrb,
     input  wire         lsu_wlast,
     input  wire         lsu_bready,
-    output wire         lsu_bvalid,
-    output wire [ 1: 0] lsu_bresp,
-    output wire [ 3: 0] lsu_bid,
-    output wire         lsu_arready,
+    output reg          lsu_bvalid,
+    output reg  [ 1: 0] lsu_bresp,
+    output reg  [ 3: 0] lsu_bid,
+    output reg          lsu_arready,
     input  wire         lsu_arvalid,
     input  wire [31: 0] lsu_araddr,
     input  wire [ 3: 0] lsu_arid,
@@ -40,36 +40,36 @@ module ysyx_25020037_arbiter (
     input  wire [ 2: 0] lsu_arsize,
     input  wire [ 1: 0] lsu_arburst,
     input  wire         lsu_rready,
-    output wire         lsu_rvalid,
-    output wire [ 1: 0] lsu_rresp,
-    output wire [31: 0] lsu_rdata,
-    output wire         lsu_rlast,
-    output wire [ 3: 0] lsu_rid,
+    output reg          lsu_rvalid,
+    output reg  [ 1: 0] lsu_rresp,
+    output reg  [31: 0] lsu_rdata,
+    output reg          lsu_rlast,
+    output reg  [ 3: 0] lsu_rid,
 
     input  wire         io_master_awready,
-    output wire         io_master_awvalid,
-    output wire [31: 0] io_master_awaddr,
-    output wire [ 3: 0] io_master_awid,
-    output wire [ 7: 0] io_master_awlen,
-    output wire [ 2: 0] io_master_awsize,
-    output wire [ 1: 0] io_master_awburst,
+    output reg          io_master_awvalid,
+    output reg  [31: 0] io_master_awaddr,
+    output reg  [ 3: 0] io_master_awid,
+    output reg  [ 7: 0] io_master_awlen,
+    output reg  [ 2: 0] io_master_awsize,
+    output reg  [ 1: 0] io_master_awburst,
     input  wire         io_master_wready,
-    output wire         io_master_wvalid,
-    output wire [31: 0] io_master_wdata,
-    output wire [ 3: 0] io_master_wstrb,
-    output wire         io_master_wlast,
-    output wire         io_master_bready,
+    output reg          io_master_wvalid,
+    output reg  [31: 0] io_master_wdata,
+    output reg  [ 3: 0] io_master_wstrb,
+    output reg          io_master_wlast,
+    output reg          io_master_bready,
     input  wire         io_master_bvalid,
     input  wire [ 1: 0] io_master_bresp,
     input  wire [ 3: 0] io_master_bid,
     input  wire         io_master_arready,
-    output wire         io_master_arvalid,
-    output wire [31: 0] io_master_araddr,
-    output wire [ 3: 0] io_master_arid,
-    output wire [ 7: 0] io_master_arlen,
-    output wire [ 2: 0] io_master_arsize,
-    output wire [ 1: 0] io_master_arburst,
-    output wire         io_master_rready,
+    output reg          io_master_arvalid,
+    output reg [31: 0]  io_master_araddr,
+    output reg [ 3: 0]  io_master_arid,
+    output reg [ 7: 0]  io_master_arlen,
+    output reg [ 2: 0]  io_master_arsize,
+    output reg [ 1: 0]  io_master_arburst,
+    output reg          io_master_rready,
     input  wire         io_master_rvalid,
     input  wire [ 1: 0] io_master_rresp,
     input  wire [31: 0] io_master_rdata,
@@ -125,50 +125,121 @@ always @(*) begin
     endcase
 end
 
-    assign ifu_arready       = (current_master == IFU_ACCESS) ? io_master_arready : 'b0;
-    assign ifu_rdata         = (current_master == IFU_ACCESS) ? io_master_rdata   : 'b0;
-    assign ifu_rresp         = (current_master == IFU_ACCESS) ? io_master_rresp   : 'b0;
-    assign ifu_rlast         = (current_master == IFU_ACCESS) ? io_master_rlast   : 'b0;
-    assign ifu_rvalid        = (current_master == IFU_ACCESS) ? io_master_rvalid  : 'b0;
-    assign ifu_rid           = (current_master == IFU_ACCESS) ? io_master_rid     : 'b0;
+always @(*) begin
+    ifu_arready = 1'b0;
+    ifu_rvalid  = 1'b0;
+    ifu_rresp   = 2'b00;
+    ifu_rdata   = 32'b0;
+    ifu_rlast   = 1'b0;
+    ifu_rid     = 4'b0;
 
-    assign lsu_arready       = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_arready : io_master_arready : 'b0;
-    assign lsu_rdata         = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_rdata   : io_master_rdata   : 'b0;
-    assign lsu_rresp         = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_rresp   : io_master_rresp   : 'b0;
-    assign lsu_rlast         = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_rlast   : io_master_rlast   : 'b0;
-    assign lsu_rvalid        = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_rvalid  : io_master_rvalid  : 'b0;
-    assign lsu_rid           = (current_master == LSU_ACCESS) ? is_clint_addr ? clint_rid     : io_master_rid     : 'b0;
-    assign lsu_awready       = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_awready : 'b0;
-    assign lsu_wready        = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_wready  : 'b0;
-    assign lsu_bvalid        = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_bvalid  : 'b0;
-    assign lsu_bresp         = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_bresp   : 'b0;
-    assign lsu_bid           = (current_master == LSU_ACCESS) ? is_clint_addr ? 'b0           : io_master_bid     : 'b0;
-
-    assign io_master_arvalid = (current_master == LSU_ACCESS) ? lsu_arvalid : (current_master == IFU_ACCESS) ? ifu_arvalid : 'b0;
-    assign io_master_araddr  = (current_master == LSU_ACCESS) ? lsu_araddr  : (current_master == IFU_ACCESS) ? ifu_araddr  : 'b0;
-    assign io_master_arid    = (current_master == LSU_ACCESS) ? lsu_arid    : (current_master == IFU_ACCESS) ? ifu_arid    : 'b0;
-    assign io_master_arlen   = (current_master == LSU_ACCESS) ? lsu_arlen   : (current_master == IFU_ACCESS) ? ifu_arlen   : 'b0;
-    assign io_master_arsize  = (current_master == LSU_ACCESS) ? lsu_arsize  : (current_master == IFU_ACCESS) ? ifu_arsize  : 'b0;
-    assign io_master_arburst = (current_master == LSU_ACCESS) ? lsu_arburst : (current_master == IFU_ACCESS) ? ifu_arburst : 'b0;
-    assign io_master_rready  = (current_master == LSU_ACCESS) ? lsu_rready  : (current_master == IFU_ACCESS) ? ifu_rready  : 'b0;
-    assign io_master_awvalid = (current_master == LSU_ACCESS) ? lsu_awvalid : 'b0;
-    assign io_master_awaddr  = (current_master == LSU_ACCESS) ? lsu_awaddr  : 'b0;
-    assign io_master_awid    = (current_master == LSU_ACCESS) ? lsu_awid    : 'b0;
-    assign io_master_awlen   = (current_master == LSU_ACCESS) ? lsu_awlen   : 'b0;
-    assign io_master_awsize  = (current_master == LSU_ACCESS) ? lsu_awsize  : 'b0;
-    assign io_master_awburst = (current_master == LSU_ACCESS) ? lsu_awburst : 'b0;
-    assign io_master_wvalid  = (current_master == LSU_ACCESS) ? lsu_wvalid  : 'b0;
-    assign io_master_wdata   = (current_master == LSU_ACCESS) ? lsu_wdata   : 'b0;
-    assign io_master_wstrb   = (current_master == LSU_ACCESS) ? lsu_wstrb   : 'b0;
-    assign io_master_wlast   = (current_master == LSU_ACCESS) ? lsu_wlast   : 'b0;
-    assign io_master_bready  = (current_master == LSU_ACCESS) ? lsu_bready  : 'b0;
-
-    assign clint_arvalid    = (current_master == LSU_ACCESS && is_clint_addr) ? lsu_arvalid : 'b0;
-    assign clint_araddr     = (current_master == LSU_ACCESS && is_clint_addr) ? lsu_araddr  : 'b0;
-    assign clint_arid       = (current_master == LSU_ACCESS && is_clint_addr) ? lsu_arid    : 'b0;
-    assign clint_arlen      = (current_master == LSU_ACCESS && is_clint_addr) ? lsu_arlen   : 'b0;
-    assign clint_arsize     = (current_master == LSU_ACCESS && is_clint_addr) ? lsu_arsize  : 'b0;
-    assign clint_arburst    = (current_master == LSU_ACCESS && is_clint_addr) ? lsu_arburst : 'b0;
-    assign clint_rready     = (current_master == LSU_ACCESS && is_clint_addr) ? lsu_rready  : 'b0;
+    lsu_arready = 1'b0;
+    lsu_awready = 1'b0;
+    lsu_wready  = 1'b0;
+    lsu_bvalid  = 1'b0;
+    lsu_bresp   = 2'b00;
+    lsu_bid     = 4'b0;
+    lsu_rvalid  = 1'b0;
+    lsu_rresp   = 2'b00;
+    lsu_rdata   = 32'b0;
+    lsu_rlast   = 1'b0;
+    lsu_rid     = 4'b0;
+    
+    io_master_arvalid = 1'b0;
+    io_master_araddr  = 32'b0;
+    io_master_arid    = 4'b0;
+    io_master_arlen   = 8'b0;
+    io_master_arsize  = 3'b0;
+    io_master_arburst = 2'b0;
+    io_master_awvalid = 1'b0;
+    io_master_awaddr  = 32'b0;
+    io_master_awid    = 4'b0;
+    io_master_awlen   = 8'b0;
+    io_master_awsize  = 3'b0;
+    io_master_awburst = 2'b0;
+    io_master_wvalid  = 1'b0;
+    io_master_wdata   = 32'b0;
+    io_master_wstrb   = 4'b0;
+    io_master_wlast   = 1'b0;
+    io_master_bready  = 1'b0;
+    io_master_rready  = 1'b0;
+    
+    clint_arvalid = 1'b0;
+    clint_araddr  = 32'b0;
+    clint_arid    = 4'b0;
+    clint_arlen   = 8'b0;
+    clint_arsize  = 3'b0;
+    clint_arburst = 2'b0;
+    clint_rready  = 1'b0;
+    
+    case (current_master)
+        IFU_ACCESS: begin
+            io_master_arvalid = ifu_arvalid;
+            io_master_araddr  = ifu_araddr;
+            io_master_arid    = ifu_arid;
+            io_master_arlen   = ifu_arlen;
+            io_master_arsize  = ifu_arsize;
+            io_master_arburst = ifu_arburst;
+            io_master_rready  = ifu_rready;
+            
+            ifu_arready     = io_master_arready;
+            ifu_rdata       = io_master_rdata;
+            ifu_rresp       = io_master_rresp;
+            ifu_rlast       = io_master_rlast;
+            ifu_rvalid      = io_master_rvalid;
+            ifu_rid         = io_master_rid;
+        end
+        LSU_ACCESS: begin
+            if (is_clint_addr) begin
+                clint_arvalid   = lsu_arvalid;
+                clint_araddr    = lsu_araddr;
+                clint_arid      = lsu_arid;
+                clint_arlen     = lsu_arlen;
+                clint_arsize    = lsu_arsize;
+                clint_arburst   = lsu_arburst;
+                clint_rready    = lsu_rready;
+                
+                lsu_arready     = clint_arready;
+                lsu_rdata       = clint_rdata;
+                lsu_rresp       = clint_rresp;
+                lsu_rlast       = clint_rlast;
+                lsu_rvalid      = clint_rvalid;
+                lsu_rid         = clint_rid;
+            end else begin
+                io_master_arvalid = lsu_arvalid;
+                io_master_araddr  = lsu_araddr;
+                io_master_arid    = lsu_arid;
+                io_master_arlen   = lsu_arlen;
+                io_master_arsize  = lsu_arsize;
+                io_master_arburst = lsu_arburst;
+                io_master_rready  = lsu_rready;
+                io_master_awvalid = lsu_awvalid;
+                io_master_awaddr  = lsu_awaddr;
+                io_master_awid    = lsu_awid;
+                io_master_awlen   = lsu_awlen;
+                io_master_awsize  = lsu_awsize;
+                io_master_awburst = lsu_awburst;
+                io_master_wvalid  = lsu_wvalid;
+                io_master_wdata   = lsu_wdata;
+                io_master_wstrb   = lsu_wstrb;
+                io_master_wlast   = lsu_wlast;
+                io_master_bready  = lsu_bready;
+                
+                lsu_arready     = io_master_arready;
+                lsu_rdata       = io_master_rdata;
+                lsu_rresp       = io_master_rresp;
+                lsu_rlast       = io_master_rlast;
+                lsu_rvalid      = io_master_rvalid;
+                lsu_rid         = io_master_rid;
+                lsu_awready     = io_master_awready;
+                lsu_wready      = io_master_wready;
+                lsu_bvalid      = io_master_bvalid;
+                lsu_bresp       = io_master_bresp;
+                lsu_bid         = io_master_bid;
+            end
+        end
+        default: begin end
+    endcase
+end
 
 endmodule
