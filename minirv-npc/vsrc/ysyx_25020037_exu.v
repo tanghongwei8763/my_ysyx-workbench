@@ -11,9 +11,9 @@ module ysyx_25020037_exu (
     output wire [31: 0] dnpc,
     output wire [31: 0] result
 );
-`ifdef VERILATOR
+
     import "DPI-C" function void hit(input int inst_not_realize);
-`endif
+
     wire [31: 0] snpc;
 
     wire [31: 0] alu_src1;
@@ -34,9 +34,9 @@ module ysyx_25020037_exu (
     assign dnpc   = is_pc_jump  ? alu_result1 : snpc;
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
-`ifdef VERILATOR
+
     always @(*) begin
         if(exec_is_end | inst_not_realize) begin hit({32{inst_not_realize}}); end
     end
-`endif
+
 endmodule

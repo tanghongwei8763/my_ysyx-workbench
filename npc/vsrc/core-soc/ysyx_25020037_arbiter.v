@@ -91,7 +91,7 @@ module ysyx_25020037_arbiter (
     input  wire [ 3: 0] clint_rid
 );
 
-localparam CLINT_BASE      = 16'h0200; // 0200_0000-0200_ffff
+localparam CLINT_BASE      = 32'h02000000;
 
 localparam IDLE        = 2'b00;
 localparam IFU_ACCESS  = 2'b01;
@@ -107,7 +107,8 @@ always @(posedge clk or posedge rst) begin
         current_master <= next_master;
         case (current_master)
             IDLE: begin
-                is_clint_addr <= (lsu_arvalid & ((lsu_araddr[31:16] == CLINT_BASE)));
+                is_clint_addr <= (lsu_arvalid & ((lsu_araddr == CLINT_BASE) |
+                                                (lsu_araddr == CLINT_BASE + 4)));
             end
             default: begin is_clint_addr <= is_clint_addr; end
         endcase
