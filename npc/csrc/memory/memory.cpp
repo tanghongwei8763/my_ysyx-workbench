@@ -19,16 +19,9 @@ extern Vysyx_25020037 *top;
 #endif
 
 static const uint32_t img [] = {
-0x00000717,          	//auipc	a4,0x0
-0x02c70713,          	//addi	a4,a4,44 # a0000558 <__am_asm_trap>
-0x30571073,          	//.4byte	0x30571073
-0x342022f3,          	//.4byte	0x342022f3
-0x30002373,          	//.4byte	0x30002373
-0x341023f3,          	//.4byte	0x341023f3
-0x00100513,          	//li	a0,1
-0x00001717,          	//auipc	a4,0x1
-0x92f72023,          	//sw	a5,-1760(a4) # a0000e5c <user_handler>
-0x00000073,          	//ecall
+0x020006b7,          	//lui	a3,0x2000
+0x0046a783,          	//lw	a5,4(a3) # 2000004 <_stack_size+0x1fffc04>
+0x00062703,          	//lw	a4,0(a2)
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
