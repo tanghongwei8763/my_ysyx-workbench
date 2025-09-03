@@ -77,14 +77,8 @@ module ysyx_25020037_ifu #(
         if (rst) begin
             state <= IDLE;
             ifu_valid <= 1'b0;
-            araddr <= 32'h0;
             arvalid <= 1'b0;
-            arid <= 4'h0;
-            arlen <= 8'h0;
-            arsize <= 3'h0;
-            arburst <= 2'h0;
             rready <= 1'b0;
-            mem_data <= 'b0;
             mem_ready <= 1'b0;
             access_fault <= 1'b0;
             burst_cnt <= 2'd0;
