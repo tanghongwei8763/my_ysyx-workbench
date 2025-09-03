@@ -198,7 +198,125 @@ int sprintf(char *out, const char *fmt, ...) {
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
-  panic("Not implemented");
+  va_list args;
+  va_start(args, fmt);
+  
+  int total = 0;          // 总字符数（不包括终止符）
+  char *buf = out;
+  size_t left = n;        // 剩余可用空间
+  
+  // 确保至少能写入终止符
+  if (left > 0 && buf) *buf = '\0';
+  
+  for (int i = 0; fmt[i]; i++) {
+    if (fmt[i] != '%') {
+      // 普通字符
+      total++;
+      if (left > 1) {
+        *buf++ = fmt[i];
+        left--;
+      }
+      continue;
+    }
+    
+    // 处理格式控制
+    i++;
+    switch (fmt[i]) {
+      case 'd': {
+        // 处理整数
+        int num = va_arg(args, int);
+        char temp[20];
+        int len = 0;
+        int neg = 0;
+        unsigned int val;
+        
+        if (num < 0) {
+          neg = 1;
+          val = (unsigned int)(-num);
+        } else {
+          val = (unsigned int)num;
+        }
+        
+        // 数字转字符串（逆序）
+        do {
+          temp[len++] = '0' + (val % 10);
+          val /= 10;
+        } while (val > 0);
+        
+        if (neg) temp[len++] = '-';
+        
+        // 计入总长度
+        total += len;
+        
+        // 写入缓冲区（反转）
+        if (left > 1) {
+          int write_len = len < (int)(left - 1) ? len : (int)(left - 1);
+          for (int j = 0; j < write_len; j++) {
+            *buf++ = temp[len - 1 - j];
+          }
+          left -= write_len;
+        }
+        break;
+      }
+      
+      case 's': {
+        // 处理字符串
+        const char *str = va_arg(args, const char *);
+        if (!str) str = "(null)";
+        int len = strlen(str);
+        total += len;
+        
+        if (left > 1) {
+          int copy_len = len < (int)(left - 1) ? len : (int)(left - 1);
+          memcpy(buf, str, copy_len);
+          buf += copy_len;
+          left -= copy_len;
+        }
+        break;
+      }
+      
+      case 'c': {
+        // 处理字符
+        char c = (char)va_arg(args, int);
+        total++;
+        if (left > 1) {
+          *buf++ = c;
+          left--;
+        }
+        break;
+      }
+      
+      case '%': {
+        // 处理百分号
+        total++;
+        if (left > 1) {
+          *buf++ = '%';
+          left--;
+        }
+        break;
+      }
+      
+      default: {
+        // 未知格式符，原样输出
+        total += 2;
+        if (left > 1) {
+          *buf++ = '%';
+          left--;
+          if (left > 1) {
+            *buf++ = fmt[i];
+            left--;
+          }
+        }
+        break;
+      }
+    }
+  }
+  
+  // 添加终止符
+  if (left > 0 && buf) *buf = '\0';
+  
+  va_end(args);
+  return total;
 }
 
 int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
