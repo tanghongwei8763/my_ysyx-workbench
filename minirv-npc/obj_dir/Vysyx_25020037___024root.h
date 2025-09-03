@@ -16,7 +16,7 @@ class Vysyx_25020037___024root final : public VerilatedModule {
     VL_IN8(clock,0,0);
     VL_IN8(reset,0,0);
     CData/*0:0*/ ysyx_25020037__DOT__rlsu_we;
-    CData/*0:0*/ ysyx_25020037__DOT__gpr_cpu__DOT____VdfgTmp_hc1d278a0__0;
+    CData/*0:0*/ ysyx_25020037__DOT__gpr_cpu__DOT____VdfgTmp_h3c6e89fd__0;
     CData/*0:0*/ ysyx_25020037__DOT__idu_cpu__DOT__inst_add;
     CData/*0:0*/ ysyx_25020037__DOT__idu_cpu__DOT__inst_addi;
     CData/*0:0*/ ysyx_25020037__DOT__idu_cpu__DOT__inst_jarl;
@@ -56,11 +56,6 @@ class Vysyx_25020037___024root final : public VerilatedModule {
     IData/*31:0*/ ysyx_25020037__DOT__gpr_cpu__DOT____Vcellout__GPR32__BRA__13__KET____DOT__gpr32__dout;
     IData/*31:0*/ ysyx_25020037__DOT__gpr_cpu__DOT____Vcellout__GPR32__BRA__14__KET____DOT__gpr32__dout;
     IData/*31:0*/ ysyx_25020037__DOT__gpr_cpu__DOT____Vcellout__GPR32__BRA__15__KET____DOT__gpr32__dout;
-    VlWide<4>/*127:0*/ ysyx_25020037__DOT__idu_cpu__DOT__opcode_31_25_d;
-    VlWide<4>/*127:0*/ ysyx_25020037__DOT__idu_cpu__DOT__opcode_06_00_d;
-    IData/*31:0*/ ysyx_25020037__DOT__idu_cpu__DOT__rs1_d;
-    IData/*31:0*/ ysyx_25020037__DOT__idu_cpu__DOT__rs2_d;
-    IData/*31:0*/ ysyx_25020037__DOT__idu_cpu__DOT__rd_d;
     IData/*31:0*/ ysyx_25020037__DOT__exu_cpu__DOT__alu_result1;
     IData/*31:0*/ ysyx_25020037__DOT__exu_cpu__DOT__alu_cpu__DOT__lui_result;
     IData/*31:0*/ ysyx_25020037__DOT__exu_cpu__DOT__alu_cpu__DOT__adder_a;
@@ -69,8 +64,7 @@ class Vysyx_25020037___024root final : public VerilatedModule {
     IData/*31:0*/ __VstlIterCount;
     IData/*31:0*/ __VicoIterCount;
     IData/*31:0*/ __VactIterCount;
-    QData/*63:0*/ ysyx_25020037__DOT__idu_cpu__DOT__opcode_31_26_d;
-    VlUnpacked<IData/*31:0*/, 32> ysyx_25020037__DOT__gpr_cpu__DOT__regs;
+    VlUnpacked<IData/*31:0*/, 16> ysyx_25020037__DOT__gpr_cpu__DOT__regs;
     VlUnpacked<CData/*0:0*/, 3> __Vm_traceActivity;
     VlTriggerVec<1> __VstlTriggered;
     VlTriggerVec<1> __VicoTriggered;

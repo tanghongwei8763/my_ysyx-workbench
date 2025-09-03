@@ -10,9 +10,9 @@ module ysyx_25020037 (
 
     wire [31: 0] pc;
     wire [31: 0] inst;
-    wire [ 4: 0] rs1;
-    wire [ 4: 0] rs2;
-    wire [ 4: 0] rd;
+    wire [ 3: 0] rs1;
+    wire [ 3: 0] rs2;
+    wire [ 3: 0] rd;
     wire [31: 0] src1;
     wire [31: 0] src2;
     wire [31: 0] imm;
@@ -51,16 +51,16 @@ module ysyx_25020037 (
     assign wlsu_data  = src2;
 
     ysyx_25020037_Reg #(32, 32'h80000000) PC (
-        .clk         (clock      ),
-        .rst         (reset      ),
+        .clk         (clock    ),
+        .rst         (reset    ),
         .din         (dnpc     ),
         .dout        (pc       ),
-        .wen         (~reset     )
+        .wen         (~reset   )
     );
 
     ysyx_25020037_gpr gpr_cpu (
-        .clk              (clock             ),
-        .rst              (reset             ),
+        .clk              (clock           ),
+        .rst              (reset           ),
         .pc               (pc              ),
         .gpr_wdata        (final_result    ),
         .rs1              (rs1             ),
@@ -73,15 +73,15 @@ module ysyx_25020037 (
     
     ysyx_25020037_ifu ifu_cpu(
         .rst  (reset ),
-        .pc   (pc  ),
-        .inst (inst)
+        .pc   (pc    ),
+        .inst (inst  )
         );
     
     ysyx_25020037_idu idu_cpu(
         .inst        (inst       ),
-        .rs1         (rs1        ),
-        .rs2         (rs2        ),
-        .rd          (rd         ),
+        .rs1_r       (rs1        ),
+        .rs2_r       (rs2        ),
+        .rd_r        (rd         ),
         .imm         (imm        ),
         .alu_op      (alu_op     ),
         .gpr_we      (gpr_we     ),
@@ -97,25 +97,25 @@ module ysyx_25020037 (
 
     ysyx_25020037_wbu wbu_cpu(
         .rst          (reset          ),
-        .gpr_we       (gpr_we       ),
-        .rlsu_we      (rlsu_we      ),
-        .result       (result       ),
-        .rlsu_data    (rlsu_data    ),
-        .final_gpr_we (final_gpr_we ),
-        .final_result (final_result )
+        .gpr_we       (gpr_we         ),
+        .rlsu_we      (rlsu_we        ),
+        .result       (result         ),
+        .rlsu_data    (rlsu_data      ),
+        .final_gpr_we (final_gpr_we   ),
+        .final_result (final_result   )
         );
 
     ysyx_25020037_lsu lsu_cpu(
         .clk         (clock      ),
         .rst         (reset      ),
-        .rlsu_addr   (rlsu_addr),
-        .rlsu_len    (rlsu_len ),
-        .wlsu_addr   (wlsu_addr),
-        .wlsu_len    (wlsu_len ),
-        .wlsu_data   (wlsu_data),
-        .rlsu_we     (rlsu_we  ),
-        .wlsu_we     (wlsu_we  ),
-        .rlsu_data   (rlsu_data)
+        .rlsu_addr   (rlsu_addr  ),
+        .rlsu_len    (rlsu_len   ),
+        .wlsu_addr   (wlsu_addr  ),
+        .wlsu_len    (wlsu_len   ),
+        .wlsu_data   (wlsu_data  ),
+        .rlsu_we     (rlsu_we    ),
+        .wlsu_we     (wlsu_we    ),
+        .rlsu_data   (rlsu_data  )
     );
 
     ysyx_25020037_exu exu_cpu(
