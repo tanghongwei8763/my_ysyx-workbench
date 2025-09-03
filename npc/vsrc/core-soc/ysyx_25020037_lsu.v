@@ -49,7 +49,6 @@ module ysyx_25020037_lsu (
     localparam SDRAM_BASE = 32'hA0000000;
     localparam SDRAM_END  = 32'hBFFFFFFF;
 
-    localparam AXI_ID       = 4'h0;
     localparam AXI_BURST_INCR = 2'b01;
     localparam AXI_BURST_FIXED = 2'b00;
     localparam AXI_LEN_SINGLE = 8'h0;
@@ -134,24 +133,10 @@ module ysyx_25020037_lsu (
             state <= IDLE;
             lsu_valid <= 1'b0;
             access_fault <= 1'b0;
-            lu_to_wu_bus <= 'b0;
             awvalid <= 1'b0;
-            awaddr <= 32'h0;
-            awid <= AXI_ID;
-            awlen <= AXI_LEN_SINGLE;
-            awsize <= AXI_SIZE_WORD;
-            awburst <= AXI_BURST_FIXED;
             wvalid <= 1'b0;
-            wdata <= 32'h0;
-            wstrb <= 4'h0;
-            wlast <= 1'b1;
             bready <= 1'b0;
             arvalid <= 1'b0;
-            araddr <= 32'h0;
-            arid <= AXI_ID;
-            arlen <= AXI_LEN_SINGLE;
-            arsize <= AXI_SIZE_WORD;
-            arburst <= AXI_BURST_FIXED;
             rready <= 1'b0;
         end else begin
             state <= next_state;
