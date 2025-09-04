@@ -40,6 +40,7 @@ module ysyx_25020037_sram (
     reg  [ 3: 0] write_strb;
     reg          is_read_req, is_write_req;
     reg  [ 3: 0] read_id, write_id;
+    wire [31: 0] addr_off = awaddr & 32'b11;
 
     import "DPI-C" function int pmem_read(input int addr, input int len, input int trace_on);
     import "DPI-C" function void pmem_write(input int addr, input int len, input int data, input int trace_on);
@@ -105,7 +106,7 @@ module ysyx_25020037_sram (
                     else if (is_write_req) begin
                         if (wvalid & wready) begin
                             wready <= 1'b0;
-                            pmem_write(write_addr, {28'h0, wstrb}, wdata, 1);
+                            pmem_write(write_addr, {28'h0, wstrb >> addr_off}, wdata >> (addr_off << 3), 1);
                             bvalid <= 1'b1;
                             bresp <= 2'b00;
                             bid <= write_id;
