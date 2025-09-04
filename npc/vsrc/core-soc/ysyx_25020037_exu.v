@@ -151,33 +151,24 @@ module ysyx_25020037_exu (
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
+    always @(posedge clk) begin
+        if (lsu_ready) begin
             for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
-                bypass_rd[i]       <= 4'd0;
-                bypass_data[i]     <= 32'd0;
-                bypass_is_load[i]  <= 1'b0;
-            end
-        end else begin
-
-            if (lsu_ready) begin
-                for (i = 0; i < BYPASS_DEPTH; i = i + 1) begin
-                    if (bypass_is_load[i]) begin
-                        bypass_data[i]    = rdata_processed;
-                        bypass_is_load[i] = 1'b0;
-                    end
+                if (bypass_is_load[i]) begin
+                    bypass_data[i]    = rdata_processed;
+                    bypass_is_load[i] = 1'b0;
                 end
             end
-            if (exu_ready && idu_valid && !exu_dnpc_valid) begin
-                for (i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
-                    bypass_rd[i]       <= bypass_rd[i - 1];
-                    bypass_data[i]     <= bypass_data[i - 1];
-                    bypass_is_load[i]  <= bypass_is_load[i - 1];
-                end
-                bypass_rd[0]       <= gpr_we ? rd     : bypass_rd[0];
-                bypass_data[0]     <= gpr_we ? inst_l ? 32'b0 : (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
-                bypass_is_load[0]  <= gpr_we ? inst_l : bypass_is_load[0];
+        end
+        if (exu_ready && idu_valid && !exu_dnpc_valid) begin
+            for (i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
+                bypass_rd[i]       <= bypass_rd[i - 1];
+                bypass_data[i]     <= bypass_data[i - 1];
+                bypass_is_load[i]  <= bypass_is_load[i - 1];
             end
+            bypass_rd[0]       <= gpr_we ? rd     : bypass_rd[0];
+            bypass_data[0]     <= gpr_we ? inst_l ? 32'b0 : (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
+            bypass_is_load[0]  <= gpr_we ? inst_l : bypass_is_load[0];
         end
     end
 
