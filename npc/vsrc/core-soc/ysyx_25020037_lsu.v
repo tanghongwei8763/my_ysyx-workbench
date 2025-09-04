@@ -127,7 +127,7 @@ module ysyx_25020037_lsu (
                                         : {16'b0          , lsu_rdata[15:0]}) :
                              lsu_rdata;
 
-    assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast)) ? 1'b1 : ~(is_write | is_read);
+    assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
