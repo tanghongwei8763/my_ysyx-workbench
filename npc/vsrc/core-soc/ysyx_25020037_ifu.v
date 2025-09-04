@@ -36,8 +36,8 @@ module ysyx_25020037_ifu #(
     output reg  [BLOCK_SIZE*8-1:0] mem_data,
     output reg          mem_ready
 );
-    localparam SDRAM_BASE = 32'hA0000000;
-    localparam SDRAM_END  = 32'hBFFFFFFF;
+    localparam SDRAM_BASE = 4'hA; // A000_0000-BFFF_FFFF
+    localparam SDRAM_END  = 4'hB; 
 
     localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);
     localparam TRANSFER_COUNT = BLOCK_SIZE / 4;
@@ -51,7 +51,7 @@ module ysyx_25020037_ifu #(
     wire [31:0] snpc = pc + 32'h4;
     wire [31:0] dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
     wire [31:0] block_base_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
-    wire        is_sdram = (block_base_addr >= SDRAM_BASE) && (block_base_addr <= SDRAM_END);
+    wire        is_sdram = (block_base_addr[31:28] == SDRAM_BASE) | (block_base_addr[31:28] == SDRAM_END);
     reg  [1:0]  burst_cnt;
 
     ysyx_25020037_Reg #(32, 32'h30000000) PC (
@@ -147,12 +147,7 @@ module ysyx_25020037_ifu #(
                         ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     end
                 end
-                default: begin 
-                    arvalid <= 1'b0;
-                    rready <= 1'b0;
-                    ifu_valid <= 1'b0;
-                    fu_to_du_bus <= 'b0;
-                end
+                default: begin end
             endcase
         end
     end
