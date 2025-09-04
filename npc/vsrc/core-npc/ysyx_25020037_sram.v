@@ -55,7 +55,7 @@ module ysyx_25020037_sram (
             rdata <= 32'h0;
             rlast <= 1'b0;
             rid <= 4'h0;
-            awready <= 1'b1;
+            awready <= 1'b0;
             wready <= 1'b0;
             bvalid <= 1'b0;
             bresp <= 2'b00;
@@ -86,15 +86,14 @@ module ysyx_25020037_sram (
                         arready <= 1'b0;
                         is_read_req <= 1'b1;
                     end 
-                    else if (awvalid & awready) begin
+                    else if (awvalid & wvalid) begin
                         write_addr <= awaddr;
                         write_id <= awid;
-                        awready <= 1'b0;
+                        awready <= 1'b1;
                         wready <= 1'b1;
                         is_write_req <= 1'b1;
                     end
                 end
-
                 BUSY: begin
                     if (is_read_req) begin
                         arready <= 1'b1;
@@ -110,20 +109,14 @@ module ysyx_25020037_sram (
                     end 
                     else if (is_write_req) begin
                         if (wvalid & wready) begin
-                            write_data <= wdata;
-                            write_strb <= wstrb;
-                            wvalid_reg <= 1'b1;
                             wready <= 1'b0;
-                            awready <= 1'b1;
-                        end
-                        if (wvalid_reg) begin
-                            pmem_write(write_addr, {28'h0, write_strb}, write_data, 1);
+                            pmem_write(write_addr, {28'h0, wstrb}, wdata, 1);
                             bvalid <= 1'b1;
                             bresp <= 2'b00;
                             bid <= write_id;
-                            wvalid_reg <= 1'b0;
                         end
                         if (bvalid & bready) begin
+                            awready <= 1'b0;
                             bvalid <= 1'b0;
                         end
                     end
