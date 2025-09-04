@@ -46,8 +46,8 @@ module ysyx_25020037_lsu (
     localparam BUSY    = 1'b1;
     reg        state, next_state;
 
-    localparam SDRAM_BASE = 32'hA0000000;
-    localparam SDRAM_END  = 32'hBFFFFFFF;
+    localparam SDRAM_BASE = 4'hA; // A000_0000-BFFF_FFFF
+    localparam SDRAM_END  = 4'hB; 
 
     localparam AXI_BURST_INCR = 2'b01;
     localparam AXI_BURST_FIXED = 2'b00;
@@ -98,7 +98,7 @@ module ysyx_25020037_lsu (
             is_write
            } = du_to_lu_bus;
 
-    wire is_sdram = (addr >= SDRAM_BASE) && (addr <= SDRAM_END);
+    wire is_sdram = (addr[31:28] == SDRAM_BASE) | (addr[31:28] == SDRAM_END);
 
     wire [ 2:0] axi_rsize;
     wire [ 2:0] axi_wsize;
@@ -127,7 +127,7 @@ module ysyx_25020037_lsu (
                                         : {16'b0          , lsu_rdata[15:0]}) :
                              lsu_rdata;
 
-    assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
+    assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast)) ? 1'b1 : ~(is_write | is_read);
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
