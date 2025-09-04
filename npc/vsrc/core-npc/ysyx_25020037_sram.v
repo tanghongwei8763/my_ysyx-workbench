@@ -39,7 +39,6 @@ module ysyx_25020037_sram (
     reg  [31: 0] read_addr, write_addr, write_data;
     reg  [ 3: 0] write_strb;
     reg          is_read_req, is_write_req;
-    reg          wvalid_reg;
     reg  [ 3: 0] read_id, write_id;
 
     import "DPI-C" function int pmem_read(input int addr, input int len, input int trace_on);
@@ -47,7 +46,6 @@ module ysyx_25020037_sram (
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            // 复位初始化所有信号
             state <= IDLE;    
             arready <= 1'b1;
             rvalid <= 1'b0;
@@ -60,7 +58,6 @@ module ysyx_25020037_sram (
             bvalid <= 1'b0;
             bresp <= 2'b00;
             bid <= 4'h0;
-            wvalid_reg <= 1'b0;
             is_read_req <= 1'b0;
             is_write_req <= 1'b0;
             read_addr <= 32'h0;
@@ -76,14 +73,13 @@ module ysyx_25020037_sram (
                     rvalid <= 1'b0;
                     bvalid <= 1'b0;
                     rlast <= 1'b0;
-                    wvalid_reg <= 1'b0;
                     is_read_req <= 1'b0;
                     is_write_req <= 1'b0;
                     wready <= 1'b0;
-                    if (arvalid & arready) begin
+                    if (arvalid) begin
                         read_addr <= araddr;
                         read_id <= arid;
-                        arready <= 1'b0;
+                        arready <= 1'b1;
                         is_read_req <= 1'b1;
                     end 
                     else if (awvalid & wvalid) begin
@@ -96,7 +92,6 @@ module ysyx_25020037_sram (
                 end
                 BUSY: begin
                     if (is_read_req) begin
-                        arready <= 1'b1;
                         rvalid <= 1'b1;
                         rresp <= 2'b00;
                         rdata <= pmem_read(read_addr, 4, 1);
@@ -128,7 +123,7 @@ module ysyx_25020037_sram (
     always @(*) begin
         case (state)
             IDLE: next_state = (arvalid | awvalid) ? BUSY : IDLE;      
-            BUSY: next_state = ((is_read_req && rready && rvalid) | (is_write_req && bready && bvalid)) ? IDLE : BUSY; 
+            BUSY: next_state = ((is_read_req && rlast && rvalid) | (is_write_req && bready && bvalid)) ? IDLE : BUSY; 
             default: next_state = IDLE;
         endcase
     end
