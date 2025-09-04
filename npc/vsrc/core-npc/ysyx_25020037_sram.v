@@ -95,7 +95,7 @@ module ysyx_25020037_sram (
                     if (is_read_req) begin
                         rvalid <= 1'b1;
                         rresp <= 2'b00;
-                        rdata <= pmem_read(read_addr, 4, 1);
+                        rdata <= pmem_read(read_addr, 4, 1) << ((araddr & 32'b11) << 3);
                         rlast <= 1'b1;
                         rid <= read_id;
                         if (rvalid & rready) begin
