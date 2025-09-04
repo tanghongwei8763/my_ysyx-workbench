@@ -2,27 +2,35 @@ module ysyx_25020037_sram (
     input  wire         clk,
     input  wire         rst,
 
-    input  wire [31: 0] araddr,
-    input  wire         arvalid,
-    output reg          arready,
-     
-    output reg  [31: 0] rdata,
-    output reg  [ 1: 0] rresp,
-    output reg          rvalid,
-    input  wire         rready,
-     
-    input  wire [31: 0] awaddr,
-    input  wire         awvalid,
     output reg          awready,
-     
+    input  wire         awvalid,
+    input  wire [31: 0] awaddr,
+    input  wire [ 3: 0] awid,
+    input  wire [ 7: 0] awlen,
+    input  wire [ 2: 0] awsize,
+    input  wire [ 1: 0] awburst,
+    output reg          wready,
+    input  wire         wvalid,
     input  wire [31: 0] wdata,
     input  wire [ 3: 0] wstrb,
-    input  wire         wvalid,
-    output reg          wready,
-    
-    output reg  [ 1: 0] bresp,
+    input  wire         wlast,
+    input  wire         bready,
     output reg          bvalid,
-    input  wire         bready
+    output reg  [ 1: 0] bresp,
+    output reg  [ 3: 0] bid,
+    output reg          arready,
+    input  wire         arvalid,
+    input  wire[31: 0]  araddr,
+    input  wire[ 3: 0]  arid,
+    input  wire[ 7: 0]  arlen,
+    input  wire[ 2: 0]  arsize,
+    input  wire[ 1: 0]  arburst,
+    input  wire         rready,
+    output reg          rvalid,
+    output reg  [ 1: 0] rresp,
+    output reg  [31: 0] rdata,
+    output reg          rlast,
+    output reg  [ 3: 0] rid
 );
 
     localparam IDLE         = 1'b0;
@@ -32,74 +40,91 @@ module ysyx_25020037_sram (
     reg  [ 3: 0] write_strb;
     reg          is_read_req, is_write_req;
     reg          wvalid_reg;
+    reg  [ 3: 0] read_id, write_id;
 
     import "DPI-C" function int pmem_read(input int addr, input int len, input int trace_on);
     import "DPI-C" function void pmem_write(input int addr, input int len, input int data, input int trace_on);
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            state <= IDLE;
-            delay_count <= 8'b0;
-            target_delay <= 8'b0;       
+            // 复位初始化所有信号
+            state <= IDLE;    
             arready <= 1'b1;
-            rdata <= 32'b0;
-            rresp <= 2'b00;
             rvalid <= 1'b0;
+            rresp <= 2'b00;
+            rdata <= 32'h0;
+            rlast <= 1'b0;
+            rid <= 4'h0;
             awready <= 1'b1;
             wready <= 1'b0;
-            bresp <= 2'b00;
             bvalid <= 1'b0;
-
+            bresp <= 2'b00;
+            bid <= 4'h0;
             wvalid_reg <= 1'b0;
             is_read_req <= 1'b0;
             is_write_req <= 1'b0;
+            read_addr <= 32'h0;
+            write_addr <= 32'h0;
+            write_data <= 32'h0;
+            write_strb <= 4'h0;
+            read_id <= 4'h0;
+            write_id <= 4'h0;
         end else begin
             state <= next_state;
-            
             case (state)
                 IDLE: begin
-                    if (arvalid & arready) begin
-                        read_addr <= araddr;
-                        target_delay <= calculate_delay(lfsr);
-                        delay_count <= 8'b0;
-                        arready <= 1'b0;
-                        is_read_req <= 1'b1;
-                        is_write_req <= 1'b0;
-                    end else if (awvalid & awready) begin
-                        write_addr <= awaddr;
-                        target_delay <= calculate_delay(lfsr);
-                        delay_count <= 8'b0;
-                        awready <= 1'b0;
-                        wready <= 1'b1;
-                        is_read_req <= 1'b0;
-                        is_write_req <= 1'b1;
-                    end else begin
-                        is_read_req <= 1'b0;
-                        is_write_req <= 1'b0;
-                    end
                     rvalid <= 1'b0;
                     bvalid <= 1'b0;
+                    rlast <= 1'b0;
+                    wvalid_reg <= 1'b0;
+                    is_read_req <= 1'b0;
+                    is_write_req <= 1'b0;
+                    wready <= 1'b0;
+                    if (arvalid & arready) begin
+                        read_addr <= araddr;
+                        read_id <= arid;
+                        arready <= 1'b0;
+                        is_read_req <= 1'b1;
+                    end 
+                    else if (awvalid & awready) begin
+                        write_addr <= awaddr;
+                        write_id <= awid;
+                        awready <= 1'b0;
+                        wready <= 1'b1;
+                        is_write_req <= 1'b1;
+                    end
                 end
-                
+
                 BUSY: begin
                     if (is_read_req) begin
                         arready <= 1'b1;
-                        rdata <= pmem_read(read_addr, 4, 1);
                         rvalid <= 1'b1;
                         rresp <= 2'b00;
-                    end else if (is_write_req) begin
+                        rdata <= pmem_read(read_addr, 4, 1);
+                        rlast <= 1'b1;
+                        rid <= read_id;
+                        if (rvalid & rready) begin
+                            rvalid <= 1'b0;
+                            rlast <= 1'b0;
+                        end
+                    end 
+                    else if (is_write_req) begin
                         if (wvalid & wready) begin
-                            awready <= 1'b1;
-                            wready <= 1'b0;
                             write_data <= wdata;
-                            wvalid_reg <= wvalid;
                             write_strb <= wstrb;
+                            wvalid_reg <= 1'b1;
+                            wready <= 1'b0;
+                            awready <= 1'b1;
                         end
                         if (wvalid_reg) begin
-                            wvalid_reg <= 1'b0;
-                            pmem_write(write_addr, {28'b0,write_strb}, write_data, 1);
+                            pmem_write(write_addr, {28'h0, write_strb}, write_data, 1);
                             bvalid <= 1'b1;
                             bresp <= 2'b00;
+                            bid <= write_id;
+                            wvalid_reg <= 1'b0;
+                        end
+                        if (bvalid & bready) begin
+                            bvalid <= 1'b0;
                         end
                     end
                 end

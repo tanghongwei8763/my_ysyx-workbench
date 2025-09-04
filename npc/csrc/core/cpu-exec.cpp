@@ -27,8 +27,8 @@ extern VysyxSoCFull *top;
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
 extern Vysyx_25020037 *top;
-#define pc top->rootp->ysyx_25020037__DOT__pc
-#define inst top->rootp->ysyx_25020037__DOT__inst
+#define pc top->rootp->ysyx_25020037__DOT__ifu_cpu__DOT__pc
+#define inst 32
 #endif
 
 typedef enum {
@@ -297,5 +297,9 @@ static void exec_once() {
     stats.types[stats.current_type].clk += clk_sum_reg;
     stats.types[stats.current_type].time += time_spent;
 
+#ifdef CONFIG_YSYXSOC
+#ifdef CONFIG_DIFFTEST
     if(!exu_dnpc_valid) trace_and_difftest();
+#endif
+#endif
 }

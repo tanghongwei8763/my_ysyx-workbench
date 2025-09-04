@@ -18,12 +18,12 @@ extern VysyxSoCFull *top;
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
 extern Vysyx_25020037 *top;
-#define pc top->rootp->ysyx_25020037__DOT__pc
+#define pc top->rootp->ysyx_25020037__DOT__ifu_cpu__DOT__pc
 #define gpr top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__regs
-#define mtvec top->rootp->ysyx_25020037__DOT__mtvec
-#define mepc top->rootp->ysyx_25020037__DOT__mepc
-#define mstatus top->rootp->ysyx_25020037__DOT__mstatus
-#define mcause top->rootp->ysyx_25020037__DOT__mcause
+#define mtvec top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__mtvec
+#define mepc top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__mepc
+#define mstatus top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__mstatus
+#define mcause top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__mcause
 #endif
 
 void isa_reg_display(){

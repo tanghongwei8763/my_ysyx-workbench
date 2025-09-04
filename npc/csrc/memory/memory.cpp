@@ -20,8 +20,10 @@ extern Vysyx_25020037 *top;
 
 static const uint32_t img [] = {
 0x020006b7,          	//lui	a3,0x2000
-0x0046a783,          	//lw	a5,4(a3) # 2000004 <_stack_size+0x1fffc04>
-0x00062703,          	//lw	a4,0(a2)
+0x020006b7,          	//lui	a3,0x2000
+0x020006b7,          	//lui	a3,0x2000
+0x020006b7,          	//lui	a3,0x2000
+0x020006b7,          	//lui	a3,0x2000
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
