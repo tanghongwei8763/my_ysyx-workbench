@@ -3,6 +3,11 @@ module sim_top();
     reg clk;
     reg rst_n;
     
+    // 宏定义用于控制波形生成，由Makefile传递
+    `ifndef WAVE
+        `define WAVE 0
+    `endif
+    
     // 初始化时钟和复位
     initial begin
         clk = 1'b0;
@@ -16,17 +21,17 @@ module sim_top();
     
     // 实例化CPU顶层
     ysyx_25020037 u_cpu (
-        .clk(clk),
-        .rst_n(rst_n)
+        .clock(clk),
+        .reset(rst_n)
         // 根据实际CPU接口补充其他信号
     );
     
     // 行为建模的SRAM
     reg [31:0] sram [0:1024*1024-1]; // 4MB SRAM
     
-    // 初始化SRAM
+    // 初始化SRAM，路径由Makefile通过宏定义传递
     initial begin
-        $readmemh("$(IVERILOG_DIR)/mem_init.hex", sram);
+        $readmemh(`MEM_INIT_PATH, sram);
     end
     
     // AXI接口连接（行为建模）
@@ -55,15 +60,26 @@ module sim_top();
     
     // 仿真结束条件
     initial begin
-        // 运行1ms后自动结束仿真
-        #1000000;
+        // 可以根据需要调整仿真时长
+        // 也可以添加更智能的结束条件，如检测到特定指令或程序结束信号
+        #1000000;  // 1ms
+        $display("Simulation completed normally.");
         $finish;
     end
     
-    // 波形记录（改为FST格式）
+    // 波形记录（根据WAVE开关控制）
     initial begin
-        $dumpfile("$(IVERILOG_DIR)/waveform.fst"); // FST格式文件
-        $dumpvars(0, sim_top);
-        $dumpflags(0x01); // 启用FST压缩
+        `ifdef WAVE
+            `if WAVE
+                $display("Waveform generation enabled.");
+                $dumpfile(`WAVEFORM_PATH); // FST格式文件，路径由Makefile传递
+                $dumpvars(0, sim_top);
+                $dumpflags(0x01); // 启用FST压缩
+            `else
+                $display("Waveform generation disabled.");
+            `endif
+        `else
+            $display("Waveform generation disabled by default.");
+        `endif
     end
 endmodule

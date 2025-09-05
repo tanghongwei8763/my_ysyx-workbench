@@ -16,11 +16,12 @@ BUILD_DIR = $(NPC_HOME)/build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
-# Iverilog专用目录和文件，与原有构建分离
-IVERILOG_DIR = $(BUILD_DIR)/iverilog
+# Iverilog专用目录和文件，仅针对NPC架构
+IVERILOG_DIR = $(BUILD_DIR)/iverilog/npc
 IVERILOG_BIN = $(IVERILOG_DIR)/sim
 WAVEFORM = $(IVERILOG_DIR)/waveform.fst
 MEM_INIT = $(IVERILOG_DIR)/mem_init.hex
+WAVE ?= 0
 
 nvboard ?= 0
 ifndef NVBOARD_HOME
@@ -42,7 +43,15 @@ INCLUDES = -I./csrc/include \
            -I../ysyxSoC/perip/spi/rtl 
 VERILATOR_FLAGS += $(INCLUDES)
 
-IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN)
+IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
+    -DWAVE=$(WAVE) \
+    -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
+    -DWAVEFORM_PATH=\"$(WAVEFORM)\"
+ifeq ($(WAVE), 1)
+IVERILOG_VVP_FLAGS = -lxt2  # 生成波形文件
+else
+IVERILOG_VVP_FLAGS =        # 不生成波形文件
+endif
 
 default: $(BIN)
 
@@ -89,28 +98,36 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
-$(IVERILOG_BIN): $(VSRCS) vsrc/sim_top.v $(MEM_INIT)
+$(IVERILOG_BIN): ARCH=riscv32e-npc
+$(IVERILOG_BIN): TOPNAME=ysyx_25020037
+$(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/include/*.v) \
+                 $(wildcard $(CURDIR)/vsrc/core-npc/*.v) \
+                 vsrc/sim_top.v $(MEM_INIT)
+	@echo "Building iverilog simulation for NPC architecture..."
 	$(IVERILOG) $(IVERILOG_FLAGS) $^
 
 $(MEM_INIT): $(IMG)
-	@echo "Generating memory initialization file..."
+	@echo "Generating memory initialization file for NPC..."
 	riscv32-unknown-elf-objcopy -O verilog --adjust-vma=-0x80000000 $^ $@
 
 iverilog: $(IVERILOG_BIN)
-	@echo "Running iverilog simulation ..."
-	$(VVP) -n $(IVERILOG_BIN) -lxt2  # 使用-lxt2参数生成FST兼容格式
-	@if [ -f $(WAVEFORM) ]; then \
+	@echo "Running iverilog simulation for NPC architecture..."
+	@echo "Waveform generation is $(if $(filter 1,$(WAVE)),enabled,disabled)"
+	$(VVP) -n $(IVERILOG_BIN) $(IVERILOG_VVP_FLAGS)
+	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM) ]; then \
 		echo "Simulation completed. FST waveform file: $(WAVEFORM)"; \
 		echo "File size: `du -h $(WAVEFORM)`"; \
-	else \
+	elif [ $(WAVE) -eq 1 ]; then \
 		echo "Error: FST waveform file not generated"; \
+	else \
+		echo "Simulation completed without waveform file"; \
 	fi
 
 iverilog-view:
 	@if [ -f $(WAVEFORM) ]; then \
 		gtkwave $(WAVEFORM) & \
 	else \
-		echo "Waveform file not found. Run 'make iverilog' first."; \
+		echo "Waveform file not found. Run 'make WAVE=1 iverilog' first to generate it."; \
 	fi
 
 iverilog-clean:
