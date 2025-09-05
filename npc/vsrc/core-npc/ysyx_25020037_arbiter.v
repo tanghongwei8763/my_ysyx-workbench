@@ -123,8 +123,8 @@ module ysyx_25020037_arbiter (
 
 localparam SRAM_BASE_START = 32'h80000000;
 localparam SRAM_BASE_END   = 32'h8fffffff;
-localparam UART_BASE       = 32'ha00003f8;
-localparam CLINT_BASE      = 32'ha0000048;
+localparam UART_BASE       = 32'h10000000;
+localparam CLINT_BASE      = 32'h02000000;
 
 localparam IDLE        = 2'b00;
 localparam IFU_ACCESS  = 2'b01;
