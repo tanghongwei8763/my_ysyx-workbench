@@ -1,85 +1,61 @@
 module sim_top();
-    // 时钟和复位信号
     reg clk;
     reg rst_n;
-    
-    // 宏定义用于控制波形生成，由Makefile传递
+
+
+    `ifndef MEM_INIT_PATH
+        `define MEM_INIT_PATH "./mem_init.hex"
+    `endif
     `ifndef WAVE
         `define WAVE 0
     `endif
-    
-    // 初始化时钟和复位
+    `ifndef WAVEFORM_PATH
+        `define WAVEFORM_PATH "waveform.fst"
+    `endif
+    `ifndef SIM_DURATION
+        `define SIM_DURATION 1000000
+    `endif
+
+
     initial begin
         clk = 1'b0;
-        forever #10 clk = ~clk; // 50MHz时钟
+        forever #10 clk = ~clk;
     end
-    
+
+
     initial begin
         rst_n = 1'b0;
-        #100 rst_n = 1'b1; // 100ns后释放复位
+        #100 rst_n = 1'b1;
+        
     end
-    
-    // 实例化CPU顶层
+
+
     ysyx_25020037 u_cpu (
         .clock(clk),
-        .reset(rst_n)
-        // 根据实际CPU接口补充其他信号
+        .reset(~rst_n)
     );
-    
-    // 行为建模的SRAM
-    reg [31:0] sram [0:1024*1024-1]; // 4MB SRAM
-    
-    // 初始化SRAM，路径由Makefile通过宏定义传递
+
+
     initial begin
-        $readmemh(`MEM_INIT_PATH, sram);
-    end
-    
-    // AXI接口连接（行为建模）
-    always @(posedge clk) begin
-        // 处理读操作
-        if (u_cpu.axi_arvalid && u_cpu.axi_arready) begin
-            u_cpu.axi_rdata <= sram[u_cpu.axi_araddr[31:2]];
-            u_cpu.axi_rvalid <= 1'b1;
-        end else begin
-            u_cpu.axi_rvalid <= 1'b0;
-        end
-        
-        // 处理写操作
-        if (u_cpu.axi_awvalid && u_cpu.axi_awready) begin
-            sram[u_cpu.axi_awaddr[31:2]] <= u_cpu.axi_wdata;
-            u_cpu.axi_bvalid <= 1'b1;
-        end else begin
-            u_cpu.axi_bvalid <= 1'b0;
-        end
-        
-        // 简化的ready信号处理
-        u_cpu.axi_arready <= 1'b1;
-        u_cpu.axi_awready <= 1'b1;
-        u_cpu.axi_wready <= 1'b1;
-    end
-    
-    // 仿真结束条件
-    initial begin
-        // 可以根据需要调整仿真时长
-        // 也可以添加更智能的结束条件，如检测到特定指令或程序结束信号
-        #1000000;  // 1ms
-        $display("Simulation completed normally.");
+        $display("[SIM] Simulation started. Duration: %d ns", `SIM_DURATION);
+        #`SIM_DURATION;
+        $display("[SIM] Simulation completed (reached fixed duration).");
         $finish;
     end
-    
-    // 波形记录（根据WAVE开关控制）
+
     initial begin
         `ifdef WAVE
             `if WAVE
-                $display("Waveform generation enabled.");
-                $dumpfile(`WAVEFORM_PATH); // FST格式文件，路径由Makefile传递
+                $display("[SIM] Waveform enabled. Saving to: %s", `WAVEFORM_PATH);
+                $dumpfile(`WAVEFORM_PATH);
                 $dumpvars(0, sim_top);
-                $dumpflags(0x01); // 启用FST压缩
+                $dumpflags(0x01);
             `else
-                $display("Waveform generation disabled.");
+                $display("[SIM] Waveform disabled (WAVE=0).");
             `endif
         `else
-            $display("Waveform generation disabled by default.");
+            $display("[SIM] Waveform disabled by default. Add WAVE=1 to enable.");
         `endif
     end
+
 endmodule
