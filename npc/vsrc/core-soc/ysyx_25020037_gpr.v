@@ -22,6 +22,15 @@ module ysyx_25020037_gpr (
   localparam IDLE   = 1'b0;
   localparam BUSY   = 1'b1;
   reg state, next_state;
+
+  wire [31: 0] pc;
+  wire [ 3: 0] rd;
+  wire         ecall_en;
+  wire         mret_en;
+  wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+  wire [31: 0] csr_wcsr_data;
+  wire [31: 0] gpr_wdata;
+  wire         gpr_wen;
   reg  [31: 0] regs [15:0];
   reg  [31: 0] mtvec;
   reg  [31: 0] mepc;
@@ -43,14 +52,6 @@ module ysyx_25020037_gpr (
     end
   endgenerate
 
-  wire [31: 0] pc;
-  wire [ 3: 0] rd;
-  wire         ecall_en;
-  wire         mret_en;
-  wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
-  wire [31: 0] csr_wcsr_data;
-  wire [31: 0] gpr_wdata;
-  wire         gpr_wen;
   assign {pc,
           rd,
           ecall_en,

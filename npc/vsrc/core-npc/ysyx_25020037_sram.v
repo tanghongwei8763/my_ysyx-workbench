@@ -40,37 +40,48 @@ module ysyx_25020037_sram (
     reg  [ 3: 0] write_strb;
     reg          is_read_req, is_write_req;
     reg  [ 3: 0] read_id, write_id;
-    wire [31: 0] addr_off = awaddr & 32'b11;  // 你原有的地址偏移信号
+    wire [31: 0] addr_off = awaddr & 32'b11;
 
 
-    // -------------------------- 模式1：iverilog 仿真（__ICARUS__ 宏定义） --------------------------
     `ifdef __ICARUS__
-        // 1.1 iverilog 专用：4MB SRAM 行为建模
-        localparam SRAM_DEPTH = 1024 * 1024;  // 4MB = 1M个32位数据
-        reg [31:0] sram_array [0:SRAM_DEPTH-1];  // SRAM 存储数组
-        wire [29:0] sram_idx_r = araddr[31:2];   // 读地址对齐（32位→按4字节分）
-        wire [29:0] sram_idx_w = awaddr[31:2];   // 写地址对齐
-        wire [1:0]  byte_off   = awaddr[1:0];    // 字节偏移（适配非对齐写）
+        // 关键：SRAM按字节存储（8位宽），匹配hex文件格式
+        localparam SRAM_DEPTH = 4 * 1024 * 1024; // 4MB容量
+        reg [7:0]  sram_array [0:SRAM_DEPTH-1];  // 8位宽存储数组
 
-        // 1.2 SRAM 初始化：从 .hex 加载指令/数据（iverilog 专用）
+        // 地址计算：减去0x80000000基地址偏移
+        wire [31:0] sram_addr_r = araddr - 32'h80000000;
+        wire [31:0] sram_addr_w = awaddr - 32'h80000000;
+        wire [1:0]  byte_off    = sram_addr_r[1:0];
+
         `ifndef MEM_INIT_PATH
-            `define MEM_INIT_PATH "./mem_init.hex"  // 默认路径（可被 Makefile 覆盖）
+            `define MEM_INIT_PATH "/home/tanghongwei/ysyx-workbench/npc/build/iverilog/npc/mem_init.hex"
         `endif
+
+        // 修复1：将wire定义移到initial块外部（Verilog语法要求）
+        wire [7:0] byte0, byte1, byte2, byte3;
+        wire [31:0] init_inst;
+
+        // 初始化验证信号赋值
+        assign byte0 = sram_array[0]; // 0x80000000对应SRAM地址0
+        assign byte1 = sram_array[1]; // 0x80000001对应SRAM地址1
+        assign byte2 = sram_array[2]; // 0x80000002对应SRAM地址2
+        assign byte3 = sram_array[3]; // 0x80000003对应SRAM地址3
+        assign init_inst = {byte3, byte2, byte1, byte0}; // 大端拼接
+
         initial begin
             integer i;
-            // 先初始化全0（避免不定值 x）
+            // 初始化SRAM为0，避免x态
             for (i = 0; i < SRAM_DEPTH; i = i + 1) begin
-                sram_array[i] = 32'h00000000;
+                sram_array[i] = 8'h00;
             end
-            // 从 .hex 镜像加载指令和数据
+            // 从hex文件加载数据
             $display("[SRAM][iverilog] Initializing from: %s", `MEM_INIT_PATH);
             $readmemh(`MEM_INIT_PATH, sram_array);
-            // 可选：验证初始化（打印首地址）
-            $display("[SRAM][iverilog] Init check: addr 0x00000000 = 0x%08x", sram_array[0]);
+            // 验证初始化结果
+            $display("[SRAM][iverilog] Init check: addr 0x80000000 = 0x%08x", init_inst);
         end
 
-        // 1.3 完整访存逻辑（iverilog 专用，合并握手与数据处理）
-        // 状态机转移（完全保留你的原有逻辑）
+        // 状态转移逻辑
         always @(*) begin
             case (state)
                 IDLE: next_state = (arvalid | awvalid) ? BUSY : IDLE;      
@@ -79,10 +90,9 @@ module ysyx_25020037_sram (
             endcase
         end
 
-        // 时序逻辑（合并握手与数据处理，仅替换访存核心）
+        // 时序逻辑
         always @(posedge clk or posedge rst) begin
             if (rst) begin
-                // 完全保留你的复位初始化逻辑
                 state <= IDLE;    
                 arready <= 1'b1;
                 rvalid <= 1'b0;
@@ -107,7 +117,6 @@ module ysyx_25020037_sram (
                 state <= next_state;
                 case (state)
                     IDLE: begin
-                        // 完全保留你的 IDLE 状态逻辑
                         rvalid <= 1'b0;
                         bvalid <= 1'b0;
                         rlast <= 1'b0;
@@ -126,17 +135,22 @@ module ysyx_25020037_sram (
                             awready <= 1'b1;
                             wready <= 1'b1;
                             is_write_req <= 1'b1;
-                            write_data <= wdata;  // 新增：锁存写数据（iverilog 需手动保存）
-                            write_strb <= wstrb;  // 新增：锁存写使能（iverilog 需手动保存）
+                            write_data <= wdata;
+                            write_strb <= wstrb;
                         end
                     end
                     BUSY: begin
-                        // 完全保留你的 BUSY 状态握手逻辑，仅替换访存核心
                         if (is_read_req) begin
-                            // iverilog 读逻辑：从 SRAM 数组取数（替换原 DPI-C pmem_read）
+                            reg [7:0] b0, b1, b2, b3;
+                            // 读取4个连续字节
+                            b0 = sram_array[sram_addr_r + 0];
+                            b1 = sram_array[sram_addr_r + 1];
+                            b2 = sram_array[sram_addr_r + 2];
+                            b3 = sram_array[sram_addr_r + 3];
+                            
                             rvalid <= 1'b1;
                             rresp <= 2'b00;
-                            rdata <= sram_array[sram_idx_r] << (byte_off << 3);  // 字节偏移对齐
+                            rdata <= {b3, b2, b1, b0}; // 大端拼接为32位指令
                             rlast <= 1'b1;
                             rid <= read_id;
                             
@@ -146,14 +160,13 @@ module ysyx_25020037_sram (
                             end
                         end 
                         else if (is_write_req) begin
-                            // iverilog 写逻辑：按字节使能写入 SRAM 数组（替换原 DPI-C pmem_write）
                             if (wvalid & wready) begin
                                 wready <= 1'b0;
-                                // 按 wstrb 逐字节写入（支持非对齐写）
-                                if (write_strb[0]) sram_array[sram_idx_w][7:0]   <= write_data[7:0];
-                                if (write_strb[1]) sram_array[sram_idx_w][15:8]  <= write_data[15:8];
-                                if (write_strb[2]) sram_array[sram_idx_w][23:16] <= write_data[23:16];
-                                if (write_strb[3]) sram_array[sram_idx_w][31:24] <= write_data[31:24];
+                                // 按字节写入
+                                if (write_strb[0]) sram_array[sram_addr_w + 0] <= write_data[7:0];
+                                if (write_strb[1]) sram_array[sram_addr_w + 1] <= write_data[15:8];
+                                if (write_strb[2]) sram_array[sram_addr_w + 2] <= write_data[23:16];
+                                if (write_strb[3]) sram_array[sram_addr_w + 3] <= write_data[31:24];
                                 
                                 bvalid <= 1'b1;
                                 bresp <= 2'b00;
@@ -170,13 +183,10 @@ module ysyx_25020037_sram (
         end
 
 
-    // -------------------------- 模式2：非 iverilog （保留你的所有原有逻辑） --------------------------
     `else
-        // 完全保留你的 DPI-C 调用和原有访存逻辑，未做任何修改
         import "DPI-C" function int pmem_read(input int addr, input int len, input int trace_on);
         import "DPI-C" function void pmem_write(input int addr, input int len, input int data, input int trace_on);
 
-        // 状态机转移（你的原有逻辑）
         always @(*) begin
             case (state)
                 IDLE: next_state = (arvalid | awvalid) ? BUSY : IDLE;      
@@ -185,7 +195,6 @@ module ysyx_25020037_sram (
             endcase
         end
 
-        // 时序逻辑（你的原有逻辑，包括 DPI-C 调用）
         always @(posedge clk or posedge rst) begin
             if (rst) begin
                 state <= IDLE;    

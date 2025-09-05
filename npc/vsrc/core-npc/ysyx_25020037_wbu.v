@@ -37,14 +37,13 @@ module ysyx_25020037_wbu (
     wire         csr_w_gpr_we;
     assign csr_w_gpr_we = du_to_wu_bus;
 
-    wire         final_gpr_we;
-    wire [31: 0] final_result;
     wire         final_gpr_we = ~rst & (gpr_we | rlsu_we);
     wire [31: 0] final_result = ~{32{rst}} & (csr_w_gpr_we ? csr_data : rdata_processed);
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             wbu_valid <= 1'b0;
+            wu_to_gu_bus <= 'b0;
         end else begin
             wbu_valid <= 1'b0;
             if (lsu_valid) begin

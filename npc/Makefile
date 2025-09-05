@@ -1,4 +1,6 @@
 ARCH ?= riscv32e-npc
+VVP = vvp
+IVERILOG = iverilog
 ifeq ($(ARCH), riscv32e-npc)
 TOPNAME = ysyx_25020037
 else
@@ -30,7 +32,7 @@ endif
 
 ISA ?= 
 ARGS ?= 
-IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/dummy-riscv32e-npc.bin
+IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/dummy-riscv32e-npc.elf
 
 SIMULATOR = $(BIN)
 
@@ -102,33 +104,23 @@ $(IVERILOG_BIN): ARCH=riscv32e-npc
 $(IVERILOG_BIN): TOPNAME=ysyx_25020037
 $(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/include/*.v) \
                  $(wildcard $(CURDIR)/vsrc/core-npc/*.v) \
-                 vsrc/sim_top.v $(MEM_INIT)
+                 vsrc/sim_top.v
 	@echo "Building iverilog simulation for NPC architecture..."
 	$(IVERILOG) $(IVERILOG_FLAGS) $^
 
 $(MEM_INIT): $(IMG)
-	@echo "Generating memory initialization file for NPC..."
-	riscv32-unknown-elf-objcopy -O verilog --adjust-vma=-0x80000000 $^ $@
+	@echo "Generating memory init from ELF..."
+	riscv64-linux-gnu-objcopy -O verilog --adjust-vma=-0x80000000 $^ $@
 
-iverilog: $(IVERILOG_BIN)
-	@echo "Running iverilog simulation for NPC architecture..."
-	@echo "Waveform generation is $(if $(filter 1,$(WAVE)),enabled,disabled)"
+iverilog: $(MEM_INIT) $(IVERILOG_BIN)
+	@echo "Running iverilog simulation (WAVE=$(WAVE))..."
 	$(VVP) -n $(IVERILOG_BIN) $(IVERILOG_VVP_FLAGS)
 	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM) ]; then \
-		echo "Simulation completed. FST waveform file: $(WAVEFORM)"; \
-		echo "File size: `du -h $(WAVEFORM)`"; \
-	elif [ $(WAVE) -eq 1 ]; then \
-		echo "Error: FST waveform file not generated"; \
-	else \
-		echo "Simulation completed without waveform file"; \
+		echo "Waveform: $(WAVEFORM)"; \
 	fi
 
 iverilog-view:
-	@if [ -f $(WAVEFORM) ]; then \
-		gtkwave $(WAVEFORM) & \
-	else \
-		echo "Waveform file not found. Run 'make WAVE=1 iverilog' first to generate it."; \
-	fi
+	@gtkwave $(WAVEFORM) &
 
 iverilog-clean:
 	rm -rf $(IVERILOG_DIR)

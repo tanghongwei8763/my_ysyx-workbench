@@ -67,6 +67,11 @@ module ysyx_25020037_lsu (
     wire        gpr_we;
     wire [31:0] csr_data;
     wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    wire [31:0] addr;
+    wire [31:0] csr_wcsr_data;
+    wire [31:0] data;
+    wire [31:0] addr_off = addr & 32'b11;
+    wire [31:0] aligned_wdata = data << (addr_off << 3);
     assign {pc,
             rd,
             ecall_en,
@@ -82,11 +87,6 @@ module ysyx_25020037_lsu (
             addr,
             data
            } = eu_to_lu_bus;
-    wire [31:0] addr;
-    wire [31:0] csr_wcsr_data;
-    wire [31:0] data;
-    wire [31:0] addr_off = addr & 32'b11;
-    wire [31:0] aligned_wdata = data << (addr_off << 3);
 
     wire        bit_sext;
     wire        half_sext;
@@ -138,6 +138,9 @@ module ysyx_25020037_lsu (
             bready <= 1'b0;
             arvalid <= 1'b0;
             rready <= 1'b0;
+            wlast <= 1'b0;
+            exu_dnpc_valid_r <= 1'b0;
+            lu_to_wu_bus <= 'b0;
         end else begin
             state <= next_state;
             exu_dnpc_valid_r <= exu_dnpc_valid;

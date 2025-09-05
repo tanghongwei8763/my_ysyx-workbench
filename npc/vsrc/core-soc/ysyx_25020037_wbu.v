@@ -37,8 +37,6 @@ module ysyx_25020037_wbu (
     wire         csr_w_gpr_we;
     assign csr_w_gpr_we = du_to_wu_bus;
 
-    wire         final_gpr_we;
-    wire [31: 0] final_result;
     wire         final_gpr_we = ~rst & (gpr_we | rlsu_we);
     wire [31: 0] final_result = ~{32{rst}} & (csr_w_gpr_we ? csr_data : rdata_processed);
 

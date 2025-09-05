@@ -26,8 +26,6 @@ module ysyx_25020037_idu (
     parameter MVENDORID = 12'hF11;
     parameter MARCHID   = 12'hF12;
 
-    reg  [31: 0] inst;
-
     wire [31: 0] src1;
     wire [31: 0] src2;
     wire [31: 0] csr_data;
@@ -86,7 +84,6 @@ module ysyx_25020037_idu (
     wire         double_cal;
     wire         inst_not_realize;
     wire         csr_w_gpr_we;
-    wire [31: 0] csr_data;
     wire         is_csr_op;
     wire         csrs_mtvec_wen;
     wire         csrs_mepc_wen;

@@ -82,6 +82,7 @@ module ysyx_25020037_ifu #(
             mem_ready <= 1'b0;
             access_fault <= 1'b0;
             burst_cnt <= 2'd0;
+            fu_to_du_bus <= 'b0;
         end else begin
             state <= next_state;
             case (state)
