@@ -30,7 +30,7 @@ endif
 
 ISA ?= 
 ARGS ?= 
-IMG ?= 
+IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/dummy-riscv32e-npc.bin
 
 SIMULATOR = $(BIN)
 
