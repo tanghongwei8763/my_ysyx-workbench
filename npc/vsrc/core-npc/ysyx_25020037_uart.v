@@ -35,7 +35,7 @@ module ysyx_25020037_uart(
     localparam IDLE         = 1'b0;
     localparam BUSY         = 1'b1;
     reg          state, next_state;
-    reg  [31: 0] read_addr, write_addr, write_data;
+    reg  [31: 0] read_addr, write_addr;
     reg          is_read_req, is_write_req;
     reg  [ 3: 0] read_id, write_id;
 
@@ -57,7 +57,6 @@ module ysyx_25020037_uart(
             is_write_req <= 1'b0;
             read_addr <= 32'h0;
             write_addr <= 32'h0;
-            write_data <= 32'h0;
             read_id <= 4'h0;
             write_id <= 4'h0;
         end else begin
@@ -98,7 +97,7 @@ module ysyx_25020037_uart(
                     end else if (is_write_req) begin
                         if (wvalid & wready) begin
                             wready <= 1'b0;
-                            $write("%c", write_data[7:0]);
+                            $write("%c", wdata[7:0]);
                             $fflush();
                             bvalid <= 1'b1;
                             bresp <= 2'b00;
