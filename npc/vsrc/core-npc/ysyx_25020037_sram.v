@@ -45,12 +45,12 @@ module ysyx_25020037_sram (
 
     `ifdef __ICARUS__
         // 关键：SRAM按字节存储（8位宽），匹配hex文件格式
-        localparam SRAM_DEPTH = 4 * 1024 * 1024; // 4MB容量
+        localparam SRAM_DEPTH = 16 * 1024 * 1024; // 4MB容量
         reg [7:0]  sram_array [0:SRAM_DEPTH-1];  // 8位宽存储数组
 
         // 地址计算：减去0x80000000基地址偏移
-        wire [31:0] sram_addr_r = araddr - 32'h80000000;
-        wire [31:0] sram_addr_w = awaddr - 32'h80000000;
+        wire [31:0] sram_addr_r = {araddr[31:2], 2'b0} - 32'h80000000;
+        wire [31:0] sram_addr_w = {awaddr[31:2], 2'b0} - 32'h80000000;
         wire [1:0]  byte_off    = sram_addr_r[1:0];
 
         `ifndef MEM_INIT_PATH

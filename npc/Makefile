@@ -32,7 +32,7 @@ endif
 
 ISA ?= 
 ARGS ?= 
-IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/hello-str-riscv32e-npc.elf
+IMG ?= /home/tanghongwei/ysyx-workbench/rt-thread-am/bsp/abstract-machine/build/rtthread-riscv32e-npc.elf
 
 SIMULATOR = $(BIN)
 
