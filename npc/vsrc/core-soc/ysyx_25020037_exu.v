@@ -90,11 +90,14 @@ module ysyx_25020037_exu (
     always @(*) begin
         bypass_src1 = src1_r;
         src1_wait = 1'b0;
-        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if ((bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
-                bypass_src1 = bypass_data[i];
-                if (bypass_is_load[i]) begin
-                    src1_wait = 1'b1;
+        if (rst) src1_wait = 0;
+        else begin
+            for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+                if ((bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
+                    bypass_src1 = bypass_data[i];
+                    if (bypass_is_load[i]) begin
+                        src1_wait = 1'b1;
+                    end
                 end
             end
         end
@@ -103,11 +106,14 @@ module ysyx_25020037_exu (
     always @(*) begin
         bypass_src2 = src2_r;
         src2_wait = 1'b0;
-        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if ((bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
-                bypass_src2 = bypass_data[i];
-                if (bypass_is_load[i]) begin
-                    src2_wait = 1'b1;
+        if (rst) src2_wait = 0;
+        else begin
+            for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+                if ((bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
+                    bypass_src2 = bypass_data[i];
+                    if (bypass_is_load[i]) begin
+                        src2_wait = 1'b1;
+                    end
                 end
             end
         end
@@ -176,6 +182,7 @@ module ysyx_25020037_exu (
         if (rst) begin
             exu_valid <= 0;
             exu_dnpc_valid <=1'b0;
+            eu_to_lu_bus <= 'b0;
         end else begin
             if(exu_ready) begin
                 if(dnpc_r != 32'b0 && exu_dnpc_valid == 1'b0) begin
