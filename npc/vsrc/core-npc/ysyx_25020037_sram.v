@@ -82,8 +82,7 @@ module ysyx_25020037_sram (
                         read_id <= arid;
                         arready <= 1'b1;
                         is_read_req <= 1'b1;
-                    end 
-                    else if (awvalid & wvalid) begin
+                    end else if (awvalid & wvalid) begin
                         write_addr <= awaddr;
                         write_id <= awid;
                         awready <= 1'b1;
