@@ -36,13 +36,8 @@ module ysyx_25020037_uart(
     localparam BUSY         = 1'b1;
     reg          state, next_state;
     reg  [31: 0] read_addr, write_addr, write_data;
-    reg  [ 3: 0] write_strb;
     reg          is_read_req, is_write_req;
-    reg          wvalid_reg;
     reg  [ 3: 0] read_id, write_id;
-    reg          uart_tx_busy;
-    reg  [ 7: 0] uart_rx_data;
-    reg          uart_rx_ready;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -58,18 +53,13 @@ module ysyx_25020037_uart(
             bresp <= 2'b00;
             bvalid <= 1'b0;
             bid <= 4'h0;
-            wvalid_reg <= 1'b0;
             is_read_req <= 1'b0;
             is_write_req <= 1'b0;
             read_addr <= 32'h0;
             write_addr <= 32'h0;
             write_data <= 32'h0;
-            write_strb <= 4'h0;
             read_id <= 4'h0;
             write_id <= 4'h0;
-            uart_tx_busy <= 1'b0;
-            uart_rx_data <= 8'h0;
-            uart_rx_ready <= 1'b1;
         end else begin
             state <= next_state;
             
@@ -78,55 +68,36 @@ module ysyx_25020037_uart(
                     rvalid <= 1'b0;
                     bvalid <= 1'b0;
                     rlast <= 1'b0;
-                    wvalid_reg <= 1'b0;
                     is_read_req <= 1'b0;
                     is_write_req <= 1'b0;
                     wready <= 1'b0;
-                    uart_tx_busy <= 1'b0;
 
-                    if (arvalid & arready) begin
+                    if (arvalid) begin
                         read_addr <= araddr;
                         read_id <= arid;
-                        arready <= 1'b0;
+                        arready <= 1'b1;
                         is_read_req <= 1'b1;
-                    end else if (awvalid & awready) begin
+                    end else if (awvalid & wvalid) begin
                         write_addr <= awaddr;
                         write_id <= awid;
-                        awready <= 1'b0;
+                        awready <= 1'b1;
                         wready <= 1'b1;
                         is_write_req <= 1'b1;
                     end
                 end
-                
                 BUSY: begin
                     if (is_read_req) begin
-                        arready <= 1'b1;
                         rvalid <= 1'b1;
                         rresp <= 2'b00;
                         rlast <= 1'b1;
                         rid <= read_id;
-                        if (read_addr[3:0] == 4'h0) begin
-                            rdata <= {31'b0, uart_rx_ready};
-                        end else if (read_addr[3:0] == 4'h4) begin
-                            rdata <= {24'b0, uart_rx_data};
-                            uart_rx_ready <= 1'b0;
-                        end else begin
-                            rdata <= 32'b0;
-                        end
                         if (rvalid & rready) begin
                             rvalid <= 1'b0;
                             rlast <= 1'b0;
                         end
                     end else if (is_write_req) begin
                         if (wvalid & wready) begin
-                            awready <= 1'b1;
                             wready <= 1'b0;
-                            write_data <= wdata;
-                            wvalid_reg <= wvalid;
-                            write_strb <= wstrb;
-                        end else if (wvalid_reg && !uart_tx_busy) begin
-                            wvalid_reg <= 1'b0;
-                            uart_tx_busy <= 1'b1;
                             $write("%c", write_data[7:0]);
                             $fflush();
                             bvalid <= 1'b1;
@@ -134,8 +105,8 @@ module ysyx_25020037_uart(
                             bid <= write_id;
                         end
                         if (bvalid & bready) begin
+                            awready <= 1'b0;
                             bvalid <= 1'b0;
-                            uart_tx_busy <= 1'b0;
                         end
                     end
                 end
@@ -147,7 +118,7 @@ module ysyx_25020037_uart(
         case (state)
             IDLE: next_state = (arvalid | awvalid) ? BUSY : IDLE;      
             BUSY: begin
-                if ((is_read_req && rvalid && rready) || (is_write_req && bvalid && bready)) begin
+                if ((is_read_req && rlast && rvalid) || (is_write_req && bvalid && bready)) begin
                     next_state = IDLE;
                 end else begin
                     next_state = BUSY;

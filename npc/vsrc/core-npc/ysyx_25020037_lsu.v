@@ -118,7 +118,7 @@ module ysyx_25020037_lsu (
     end
 
     wire [31: 0] lsu_rdata;
-    assign lsu_rdata = |data_rop ? (rdata >> ((addr & 32'b11) << 3)) : rdata;
+    assign lsu_rdata = |data_rop ? (rdata >> (addr_off << 3)) : rdata;
     assign rdata_processed = (data_rop == 3'b001) ? 
                              (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 
                                        : {24'b0          , lsu_rdata[ 7:0]} ) :
