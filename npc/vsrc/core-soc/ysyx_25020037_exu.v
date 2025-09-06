@@ -46,7 +46,6 @@ module ysyx_25020037_exu (
     wire         is_pc_jump;
     wire         double_cal;
     wire         ebreak;
-    wire         inst_not_realize;
     wire         ecall_en;
     wire         mret_en;
     wire [31: 0] csr_data;
@@ -72,7 +71,6 @@ module ysyx_25020037_exu (
             is_pc_jump,
             double_cal,
             ebreak,
-            inst_not_realize,
             ecall_en,
             mret_en,
             csr_data,
@@ -147,10 +145,10 @@ module ysyx_25020037_exu (
         .alu_result2    (alu_result2)
         );
 
-    assign csr_wcsr_data = csrrw_op ? src1 : (src1 | csr_data);
-    assign dnpc_r        = (ecall_en | mret_en) ? csr_data :
-                           is_pc_jump           ? (alu_result2) ? alu_result1 : 32'b0
-                                                : 32'b0;
+    assign csr_wcsr_data    = ({32{csrrw_op}} & src1)
+                            | ({32{csrrs_op}} & (src1 | csr_data));
+    assign dnpc_r           = ({32{ecall_en   | mret_en    }} & csr_data)
+                            | ({32{is_pc_jump}} & {32{alu_result2}} & alu_result1);
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
@@ -218,7 +216,7 @@ module ysyx_25020037_exu (
 
 `ifdef VERILATOR
     always @(*) begin
-       if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin hit({32{inst_not_realize}}); end
+       if(~exu_dnpc_valid & idu_valid & ebreak) begin hit(32'b0); end
     end
 `endif
 endmodule

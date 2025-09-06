@@ -82,7 +82,6 @@ module ysyx_25020037_idu (
     wire         src2_is_imm;
     wire         is_pc_jump;
     wire         double_cal;
-    wire         inst_not_realize;
     wire         csr_w_gpr_we;
     wire         csrs_mtvec_wen;
     wire         csrs_mepc_wen;
@@ -249,11 +248,10 @@ module ysyx_25020037_idu (
                | ({32{TYPE_U}} & immU)
                | ({32{TYPE_J}} & immJ);
 
-    assign gpr_we = inst_add  | inst_and  | inst_sub  | inst_or    | inst_xor  | 
-                    inst_sra  | inst_srl  | inst_slt  | inst_sltu  | inst_sll  | 
+    assign gpr_we = TYPE_R    | rlsu_we   |
                     inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
                     inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
-                    inst_csrrs| inst_jal  | inst_auipc| inst_lui   | rlsu_we  ;
+                    inst_csrrs| inst_jal  | inst_auipc| inst_lui   ;
     assign sw_sh_sb = {inst_sw, inst_sh};
     assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu)};
     assign wlsu_we = TYPE_S;
@@ -277,8 +275,6 @@ module ysyx_25020037_idu (
     assign csrs_mepc_wen      = (imm[11:0] == MEPC) & csr_w_gpr_we;
     assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & csr_w_gpr_we;
     assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & csr_w_gpr_we;
-
-    assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
     assign idu_ready = exu_ready;
     always @(posedge clk or posedge rst) begin
@@ -311,8 +307,7 @@ module ysyx_25020037_idu (
                         src2_is_imm,     
                         is_pc_jump,      
                         double_cal,      
-                        inst_ebreak,          
-                        inst_not_realize,
+                        inst_ebreak,
                         inst_ecall,
                         inst_mret,
                         csr_data,
