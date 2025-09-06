@@ -41,11 +41,10 @@ module ysyx_25020037_ifu #(
 
     localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);
     localparam TRANSFER_COUNT = BLOCK_SIZE / 4;
-    localparam IDLE    = 2'b00;
-    localparam BUSY    = 2'b01;
-    localparam READ    = 2'b10;
+    localparam IDLE    = 1'b0;
+    localparam BUSY    = 1'b1;
     
-    reg  [ 1:0] state, next_state;
+    reg         state, next_state;
     wire [31:0] pc;
     wire [31:0] inst = fu_to_du_bus[31:0];
     wire [31:0] snpc = pc + 32'h4;
@@ -66,8 +65,7 @@ module ysyx_25020037_ifu #(
     always @(*) begin
         case (state)
             IDLE:  begin next_state = (idu_ready) ? (icache_hit) ? IDLE : BUSY : IDLE; end
-            BUSY:  begin next_state = (mem_ready) ? READ : BUSY; end
-            READ:  begin next_state = (idu_ready) ? IDLE : READ; end
+            BUSY:  begin next_state = (icache_hit & idu_ready) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
@@ -134,11 +132,9 @@ module ysyx_25020037_ifu #(
                             end
                         end
                     end
-                end
-                READ: begin
-                    mem_ready <= 1'b0;
-                    mem_data <= 'b0;
-                    if (idu_ready) begin
+                    if(icache_hit & idu_ready) begin
+                        mem_ready <= 1'b0;
+                        mem_data <= 'b0;
                         fu_to_du_bus <= {pc, icache_data};
                         ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     end
