@@ -45,13 +45,18 @@ module ysyx_25020037_sram (
 
     `ifdef __ICARUS__
         // 关键：SRAM按字节存储（8位宽），匹配hex文件格式
-        localparam SRAM_DEPTH = 16 * 1024 * 1024; // 4MB容量
+        localparam SRAM_DEPTH = 8 * 1024 * 1024; // 4MB容量
         reg [7:0]  sram_array [0:SRAM_DEPTH-1];  // 8位宽存储数组
 
         // 地址计算：减去0x80000000基地址偏移
         wire [31:0] sram_addr_r = {araddr[31:2], 2'b0} - 32'h80000000;
         wire [31:0] sram_addr_w = {awaddr[31:2], 2'b0} - 32'h80000000;
-        wire [1:0]  byte_off    = sram_addr_r[1:0];
+        wire [7:0] b0, b1, b2, b3;
+        // 读取4个连续字节
+        assign b0 = sram_array[sram_addr_r + 0];
+        assign b1 = sram_array[sram_addr_r + 1];
+        assign b2 = sram_array[sram_addr_r + 2];
+        assign b3 = sram_array[sram_addr_r + 3];
 
         `ifndef MEM_INIT_PATH
             `define MEM_INIT_PATH "/home/tanghongwei/ysyx-workbench/npc/build/iverilog/npc/mem_init.hex"
@@ -141,13 +146,6 @@ module ysyx_25020037_sram (
                     end
                     BUSY: begin
                         if (is_read_req) begin
-                            reg [7:0] b0, b1, b2, b3;
-                            // 读取4个连续字节
-                            b0 = sram_array[sram_addr_r + 0];
-                            b1 = sram_array[sram_addr_r + 1];
-                            b2 = sram_array[sram_addr_r + 2];
-                            b3 = sram_array[sram_addr_r + 3];
-                            
                             rvalid <= 1'b1;
                             rresp <= 2'b00;
                             rdata <= {b3, b2, b1, b0}; // 大端拼接为32位指令
