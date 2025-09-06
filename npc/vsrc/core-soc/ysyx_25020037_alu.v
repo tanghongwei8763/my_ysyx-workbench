@@ -6,7 +6,7 @@ module ysyx_25020037_alu(
   input  wire [31:0] alu_src3,
   input  wire [31:0] alu_src4,
   output wire [31:0] alu_result1,
-  output wire [31:0] alu_result2
+  output wire        alu_result2
 
 );
 
@@ -40,12 +40,12 @@ wire [31: 0] sll_result;
 wire [63: 0] sr64_result;
 wire [31: 0] sr_result;
 wire [31: 0] aupic_result;
-wire [31: 0] beq_result;
-wire [31: 0] blt_result;
-wire [31: 0] bltu_result;
-wire [31: 0] bge_result;
-wire [31: 0] bgeu_result;
-wire [31: 0] bne_result;
+wire         beq_result;
+wire         blt_result;
+wire         bltu_result;
+wire         bge_result;
+wire         bgeu_result;
+wire         bne_result;
 
 wire [31: 0] adder_a;
 wire [31: 0] adder_b;
@@ -86,9 +86,8 @@ assign adder_cin = (op_sub | op_slt | op_sltu) ? 1'b1      : 1'b0;
 assign {adder_cout, adder_result} = adder_a + adder_b + {{32{1'b0}}, adder_cin};
 
 assign adder_c    = alu_src3;
-assign adder_d    = (op_blt | op_bltu | op_bge | op_bgeu) ? ~alu_src4 : alu_src4;
-assign adder_cin1 = (op_blt | op_bltu | op_bge | op_bgeu) ? 1'b1      : 1'b0;
-assign {adder_cout1, adder_result1} = adder_c + adder_d + {{32{1'b0}}, adder_cin1};
+assign adder_d    = ~alu_src4;
+assign adder_result1 = adder_c + adder_d + 32'b1;
 
 assign add_sub_result = adder_result;
 
@@ -96,19 +95,15 @@ assign slt_result[31:1] = 31'b0;
 assign slt_result[0]    = (alu_src1[31] & ~alu_src2[31])
                         | ((alu_src1[31] ~^ alu_src2[31]) & adder_result[31]);
 
-assign blt_result[31:1] = 31'b0;
-assign blt_result[0]    = (alu_src3[31] & ~alu_src4[31])
-                        | ((alu_src3[31] ~^ alu_src4[31]) & adder_result1[31]);
-assign bge_result[31:1] = 31'b0;
-assign bge_result[0]    = ~blt_result[0];
+assign blt_result    = (alu_src3[31] & ~alu_src4[31])
+                     | ((alu_src3[31] ~^ alu_src4[31]) & adder_result1[31]);
+assign bge_result    = ~blt_result;
 
 assign sltu_result[31:1] = 31'b0;
 assign sltu_result[0]    = ~adder_cout;
 
-assign bltu_result[31:1] = 31'b0;
-assign bltu_result[0]    = ~adder_cout1;
-assign bgeu_result[31:1] = 31'b0;
-assign bgeu_result[0]    = ~bltu_result[0];
+assign bltu_result    = ~adder_cout1;
+assign bgeu_result    = ~bltu_result;
 
 assign and_result = alu_src1 & alu_src2;
 assign or_result  = alu_src1 | alu_src2;
@@ -122,10 +117,8 @@ assign sr64_result = {{32{op_sra & alu_src1[31]}}, alu_src1[31:0]} >> alu_src2[4
 
 assign sr_result   = sr64_result[31:0];
 
-assign beq_result[31:1] = 31'b0;
-assign beq_result[0]    = (alu_src3 == alu_src4);
-assign bne_result[31:1] = 31'b0;
-assign bne_result[0]    = ~beq_result[0];
+assign beq_result    = (alu_src3 == alu_src4);
+assign bne_result    = ~beq_result;
 
 assign alu_result1 = ({32{op_add|op_sub|double_cal}} & add_sub_result)
                    | ({32{op_slt       }} & slt_result)
@@ -137,13 +130,13 @@ assign alu_result1 = ({32{op_add|op_sub|double_cal}} & add_sub_result)
                    | ({32{op_sll       }} & sll_result)
                    | ({32{op_srl|op_sra}} & sr_result);
 
-assign alu_result2 = ~double_cal ? 32'b1 : 
+assign alu_result2 = ~double_cal ? 1'b1 : 
                       op_beq     ? beq_result  :
                       op_blt     ? blt_result  :
                       op_bltu    ? bltu_result :
                       op_bge     ? bge_result  :
                       op_bgeu    ? bgeu_result :
                       op_bne     ? bne_result  :
-                      32'b0; 
+                      1'b0; 
 
 endmodule

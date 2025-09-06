@@ -53,7 +53,7 @@ module ysyx_25020037_ifu #(
     wire        is_sdram = (block_base_addr[31:28] == SDRAM_BASE) | (block_base_addr[31:28] == SDRAM_END);
     reg  [1:0]  burst_cnt;
 
-    ysyx_25020037_Reg #(32, 32'h30000000) PC (
+    ysyx_25020037_Reg #(32, 32'h80000000) PC (
         .clk         (clk      ),
         .rst         (rst      ),
         .din         (dnpc     ),
