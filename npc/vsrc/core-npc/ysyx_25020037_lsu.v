@@ -126,9 +126,6 @@ module ysyx_25020037_lsu (
             bready <= 1'b0;
             arvalid <= 1'b0;
             rready <= 1'b0;
-            wlast <= 1'b0;
-            exu_dnpc_valid_r <= 1'b0;
-            lu_to_wu_bus <= 'b0;
         end else begin
             state <= next_state;
             exu_dnpc_valid_r <= exu_dnpc_valid;
