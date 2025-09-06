@@ -84,7 +84,6 @@ module ysyx_25020037_idu (
     wire         double_cal;
     wire         inst_not_realize;
     wire         csr_w_gpr_we;
-    wire         is_csr_op;
     wire         csrs_mtvec_wen;
     wire         csrs_mepc_wen;
     wire         csrs_mstatus_wen;
@@ -276,11 +275,10 @@ module ysyx_25020037_idu (
     assign double_cal   = TYPE_B;
 
     assign csr_w_gpr_we = inst_csrrw | inst_csrrs;
-    assign is_csr_op    = inst_csrrw | inst_csrrs | inst_ecall | inst_mret;
-    assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & is_csr_op;
-    assign csrs_mepc_wen      = (imm[11:0] == MEPC) & is_csr_op;
-    assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & is_csr_op;
-    assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & is_csr_op;
+    assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & csr_w_gpr_we;
+    assign csrs_mepc_wen      = (imm[11:0] == MEPC) & csr_w_gpr_we;
+    assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & csr_w_gpr_we;
+    assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & csr_w_gpr_we;
 
     assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_ecall | inst_mret);
 
