@@ -86,9 +86,8 @@ assign adder_cin = (op_sub | op_slt | op_sltu) ? 1'b1      : 1'b0;
 assign {adder_cout, adder_result} = adder_a + adder_b + {{32{1'b0}}, adder_cin};
 
 assign adder_c    = alu_src3;
-assign adder_d    = (op_blt | op_bltu | op_bge | op_bgeu) ? ~alu_src4 : alu_src4;
-assign adder_cin1 = (op_blt | op_bltu | op_bge | op_bgeu) ? 1'b1      : 1'b0;
-assign {adder_cout1, adder_result1} = adder_c + adder_d + {{32{1'b0}}, adder_cin1};
+assign adder_d    = ~alu_src4;
+assign {adder_cout1, adder_result1} = adder_c + adder_d + 33'b1;
 
 assign add_sub_result = adder_result;
 
