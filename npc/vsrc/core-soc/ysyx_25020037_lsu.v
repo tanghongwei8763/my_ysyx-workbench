@@ -90,12 +90,10 @@ module ysyx_25020037_lsu (
 
     wire        bit_sext;
     wire        half_sext;
-    wire        is_write;
-    wire        is_read;
+    wire        is_write = |data_wop;
+    wire        is_read  = |data_rop;
     assign {bit_sext,
-            half_sext,
-            is_read,
-            is_write
+            half_sext
            } = du_to_lu_bus;
 
     wire is_sdram = (addr[31:28] == SDRAM_BASE) | (addr[31:28] == SDRAM_END);
