@@ -65,7 +65,7 @@ module ysyx_25020037_ifu #(
     always @(*) begin
         case (state)
             IDLE:  begin next_state = (idu_ready) ? (icache_hit) ? IDLE : BUSY : IDLE; end
-            BUSY:  begin next_state = (idu_ready) ? IDLE : BUSY; end
+            BUSY:  begin next_state = (mem_ready & idu_ready) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
