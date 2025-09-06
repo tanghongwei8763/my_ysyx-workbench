@@ -43,9 +43,9 @@ module ysyx_25020037_wbu (
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             wbu_valid <= 1'b0;
+            wu_to_gu_bus <= 'b0;
         end else begin
             wbu_valid <= 1'b0;
-            wu_to_gu_bus <= 'b0;
             if (lsu_valid) begin
                 wbu_valid <= 1'b1;
                 wu_to_gu_bus <= {
