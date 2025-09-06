@@ -1,4 +1,6 @@
 ARCH ?= riscv32e-npc
+VVP = vvp
+IVERILOG = iverilog
 ifeq ($(ARCH), riscv32e-npc)
 TOPNAME = ysyx_25020037
 else
@@ -16,6 +18,13 @@ BUILD_DIR = $(NPC_HOME)/build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
+# Iverilog专用目录和文件，仅针对NPC架构
+IVERILOG_DIR = $(BUILD_DIR)/iverilog/npc
+IVERILOG_BIN = $(IVERILOG_DIR)/sim
+WAVEFORM = $(IVERILOG_DIR)/waveform.fst
+MEM_INIT = $(IVERILOG_DIR)/mem_init.hex
+WAVE ?= 0
+
 nvboard ?= 0
 ifndef NVBOARD_HOME
 $(error NVBOARD_HOME is not set. Please set the environment variable NVBOARD_HOME to your NVBoard installation path)
@@ -23,7 +32,7 @@ endif
 
 ISA ?= 
 ARGS ?= 
-IMG ?= 
+IMG ?= /home/tanghongwei/ysyx-workbench/npc/rtthread-riscv32e-npc.elf
 
 SIMULATOR = $(BIN)
 
@@ -36,9 +45,19 @@ INCLUDES = -I./csrc/include \
            -I../ysyxSoC/perip/spi/rtl 
 VERILATOR_FLAGS += $(INCLUDES)
 
+IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
+    -DWAVE=$(WAVE) \
+    -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
+    -DWAVEFORM_PATH=\"$(WAVEFORM)\"
+ifeq ($(WAVE), 1)
+IVERILOG_VVP_FLAGS = -lxt2  # 生成波形文件
+else
+IVERILOG_VVP_FLAGS =        # 不生成波形文件
+endif
+
 default: $(BIN)
 
-$(shell mkdir -p $(BUILD_DIR))
+$(shell mkdir -p $(BUILD_DIR) $(OBJ_DIR) $(IVERILOG_DIR))
 
 # constraint file
 ifeq ($(nvboard), 1)
@@ -81,6 +100,30 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
+$(IVERILOG_BIN): ARCH=riscv32e-npc
+$(IVERILOG_BIN): TOPNAME=ysyx_25020037
+$(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/include/*.v) \
+                 $(wildcard $(CURDIR)/vsrc/core-npc/*.v) \
+                 vsrc/sim_top.v
+	@echo "Building iverilog simulation for NPC architecture..."
+	$(IVERILOG) $(IVERILOG_FLAGS) $^
+
+$(MEM_INIT): $(IMG)
+	@echo "Generating memory init from ELF..."
+	riscv64-linux-gnu-objcopy -O verilog --adjust-vma=-0x80000000 $^ $@
+
+iverilog: $(MEM_INIT) $(IVERILOG_BIN)
+	@echo "Running iverilog simulation (WAVE=$(WAVE))..."
+	$(VVP) -n $(IVERILOG_BIN) $(IVERILOG_VVP_FLAGS)
+	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM) ]; then \
+		echo "Waveform: $(WAVEFORM)"; \
+	fi
+
+iverilog-view:
+	@gtkwave $(WAVEFORM) &
+
+iverilog-clean:
+	rm -rf $(IVERILOG_DIR)
 
 run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!

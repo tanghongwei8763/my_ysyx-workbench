@@ -19,6 +19,9 @@ module ysyx_25020037_gpr (
   parameter MVENDORID = 12'hF11;
   parameter MARCHID   = 12'hF12;
 
+  localparam IDLE   = 1'b0;
+  localparam BUSY   = 1'b1;
+
   wire [31: 0] pc;
   wire [ 3: 0] rd;
   wire         ecall_en;
@@ -27,6 +30,7 @@ module ysyx_25020037_gpr (
   wire [31: 0] csr_wcsr_data;
   wire [31: 0] gpr_wdata;
   wire         gpr_wen;
+  reg state, next_state;
   reg  [31: 0] regs [15:0];
   reg  [31: 0] mtvec;
   reg  [31: 0] mepc;
@@ -37,13 +41,13 @@ module ysyx_25020037_gpr (
   //实例化寄存器
   generate
     genvar i;
-    for (i = 0; i < 16; i = i+1) begin : GPR16
+    for (i = 0; i < 16; i = i+1) begin : GPR32
       ysyx_25020037_Reg #(32, 32'b0) gpr16 (
         .clk        (clk        ), 
         .rst        (rst        ), 
         .din        (gpr_wdata  ), 
         .dout       (regs[i]    ), 
-        .wen        ((rd != 4'b0) & wbu_valid & gpr_wen & (rd == i))
+        .wen        ((rd != 4'b0) && wbu_valid && gpr_wen && (rd == i))
         );
     end
   endgenerate

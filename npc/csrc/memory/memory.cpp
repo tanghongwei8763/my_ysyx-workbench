@@ -15,20 +15,15 @@ extern VysyxSoCFull *top;
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
 extern Vysyx_25020037 *top;
-#define pc top->rootp->ysyx_25020037__DOT__pc
+#define pc top->rootp->ysyx_25020037__DOT__ifu_cpu__DOT__pc
 #endif
 
 static const uint32_t img [] = {
-0x00000717,          	//auipc	a4,0x0
-0x02c70713,          	//addi	a4,a4,44 # a0000558 <__am_asm_trap>
-0x30571073,          	//.4byte	0x30571073
-0x342022f3,          	//.4byte	0x342022f3
-0x30002373,          	//.4byte	0x30002373
-0x341023f3,          	//.4byte	0x341023f3
-0x00100513,          	//li	a0,1
-0x00001717,          	//auipc	a4,0x1
-0x92f72023,          	//sw	a5,-1760(a4) # a0000e5c <user_handler>
-0x00000073,          	//ecall
+0x020006b7,          	//lui	a3,0x2000
+0x020006b7,          	//lui	a3,0x2000
+0x020006b7,          	//lui	a3,0x2000
+0x020006b7,          	//lui	a3,0x2000
+0x020006b7,          	//lui	a3,0x2000
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
@@ -90,7 +85,7 @@ extern "C" {
   static inline void host_write(void *addr, int len, word_t data) {
     switch (len) {
       case 0x1: *(uint8_t  *)addr = data; return;
-      case 0x2: *(uint16_t *)addr = data; return;
+      case 0x3: *(uint16_t *)addr = data; return;
       case 0xf: *(uint32_t *)addr = data; return;
     }
   }

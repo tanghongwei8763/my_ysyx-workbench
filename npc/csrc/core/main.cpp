@@ -24,7 +24,7 @@ VysyxSoCFull *top = new VysyxSoCFull("top");
 #include "Vysyx_25020037___024root.h"
 #include "Vysyx_25020037.h"
 Vysyx_25020037 *top = new Vysyx_25020037("top");
-#define pc top->rootp->ysyx_25020037__DOT__pc
+#define pc top->rootp->ysyx_25020037__DOT__ifu_cpu__DOT__pc
 #define gpr top->rootp->ysyx_25020037__DOT__gpr_cpu__DOT__regs
 #endif
 
