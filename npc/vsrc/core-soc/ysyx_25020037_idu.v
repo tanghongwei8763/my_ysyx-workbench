@@ -76,8 +76,8 @@ module ysyx_25020037_idu (
     wire [16: 0] alu_op;
     wire         rlsu_we;
     wire         wlsu_we;
-    wire [ 2: 0] lw_lh_lb;
-    wire [ 2: 0] sw_sh_sb;
+    wire [ 1: 0] lw_lh_lb;
+    wire [ 1: 0] sw_sh_sb;
     wire         src1_is_pc;
     wire         src2_is_imm;
     wire         is_pc_jump;
@@ -232,12 +232,11 @@ module ysyx_25020037_idu (
     assign alu_op[15] = inst_blt;
     assign alu_op[16] = inst_bltu;
 
-    assign TYPE_R = inst_add    | inst_and  | inst_sub | inst_or    | inst_xor  | 
-                    inst_sra    | inst_srl  | inst_slt | inst_sltu  | inst_sll;
-    assign TYPE_I = inst_addi   | inst_jarl | inst_lw  | inst_sltiu | inst_srai | 
-                    inst_lbu    | inst_lh   | inst_lhu |inst_andi   | inst_xori | 
-                    inst_srli   | inst_slli | inst_lb  | inst_ori   | inst_csrrw|
-                    inst_csrrs  | inst_fence_i;
+    assign TYPE_R = inst_add    | inst_and  | inst_sub   | inst_or   | inst_xor  | 
+                    inst_sra    | inst_srl  | inst_slt   | inst_sltu | inst_sll;
+    assign TYPE_I = inst_addi   | inst_jarl | inst_sltiu | inst_srai | inst_andi | 
+                    inst_xori   | inst_srli | inst_slli  | inst_ori  | inst_csrrw|
+                    inst_csrrs  | rlsu_we   | inst_fence_i;
     assign TYPE_S = inst_sw     | inst_sh   | inst_sb;
     assign TYPE_B = inst_bne    | inst_beq  | inst_bge | inst_bgeu  | inst_blt  | inst_bltu;
     assign TYPE_U = inst_auipc  | inst_lui;
@@ -254,12 +253,11 @@ module ysyx_25020037_idu (
                     inst_sra  | inst_srl  | inst_slt  | inst_sltu  | inst_sll  | 
                     inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
                     inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
-                    inst_csrrs| inst_jal  | inst_auipc| inst_lui   | inst_lw   |
-                    inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
-    assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
-    assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
-    assign wlsu_we  = |sw_sh_sb;
-    assign rlsu_we  = |lw_lh_lb;
+                    inst_csrrs| inst_jal  | inst_auipc| inst_lui   | rlsu_we  ;
+    assign sw_sh_sb = {inst_sw, inst_sh};
+    assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu)};
+    assign wlsu_we = TYPE_S;
+    assign rlsu_we = inst_lw | inst_lh | inst_lhu | inst_lb | inst_lbu;
 
     assign src1_is_pc    = inst_jal | inst_auipc | TYPE_B;
     assign src2_is_imm   = TYPE_I     |

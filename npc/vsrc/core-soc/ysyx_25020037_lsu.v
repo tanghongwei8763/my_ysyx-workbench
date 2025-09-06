@@ -52,17 +52,14 @@ module ysyx_25020037_lsu (
     localparam AXI_BURST_INCR = 2'b01;
     localparam AXI_BURST_FIXED = 2'b00;
     localparam AXI_LEN_SINGLE = 8'h0;
-    localparam AXI_SIZE_BYTE   = 3'h0;
-    localparam AXI_SIZE_HALF   = 3'h1;
-    localparam AXI_SIZE_WORD   = 3'h2;
     reg         exu_dnpc_valid_r;
     wire [31:0] pc;
     wire [ 3:0] rd;
     wire        ecall_en;
     wire        mret_en;
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
-    wire [ 2:0] data_rop;
-    wire [ 2:0] data_wop;
+    wire [ 1:0] data_rop;
+    wire [ 1:0] data_wop;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire        gpr_we;
     wire [31:0] csr_data;
@@ -100,15 +97,6 @@ module ysyx_25020037_lsu (
 
     wire is_sdram = (addr[31:28] == SDRAM_BASE) | (addr[31:28] == SDRAM_END);
 
-    wire [ 2:0] axi_rsize;
-    wire [ 2:0] axi_wsize;
-    assign axi_rsize = ({3{data_rop == 3'b001}} & AXI_SIZE_BYTE)
-                     | ({3{data_rop == 3'b010}} & AXI_SIZE_HALF)
-                     | ({3{data_rop == 3'b100}} & AXI_SIZE_WORD);
-    assign axi_wsize = ({3{data_wop == 3'b001}} & AXI_SIZE_BYTE)
-                     | ({3{data_wop == 3'b010}} & AXI_SIZE_HALF)
-                     | ({3{data_wop == 3'b100}} & AXI_SIZE_WORD);
-
     always @(*) begin
         case (state)
             IDLE: begin next_state = (exu_valid & (is_write | is_read)) ? BUSY : IDLE; end
@@ -119,10 +107,10 @@ module ysyx_25020037_lsu (
 
     wire [31: 0] lsu_rdata;
     assign lsu_rdata = rdata >> (addr_off << 3);
-    assign rdata_processed = (data_rop == 3'b001) ? 
+    assign rdata_processed = (data_rop == 2'b00) ? 
                              (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 
                                        : {24'b0          , lsu_rdata[ 7:0]} ) :
-                             (data_rop == 3'b010) ? 
+                             (data_rop == 2'b01) ? 
                              (half_sext ? {{16{lsu_rdata[15]}}, lsu_rdata[15:0]} 
                                         : {16'b0          , lsu_rdata[15:0]}) :
                              lsu_rdata;
@@ -154,7 +142,7 @@ module ysyx_25020037_lsu (
                             arvalid <= 1'b1;
                             arid <= 4'h0;
                             arlen <= AXI_LEN_SINGLE;
-                            arsize <= axi_rsize;
+                            arsize <= {1'b0, data_rop};
                             arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
                         end else if (is_write) begin
                             awvalid <= 1'b1;
@@ -163,13 +151,13 @@ module ysyx_25020037_lsu (
                             wdata   <= aligned_wdata;
                             awid <= 4'h0;
                             awlen <= AXI_LEN_SINGLE;
-                            awsize <= axi_wsize;
+                            awsize <= {1'b0, data_wop};
                             awburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
                             wlast <= 1'b1;
                             case (data_wop)
-                                3'b001: wstrb <= (4'b0001 << addr_off);
-                                3'b010: wstrb <= (4'b0011 << addr_off);
-                                3'b100: wstrb <= (4'b1111 << addr_off);
+                                2'b00: wstrb <= (4'b0001 << addr_off);
+                                2'b01: wstrb <= (4'b0011 << addr_off);
+                                2'b10: wstrb <= (4'b1111 << addr_off);
                                 default: wstrb <= 4'b0000;
                             endcase
                         end else begin
