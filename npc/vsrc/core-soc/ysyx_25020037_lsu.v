@@ -55,7 +55,7 @@ module ysyx_25020037_lsu (
     localparam AXI_SIZE_BYTE   = 3'h0;
     localparam AXI_SIZE_HALF   = 3'h1;
     localparam AXI_SIZE_WORD   = 3'h2;
-    reg                          exu_dnpc_valid_r;
+    reg         exu_dnpc_valid_r;
     wire [31:0] pc;
     wire [ 3:0] rd;
     wire        ecall_en;
@@ -116,7 +116,7 @@ module ysyx_25020037_lsu (
     end
 
     wire [31: 0] lsu_rdata;
-    assign lsu_rdata = |data_rop ? (rdata >> (addr_off << 3)) : rdata;
+    assign lsu_rdata = rdata >> (addr_off << 3);
     assign rdata_processed = (data_rop == 3'b001) ? 
                              (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 
                                        : {24'b0          , lsu_rdata[ 7:0]} ) :
