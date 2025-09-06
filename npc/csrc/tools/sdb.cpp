@@ -125,10 +125,10 @@ static int cmd_si(char *args) {			//单步执行
     step = 1;
   else
     sscanf(args, "%d", &step);
-  if (step <= 100)
+  if (step < 10)
     cpu_exec(step);
   else
-    printf("每次单步执行最大步数不超过100");
+    printf("每次单步执行最大步数不超过10");
   return 0;
 }
 

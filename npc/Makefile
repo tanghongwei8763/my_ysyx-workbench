@@ -1,103 +1,52 @@
-ARCH ?= riscv32e-npc
-ifeq ($(ARCH), riscv32e-npc)
-TOPNAME = ysyx_25020037
-else
-ifeq ($(ARCH), riscv32e-ysyxsoc)
-TOPNAME = ysyxSoCFull
-CXXFLAGS += -DCONFIG_YSYXSOC
-endif
-endif
-YOSYSTOP = ysyx_25020037
-VERILATOR = verilator
-NXDC_FILES = constr/$(TOPNAME).nxdc
-INC_PATH ?=
-
-BUILD_DIR = $(NPC_HOME)/build
-OBJ_DIR = $(BUILD_DIR)/obj_dir
-BIN = $(BUILD_DIR)/$(TOPNAME)
-
-nvboard ?= 0
-ifndef NVBOARD_HOME
-$(error NVBOARD_HOME is not set. Please set the environment variable NVBOARD_HOME to your NVBoard installation path)
-endif
+VERILATOR = /usr/local/bin/verilator
 
 ISA ?= 
 ARGS ?= 
 IMG ?= 
+#$(info ARGS: $(ARGS))
+YOSYSTOP = ysyx_25020037
+SIMULATOR = ./obj_dir/Vysyx_25020037
 
-SIMULATOR = $(BIN)
-
-VERILATOR_FLAGS += --trace -cc --exe \
-                   --timescale "1ns/1ns" --no-timing \
-				   -MMD --build -cc  \
-					-O3 --x-assign fast --x-initial fast --noassert
-INCLUDES = -I./csrc/include \
-           -I../ysyxSoC/perip/uart16550/rtl \
-           -I../ysyxSoC/perip/spi/rtl 
+VERILATOR_FLAGS += --trace -cc --top-module ysyx_25020037
+INCLUDES = -I./csrc/include
 VERILATOR_FLAGS += $(INCLUDES)
 
-default: $(BIN)
+CORE_SRC = $(wildcard ./csrc/core/*.cpp)
+MEMORY_SRC = $(wildcard ./csrc/memory/*.cpp)
+TOOLS_SRC = $(wildcard ./csrc/tools/*.cpp)
+VSRC = $(wildcard ./vsrc/*.v)
+VERILATOR_EXE_FLAG = --exe
 
-$(shell mkdir -p $(BUILD_DIR))
-
-# constraint file
-ifeq ($(nvboard), 1)
-SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
-$(SRC_AUTO_BIND): $(NXDC_FILES)
-	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
-
-# rules for NVBoard
-include $(NVBOARD_HOME)/scripts/nvboard.mk
-CSRCS += $(SRC_AUTO_BIND)
-endif
-
-CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
-CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
-CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
-VSRCS += $(wildcard $(CURDIR)/vsrc/include/*.v)
-ifeq ($(ARCH), riscv32e-npc)
-VSRCS += $(wildcard $(CURDIR)/vsrc/core-npc/*.v)
-else
-ifeq ($(ARCH), riscv32e-ysyxsoc)
-VSRCS += $(wildcard $(CURDIR)/vsrc/core-soc/*.v)
-VSRCS += $(shell find $(CURDIR)/../ysyxSoC/perip -type f -name "*.v")
-VSRCS += $(shell find $(CURDIR)/../ysyxSoC/build -type f -name "*.v")
-endif
-endif
-
-# rules for verilator
-INC_PATH += $(abspath ./csrc/include)
-INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
-
-ifeq ($(nvboard), 1)
-CXXFLAGS += -DCONFIG_NVBOARD
-endif
-
-$(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
-	@rm -rf $(OBJ_DIR)
-	$(VERILATOR) $(VERILATOR_FLAGS) \
-		--top-module $(TOPNAME) $^ \
-		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
-		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
+VERILATOR_INPUT = $(VSRC) $(VERILATOR_EXE_FLAG) $(CORE_SRC) $(MEMORY_SRC) $(TOOLS_SRC)
 
 
-run: $(BIN)
+verilate:
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VERILATOR_INPUT)
+
+build: verilate
+	make -C obj_dir -f Vysyx_25020037.mk Vysyx_25020037
+
+all: sim
+	#@echo "Write this Makefile by your self."
+
+sim: build
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	@$^ $(ARGS) $(IMG)
+	#@echo "Write this Makefile by your self."
+	$(SIMULATOR)
+
+run: build
+	$(SIMULATOR) $(ARGS) $(IMG)
 
 yosys:
 	cd $(NPC_HOME)/../../yosys-sta && make sta DESIGN=$(YOSYSTOP) \
 											SDC_FILE=$(NPC_HOME)/ysyx_25020037.sdc \
-											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core-soc -name "*.v")" \
+											RTL_FILES="$(shell find $(NPC_HOME)/vsrc -name "*.v")" \
 											CLK_FREQ_MHZ=250 \
 											INCLUDE_PATH=$(NPC_HOME)/vsrc/include
 	cd $(NPC_HOME)
 
-perf:
-
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf obj_dir
 
 yosys-clean:
 	cd $(NPC_HOME)/../../yosys-sta && make clean
