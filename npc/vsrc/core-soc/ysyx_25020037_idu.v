@@ -58,7 +58,9 @@ module ysyx_25020037_idu (
         //lw_lh_lb,   
         //sw_sh_sb,
         inst_lb,        
-        inst_lh  
+        inst_lh,
+        rlsu_we,         
+        wlsu_we   
     };
     assign du_to_wu_bus = {
         //gpr_we,
@@ -72,6 +74,8 @@ module ysyx_25020037_idu (
     wire [ 4: 0] rd;
     wire [31: 0] imm;
     wire [16: 0] alu_op;
+    wire         rlsu_we;
+    wire         wlsu_we;
     wire [ 2: 0] lw_lh_lb;
     wire [ 2: 0] sw_sh_sb;
     wire         src1_is_pc;
@@ -254,6 +258,8 @@ module ysyx_25020037_idu (
                     inst_lbu  | inst_lh   | inst_lhu  | inst_lb;
     assign sw_sh_sb = {inst_sw, inst_sh, inst_sb};
     assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu), (inst_lb | inst_lbu)};
+    assign wlsu_we  = |sw_sh_sb;
+    assign rlsu_we  = |lw_lh_lb;
 
     assign src1_is_pc    = inst_jal | inst_auipc | TYPE_B;
     assign src2_is_imm   = TYPE_I     |
