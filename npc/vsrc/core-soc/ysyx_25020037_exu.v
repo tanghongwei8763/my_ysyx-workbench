@@ -147,11 +147,10 @@ module ysyx_25020037_exu (
         .alu_result2    (alu_result2)
         );
 
-    assign csr_wcsr_data    = ({32{csrrw_op}} & src1)
-                            | ({32{csrrs_op}} & (src1 | csr_data));
-    assign dnpc_r = (ecall_en | mret_en) ? csr_data :
-                    is_pc_jump           ? (alu_result2) ? alu_result1 : 32'b0
-                                         : 32'b0;
+    assign csr_wcsr_data = csrrw_op ? src1 : (src1 | csr_data);
+    assign dnpc_r        = (ecall_en | mret_en) ? csr_data :
+                           is_pc_jump           ? (alu_result2) ? alu_result1 : 32'b0
+                                                : 32'b0;
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
