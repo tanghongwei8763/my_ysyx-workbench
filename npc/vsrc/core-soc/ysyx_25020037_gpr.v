@@ -79,17 +79,13 @@ module ysyx_25020037_gpr (
          } = du_to_gu_bus;
   wire [31: 0] src1;
   wire [31: 0] src2;
-  wire [31: 0] imm_csr_data; 
   wire [31: 0] csr_data; 
-  assign imm_csr_data    = ({32{imm == MTVEC    }} & mtvec)
-                         | ({32{imm == MEPC     }} & mepc)
+  assign csr_data        = ({32{imm == MTVEC || inst_ecall}} & mtvec)
+                         | ({32{imm == MEPC  || inst_mret }} & mepc)
                          | ({32{imm == MSTATUS  }} & mstatus)
                          | ({32{imm == MCAUSE   }} & mcause)
                          | ({32{imm == MVENDORID}} & mvendorid)
                          | ({32{imm == MARCHID  }} & marchid);
-  assign csr_data = inst_ecall ? mtvec :
-                    inst_mret  ? mepc  :
-                    imm_csr_data;
   wire         mepc_wen;
   wire         mcause_wen;
   wire         mstatus_wen;
