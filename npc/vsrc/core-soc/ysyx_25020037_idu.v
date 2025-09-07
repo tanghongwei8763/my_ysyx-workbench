@@ -58,9 +58,7 @@ module ysyx_25020037_idu (
         //lw_lh_lb,   
         //sw_sh_sb,
         inst_lb,        
-        inst_lh,
-        rlsu_we,         
-        wlsu_we   
+        inst_lh
     };
     assign du_to_wu_bus = {
         //gpr_we,
@@ -301,6 +299,8 @@ module ysyx_25020037_idu (
                         rs2[3:0],
                         src1,
                         src2,
+                        rlsu_we,
+                        wlsu_we,
                         gpr_we,  
                         alu_op,             
                         src1_is_pc,      

@@ -60,6 +60,8 @@ module ysyx_25020037_lsu (
     wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [ 1:0] data_rop;
     wire [ 1:0] data_wop;
+    wire        is_write;
+    wire        is_read;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire        gpr_we;
     wire [31:0] csr_data;
@@ -76,6 +78,8 @@ module ysyx_25020037_lsu (
             du_to_gu_bus,
             data_rop,
             data_wop,
+            is_write,
+            is_read,
             du_to_lu_bus,
             gpr_we,
             csr_data,
@@ -87,12 +91,8 @@ module ysyx_25020037_lsu (
 
     wire        bit_sext;
     wire        half_sext;
-    wire        is_write;
-    wire        is_read;
     assign {bit_sext,
-            half_sext,
-            is_read,
-            is_write
+            half_sext
            } = du_to_lu_bus;
 
     wire is_sdram = (addr[31:28] == SDRAM_BASE) | (addr[31:28] == SDRAM_END);
