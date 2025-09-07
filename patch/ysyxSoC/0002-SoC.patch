@@ -1,0 +1,19 @@
+From 55a34d31b0bca6df7af9d1a27750588a4886ef94 Mon Sep 17 00:00:00 2001
+From: Tanghongwei <tanghongwei2024@outlook.com>
+Date: Sun, 7 Sep 2025 10:14:30 +0800
+Subject: [PATCH 2/2] SoC
+
+---
+ rocket-chip | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rocket-chip b/rocket-chip
+index d0c6b50f..c8f225f5 160000
+--- a/rocket-chip
++++ b/rocket-chip
+@@ -1 +1 @@
+-Subproject commit d0c6b50fdefcdbe121e9788433ea51f7efaf1d32
++Subproject commit c8f225f5157549312f573be552af802aac200ff2
+-- 
+2.34.1
+

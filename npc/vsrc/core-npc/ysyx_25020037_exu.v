@@ -49,7 +49,6 @@ module ysyx_25020037_exu (
     wire         is_pc_jump;
     wire         double_cal;
     wire         ebreak;
-    wire         inst_not_realize;
     wire         ecall_en;
     wire         mret_en;
     wire [31: 0] csr_data;
@@ -75,7 +74,6 @@ module ysyx_25020037_exu (
             is_pc_jump,
             double_cal,
             ebreak,
-            inst_not_realize,
             ecall_en,
             mret_en,
             csr_data,
@@ -220,12 +218,12 @@ module ysyx_25020037_exu (
     end
 
 `ifdef __ICARUS__
-    assign ebreak_end = ~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize);
+    assign ebreak_end = ~exu_dnpc_valid & idu_valid & ebreak;
 `endif
 
 `ifdef VERILATOR
     always @(*) begin
-       if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin hit({32{inst_not_realize}}); end
+       if(~exu_dnpc_valid & idu_valid & ebreak) begin hit(32'b0); end
     end
 `endif
 endmodule
