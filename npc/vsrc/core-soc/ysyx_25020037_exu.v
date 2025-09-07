@@ -185,7 +185,6 @@ module ysyx_25020037_exu (
                     exu_dnpc <= dnpc_r;
                 end else if (pc_updata) begin
                     exu_dnpc_valid <=1'b0;
-                    exu_dnpc <= 32'b0;
                 end
                 exu_valid <= 1'b0;
                 eu_to_ic_bus <= 'b0;
