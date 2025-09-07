@@ -148,10 +148,10 @@ module ysyx_25020037_exu (
         .alu_result2    (alu_result2)
         );
 
-    assign csr_wcsr_data = csrrw_op ? src1 : (src1 | csr_data);
-    assign dnpc_r        = (ecall_en | mret_en) ? csr_data :
-                           is_pc_jump           ? (alu_result2) ? alu_result1 : 32'b0
-                                                : 32'b0;
+    assign csr_wcsr_data    = ({32{csrrw_op}} & src1)
+                            | ({32{csrrs_op}} & (src1 | csr_data));
+    assign dnpc_r           = ({32{ecall_en   | mret_en    }} & csr_data)
+                            | ({32{is_pc_jump & alu_result2}} & alu_result1);
 
     assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
 
@@ -171,7 +171,7 @@ module ysyx_25020037_exu (
                 bypass_is_load[i]  <= bypass_is_load[i - 1];
             end
             bypass_rd[0]       <= gpr_we ? rd              : bypass_rd[0];
-            bypass_data[0]     <= gpr_we ? du_to_lu_bus[1] ? 32'b0 : (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
+            bypass_data[0]     <= gpr_we ? (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
             bypass_is_load[0]  <= gpr_we ? du_to_lu_bus[1] : bypass_is_load[0];
         end
     end
@@ -183,12 +183,11 @@ module ysyx_25020037_exu (
             eu_to_lu_bus <= 'b0;
         end else begin
             if(exu_ready) begin
-                if(dnpc_r != 32'b0 && exu_dnpc_valid == 1'b0) begin
+                if(dnpc_r != 32'b0 && ~exu_dnpc_valid) begin
                     exu_dnpc_valid <= idu_valid & (dnpc_r != pc + 32'h4);
                     exu_dnpc <= dnpc_r;
                 end else if (pc_updata) begin
                     exu_dnpc_valid <=1'b0;
-                    exu_dnpc <= 32'b0;
                 end
                 exu_valid <= 1'b0;
                 eu_to_ic_bus <= 'b0;

@@ -19,9 +19,6 @@ module ysyx_25020037_gpr (
   parameter MVENDORID = 12'hF11;
   parameter MARCHID   = 12'hF12;
 
-  localparam IDLE   = 1'b0;
-  localparam BUSY   = 1'b1;
-
   wire [31: 0] pc;
   wire [ 3: 0] rd;
   wire         ecall_en;
@@ -30,7 +27,6 @@ module ysyx_25020037_gpr (
   wire [31: 0] csr_wcsr_data;
   wire [31: 0] gpr_wdata;
   wire         gpr_wen;
-  reg state, next_state;
   reg  [31: 0] regs [15:0];
   reg  [31: 0] mtvec;
   reg  [31: 0] mepc;
@@ -41,13 +37,13 @@ module ysyx_25020037_gpr (
   //实例化寄存器
   generate
     genvar i;
-    for (i = 0; i < 16; i = i+1) begin : GPR32
+    for (i = 0; i < 16; i = i+1) begin : GPR16
       ysyx_25020037_Reg #(32, 32'b0) gpr16 (
         .clk        (clk        ), 
         .rst        (rst        ), 
         .din        (gpr_wdata  ), 
         .dout       (regs[i]    ), 
-        .wen        ((rd != 4'b0) && wbu_valid && gpr_wen && (rd == i))
+        .wen        ((rd != 4'b0) & wbu_valid & gpr_wen & (rd == i))
         );
     end
   endgenerate
@@ -83,17 +79,13 @@ module ysyx_25020037_gpr (
          } = du_to_gu_bus;
   wire [31: 0] src1;
   wire [31: 0] src2;
-  wire [31: 0] imm_csr_data; 
   wire [31: 0] csr_data; 
-  assign imm_csr_data    = ({32{imm == MTVEC    }} & mtvec)
-                         | ({32{imm == MEPC     }} & mepc)
+  assign csr_data        = ({32{imm == MTVEC || inst_ecall}} & mtvec)
+                         | ({32{imm == MEPC  || inst_mret }} & mepc)
                          | ({32{imm == MSTATUS  }} & mstatus)
                          | ({32{imm == MCAUSE   }} & mcause)
                          | ({32{imm == MVENDORID}} & mvendorid)
                          | ({32{imm == MARCHID  }} & marchid);
-  assign csr_data = inst_ecall ? mtvec :
-                    inst_mret  ? mepc  :
-                    imm_csr_data;
   wire         mepc_wen;
   wire         mcause_wen;
   wire         mstatus_wen;

@@ -78,7 +78,6 @@ module ysyx_25020037_ifu #(
             arvalid <= 1'b0;
             rready <= 1'b0;
             mem_ready <= 1'b0;
-            access_fault <= 1'b0;
             burst_cnt <= 2'd0;
             fu_to_du_bus <= 'b0;
         end else begin
@@ -132,6 +131,8 @@ module ysyx_25020037_ifu #(
                             end
                         end
                     end
+                    ifu_valid <= 1'b0;
+                    fu_to_du_bus <= 'b0;
                     if(icache_hit & idu_ready) begin
                         mem_ready <= 1'b0;
                         mem_data <= 'b0;
