@@ -120,6 +120,7 @@ module ysyx_25020037_lsu (
         if (rst) begin
             state <= IDLE;
             lsu_valid <= 1'b0;
+            access_fault <= 1'b0;
             awvalid <= 1'b0;
             wvalid <= 1'b0;
             bready <= 1'b0;
