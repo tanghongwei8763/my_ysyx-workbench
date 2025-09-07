@@ -132,6 +132,7 @@ module ysyx_25020037_lsu (
             case (state)
                 IDLE: begin
                     lsu_valid <= 1'b0;
+                    lu_to_wu_bus <= 'b0;
                     if (exu_valid) begin
                         if (is_read) begin
                             araddr  <= addr;
@@ -177,6 +178,7 @@ module ysyx_25020037_lsu (
                 end
                 BUSY: begin
                     lsu_valid <= 1'b0;
+                    lu_to_wu_bus <= 'b0;
                     if (is_read) begin
                         if (arvalid && arready) begin
                             arvalid <= 1'b0;
