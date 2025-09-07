@@ -126,7 +126,7 @@ module ysyx_25020037_ifu #(
                                 rready <= 1'b0;
                                 burst_cnt <= 2'd0;
                             end else begin
-                                araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) * 32'd4;
+                                araddr <= block_base_addr + ({{30{1'b0}}, burst_cnt} + 32'd1) << 2;
                                 arvalid <= 1'b1;
                             end
                         end
