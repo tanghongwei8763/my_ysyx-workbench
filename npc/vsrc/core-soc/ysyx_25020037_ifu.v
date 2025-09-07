@@ -132,6 +132,9 @@ module ysyx_25020037_ifu #(
                             end
                         end
                     end
+                    mem_ready <= 1'b0;
+                    ifu_valid <= 1'b0;
+                    fu_to_du_bus <= 'b0;
                     if(icache_hit & idu_ready) begin
                         mem_ready <= 1'b0;
                         mem_data <= 'b0;
