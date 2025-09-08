@@ -192,15 +192,15 @@ module ysyx_25020037_exu (
                 end
             end
         end
-        if (exu_ready && idu_valid && !exu_dnpc_valid) begin
+        if (exu_ready & idu_valid & !exu_dnpc_valid) begin
             for (i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
                 bypass_rd[i]       <= bypass_rd[i - 1];
                 bypass_data[i]     <= bypass_data[i - 1];
                 bypass_is_load[i]  <= bypass_is_load[i - 1];
             end
-            bypass_rd[0]       <= gpr_we ? rd      : bypass_rd[0];
-            bypass_data[0]     <= gpr_we ? (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
-            bypass_is_load[0]  <= gpr_we ? is_read : bypass_is_load[0];
+            bypass_rd[0]       <= gpr_we ? rd      : 'b0;
+            bypass_data[0]     <= gpr_we ? (csrrs_op | csrrw_op) ? csr_data : result : 'b0;
+            bypass_is_load[0]  <= gpr_we ? is_read : 'b0;
         end
     end
 
