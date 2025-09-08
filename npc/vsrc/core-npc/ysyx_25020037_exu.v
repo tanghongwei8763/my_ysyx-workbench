@@ -22,6 +22,13 @@ module ysyx_25020037_exu (
     import "DPI-C" function void hit(input int inst_not_realize);
 `endif
 
+    parameter MSTATUS   = 12'h300;
+    parameter MTVEC     = 12'h305;
+    parameter MEPC      = 12'h341;
+    parameter MCAUSE    = 12'h342;
+    parameter MVENDORID = 12'hF11;
+    parameter MARCHID   = 12'hF12;
+
     localparam BYPASS_DEPTH = 4;
     reg [ 3:0] bypass_rd[     BYPASS_DEPTH-1:0];
     reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
@@ -29,9 +36,7 @@ module ysyx_25020037_exu (
 
     wire [31: 0] src1;
     wire [31: 0] src2;
-    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
-    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
     wire [31: 0] pc;
     wire [ 1: 0] lw_lh_lb;
     wire [ 1: 0] sw_sh_sb;
@@ -56,9 +61,7 @@ module ysyx_25020037_exu (
     wire [31: 0] csr_data;
     wire         csrrs_op;
     wire         csrrw_op;
-    assign {du_to_gu_bus,
-            du_to_lu_bus,
-            du_to_wu_bus,
+    assign {du_to_lu_bus,
             pc,
             lw_lh_lb,
             sw_sh_sb,
@@ -85,6 +88,36 @@ module ysyx_25020037_exu (
             csrrw_op
            } = du_to_eu_bus;
 
+    wire   csr_w_gpr_we;
+    wire   csrs_mtvec_wen;
+    wire   csrs_mepc_wen;
+    wire   csrs_mstatus_wen;
+    wire   csrs_mcause_wen;
+
+    assign csr_w_gpr_we = csrrs_op | csrrw_op;
+    assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & csr_w_gpr_we;
+    assign csrs_mepc_wen      = (imm[11:0] == MEPC) & csr_w_gpr_we;
+    assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & csr_w_gpr_we;
+    assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & csr_w_gpr_we;
+
+    wire [`EU_TO_GU_BUS_WD -1:0] eu_to_gu_bus;
+    wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
+    assign eu_to_gu_bus = {
+        //pc,
+        //rd[3:0],
+        csrs_mtvec_wen,
+        csrs_mepc_wen,
+        csrs_mstatus_wen,
+        csrs_mcause_wen
+        //inst_ecall,
+        //inst_mret       
+    };
+    assign eu_to_wu_bus = {
+        //gpr_we,
+        //rlsu_we,        
+        csr_w_gpr_we
+        //csr_data
+    };
     reg src1_wait;
     reg src2_wait;
     reg [31:0] bypass_src1;
@@ -94,7 +127,7 @@ module ysyx_25020037_exu (
         bypass_src1 = src1_r;
         src1_wait = 1'b0;
         for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if ((bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
+            if ((bypass_rd[i] == rs1) & (rs1 != 4'd0)) begin
                 bypass_src1 = bypass_data[i];
                 if (bypass_is_load[i]) begin
                     src1_wait = 1'b1;
@@ -107,7 +140,7 @@ module ysyx_25020037_exu (
         bypass_src2 = src2_r;
         src2_wait = 1'b0;
         for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-            if ((bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
+            if ((bypass_rd[i] == rs2) & (rs2 != 4'd0)) begin
                 bypass_src2 = bypass_data[i];
                 if (bypass_is_load[i]) begin
                     src2_wait = 1'b1;
@@ -118,7 +151,7 @@ module ysyx_25020037_exu (
 
     assign src1 = bypass_src1;
     assign src2 = bypass_src2;
-    assign exu_ready = lsu_ready && !src1_wait && !src2_wait;
+    assign exu_ready = lsu_ready & !src1_wait & !src2_wait;
 
     wire [31: 0] dnpc_r;
     wire [31: 0] result;
@@ -162,7 +195,7 @@ module ysyx_25020037_exu (
                 end
             end
         end
-        if (exu_ready && idu_valid && !exu_dnpc_valid) begin
+        if (exu_ready & idu_valid & !exu_dnpc_valid) begin
             for (i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
                 bypass_rd[i]       <= bypass_rd[i - 1];
                 bypass_data[i]     <= bypass_data[i - 1];
@@ -197,7 +230,7 @@ module ysyx_25020037_exu (
                         rd,
                         ecall_en,
                         mret_en,
-                        du_to_gu_bus,
+                        eu_to_gu_bus,
                         lw_lh_lb,
                         sw_sh_sb,
                         is_write,
@@ -205,7 +238,7 @@ module ysyx_25020037_exu (
                         du_to_lu_bus,
                         gpr_we,
                         csr_data,
-                        du_to_wu_bus,  
+                        eu_to_wu_bus,  
                         csr_wcsr_data,       
                         result,
                         src2
