@@ -17,9 +17,6 @@ module ysyx_25020037 (
     wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
     wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus;
-    wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
-    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
-    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
 
     wire [`RS_DATA-1: 0] rs_data;
