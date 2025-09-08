@@ -23,7 +23,7 @@ module ysyx_25020037_gpr (
   wire [ 3: 0] rd;
   wire         ecall_en;
   wire         mret_en;
-  wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+  wire [`EU_TO_GU_BUS_WD -1:0] eu_to_gu_bus;
   wire [31: 0] csr_wcsr_data;
   wire [31: 0] gpr_wdata;
   wire         gpr_wen;
@@ -52,7 +52,7 @@ module ysyx_25020037_gpr (
           rd,
           ecall_en,
           mret_en,
-          du_to_gu_bus,
+          eu_to_gu_bus,
           csr_wcsr_data,
           gpr_wen,
           gpr_wdata
@@ -76,7 +76,7 @@ module ysyx_25020037_gpr (
           csrs_mepc_wen,
           csrs_mstatus_wen,
           csrs_mcause_wen
-         } = du_to_gu_bus;
+         } = eu_to_gu_bus;
   wire [31: 0] src1;
   wire [31: 0] src2;
   wire [31: 0] csr_data; 

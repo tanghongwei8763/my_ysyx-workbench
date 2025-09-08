@@ -13,11 +13,11 @@ module ysyx_25020037_wbu (
     wire [ 3: 0] rd;
     wire         ecall_en;
     wire         mret_en;
-    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+    wire [`EU_TO_GU_BUS_WD -1:0] eu_to_gu_bus;
     wire         gpr_we;
     wire         rlsu_we;
     wire [31: 0] csr_data;
-    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     wire [31: 0] addr;
     wire [31: 0] csr_wcsr_data;
     wire [31: 0] rdata_processed;
@@ -25,17 +25,17 @@ module ysyx_25020037_wbu (
             rd,
             ecall_en,
             mret_en,
-            du_to_gu_bus,
+            eu_to_gu_bus,
             gpr_we,
             rlsu_we,
             csr_data,
-            du_to_wu_bus,
+            eu_to_wu_bus,
             csr_wcsr_data,
             addr,
             rdata_processed
            } = lu_to_wu_bus;
     wire         csr_w_gpr_we;
-    assign csr_w_gpr_we = du_to_wu_bus;
+    assign csr_w_gpr_we = eu_to_wu_bus;
 
     wire         final_gpr_we = ~rst & (gpr_we | rlsu_we);
     wire [31: 0] final_result = ~{32{rst}} & (csr_w_gpr_we ? csr_data : rdata_processed);
@@ -53,7 +53,7 @@ module ysyx_25020037_wbu (
                     rd,
                     ecall_en,
                     mret_en,
-                    du_to_gu_bus,
+                    eu_to_gu_bus,
                     csr_wcsr_data,     
                     final_gpr_we,         
                     final_result 

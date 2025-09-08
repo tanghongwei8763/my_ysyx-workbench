@@ -57,7 +57,7 @@ module ysyx_25020037_lsu (
     wire [ 3:0] rd;
     wire        ecall_en;
     wire        mret_en;
-    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+    wire [`EU_TO_GU_BUS_WD -1:0] eu_to_gu_bus;
     wire [ 1:0] data_rop;
     wire [ 1:0] data_wop;
     wire        is_write;
@@ -65,7 +65,7 @@ module ysyx_25020037_lsu (
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire        gpr_we;
     wire [31:0] csr_data;
-    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
+    wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     wire [31:0] addr;
     wire [31:0] csr_wcsr_data;
     wire [31:0] data;
@@ -75,7 +75,7 @@ module ysyx_25020037_lsu (
             rd,
             ecall_en,
             mret_en,
-            du_to_gu_bus,
+            eu_to_gu_bus,
             data_rop,
             data_wop,
             is_write,
@@ -83,7 +83,7 @@ module ysyx_25020037_lsu (
             du_to_lu_bus,
             gpr_we,
             csr_data,
-            du_to_wu_bus, 
+            eu_to_wu_bus, 
             csr_wcsr_data,     
             addr,
             data
@@ -163,11 +163,11 @@ module ysyx_25020037_lsu (
                                 rd,
                                 ecall_en,
                                 mret_en,
-                                du_to_gu_bus,
+                                eu_to_gu_bus,
                                 gpr_we,
                                 is_read,
                                 csr_data,
-                                du_to_wu_bus,
+                                eu_to_wu_bus,
                                 csr_wcsr_data,
                                 addr,
                                 addr
@@ -189,11 +189,11 @@ module ysyx_25020037_lsu (
                                 rd,
                                 ecall_en,
                                 mret_en,
-                                du_to_gu_bus,
+                                eu_to_gu_bus,
                                 gpr_we,
                                 is_read,
                                 csr_data,
-                                du_to_wu_bus,
+                                eu_to_wu_bus,
                                 csr_wcsr_data,
                                 addr, 
                                 rdata_processed
