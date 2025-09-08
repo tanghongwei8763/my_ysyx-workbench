@@ -90,14 +90,11 @@ module ysyx_25020037_exu (
     always @(*) begin
         bypass_src1 = src1_r;
         src1_wait = 1'b0;
-        if (rst) src1_wait = 0;
-        else begin
-            for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-                if ((bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
-                    bypass_src1 = bypass_data[i];
-                    if (bypass_is_load[i]) begin
-                        src1_wait = 1'b1;
-                    end
+        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+            if ((bypass_rd[i] == rs1) & (rs1 != 4'd0)) begin
+                bypass_src1 = bypass_data[i];
+                if (bypass_is_load[i]) begin
+                    src1_wait = 1'b1;
                 end
             end
         end
@@ -106,14 +103,11 @@ module ysyx_25020037_exu (
     always @(*) begin
         bypass_src2 = src2_r;
         src2_wait = 1'b0;
-        if (rst) src2_wait = 0;
-        else begin
-            for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-                if ((bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
-                    bypass_src2 = bypass_data[i];
-                    if (bypass_is_load[i]) begin
-                        src2_wait = 1'b1;
-                    end
+        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+            if ((bypass_rd[i] == rs2) & (rs2 != 4'd0)) begin
+                bypass_src2 = bypass_data[i];
+                if (bypass_is_load[i]) begin
+                    src2_wait = 1'b1;
                 end
             end
         end
@@ -121,7 +115,7 @@ module ysyx_25020037_exu (
 
     assign src1 = bypass_src1;
     assign src2 = bypass_src2;
-    assign exu_ready = lsu_ready && !src1_wait && !src2_wait;
+    assign exu_ready = lsu_ready & !src1_wait & !src2_wait;
 
     wire [31: 0] dnpc_r;
     wire [31: 0] result;

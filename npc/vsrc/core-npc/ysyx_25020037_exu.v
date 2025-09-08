@@ -42,6 +42,8 @@ module ysyx_25020037_exu (
     wire [ 3: 0] rs2;
     wire [31: 0] src1_r;
     wire [31: 0] src2_r;
+    wire         is_write;
+    wire         is_read;
     wire         gpr_we;
     wire [16: 0] alu_op;
     wire         src1_is_pc;
@@ -67,6 +69,8 @@ module ysyx_25020037_exu (
             rs2,
             src1_r,
             src2_r, 
+            is_write,
+            is_read,
             gpr_we,
             alu_op,
             src1_is_pc,
@@ -89,14 +93,11 @@ module ysyx_25020037_exu (
     always @(*) begin
         bypass_src1 = src1_r;
         src1_wait = 1'b0;
-        if (rst) src1_wait = 0;
-        else begin
-            for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-                if ((bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
-                    bypass_src1 = bypass_data[i];
-                    if (bypass_is_load[i]) begin
-                        src1_wait = 1'b1;
-                    end
+        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+            if ((bypass_rd[i] == rs1) && (rs1 != 4'd0)) begin
+                bypass_src1 = bypass_data[i];
+                if (bypass_is_load[i]) begin
+                    src1_wait = 1'b1;
                 end
             end
         end
@@ -105,14 +106,11 @@ module ysyx_25020037_exu (
     always @(*) begin
         bypass_src2 = src2_r;
         src2_wait = 1'b0;
-        if (rst) src2_wait = 0;
-        else begin
-            for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
-                if ((bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
-                    bypass_src2 = bypass_data[i];
-                    if (bypass_is_load[i]) begin
-                        src2_wait = 1'b1;
-                    end
+        for (i = BYPASS_DEPTH - 1; i >= 0; i = i - 1) begin
+            if ((bypass_rd[i] == rs2) && (rs2 != 4'd0)) begin
+                bypass_src2 = bypass_data[i];
+                if (bypass_is_load[i]) begin
+                    src2_wait = 1'b1;
                 end
             end
         end
@@ -170,9 +168,9 @@ module ysyx_25020037_exu (
                 bypass_data[i]     <= bypass_data[i - 1];
                 bypass_is_load[i]  <= bypass_is_load[i - 1];
             end
-            bypass_rd[0]       <= gpr_we ? rd              : bypass_rd[0];
+            bypass_rd[0]       <= gpr_we ? rd      : bypass_rd[0];
             bypass_data[0]     <= gpr_we ? (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
-            bypass_is_load[0]  <= gpr_we ? du_to_lu_bus[1] : bypass_is_load[0];
+            bypass_is_load[0]  <= gpr_we ? is_read : bypass_is_load[0];
         end
     end
 
@@ -202,6 +200,8 @@ module ysyx_25020037_exu (
                         du_to_gu_bus,
                         lw_lh_lb,
                         sw_sh_sb,
+                        is_write,
+                        is_read,
                         du_to_lu_bus,
                         gpr_we,
                         csr_data,

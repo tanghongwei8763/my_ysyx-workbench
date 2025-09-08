@@ -113,7 +113,7 @@ module ysyx_25020037_ifu #(
                     if (rvalid && rready) begin
                         access_fault <= (rresp != 2'b00);
                         mem_data[burst_cnt*32 +: 32] <= rdata;
-                        burst_cnt <= burst_cnt + 1'b1;
+                        burst_cnt <= burst_cnt + 2'b1;
                         if (is_sdram) begin
                             if (rlast) begin
                                 mem_ready <= 1'b1;
