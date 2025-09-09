@@ -242,7 +242,6 @@ module ysyx_25020037_idu (
     assign idu_ready = exu_ready;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            idu_valid <= 1'b0;
             du_to_eu_bus <= 'b0;
         end else begin
             if (exu_ready) begin

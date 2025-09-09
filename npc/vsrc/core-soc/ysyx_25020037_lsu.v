@@ -117,12 +117,8 @@ module ysyx_25020037_lsu (
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
-            lsu_valid <= 1'b0;
             awvalid <= 1'b0;
-            wvalid <= 1'b0;
-            bready <= 1'b0;
             arvalid <= 1'b0;
-            rready <= 1'b0;
         end else begin
             state <= next_state;
             exu_dnpc_valid_r <= exu_dnpc_valid;

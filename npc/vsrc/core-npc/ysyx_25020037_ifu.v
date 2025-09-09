@@ -74,10 +74,6 @@ module ysyx_25020037_ifu #(
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
-            ifu_valid <= 1'b0;
-            arvalid <= 1'b0;
-            rready <= 1'b0;
-            mem_ready <= 1'b0;
             burst_cnt <= 2'd0;
             fu_to_du_bus <= 'b0;
         end else begin
