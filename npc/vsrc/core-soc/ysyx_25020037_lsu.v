@@ -49,8 +49,6 @@ module ysyx_25020037_lsu (
     localparam SDRAM_BASE = 4'hA; // A000_0000-BFFF_FFFF
     localparam SDRAM_END  = 4'hB; 
 
-    localparam AXI_BURST_INCR = 2'b01;
-    localparam AXI_BURST_FIXED = 2'b00;
     localparam AXI_LEN_SINGLE = 8'h0;
     reg         exu_dnpc_valid_r;
     wire [31:0] pc;
