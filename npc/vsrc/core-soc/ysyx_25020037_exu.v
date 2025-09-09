@@ -22,7 +22,6 @@ module ysyx_25020037_exu (
     parameter MSTATUS   = 12'h300;
     parameter MTVEC     = 12'h305;
     parameter MEPC      = 12'h341;
-    parameter MCAUSE    = 12'h342;
     parameter MVENDORID = 12'hF11;
     parameter MARCHID   = 12'hF12;
 
@@ -89,13 +88,11 @@ module ysyx_25020037_exu (
     wire   csrs_mtvec_wen;
     wire   csrs_mepc_wen;
     wire   csrs_mstatus_wen;
-    wire   csrs_mcause_wen;
 
     assign csr_w_gpr_we = csrrs_op | csrrw_op;
     assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & csr_w_gpr_we;
     assign csrs_mepc_wen      = (imm[11:0] == MEPC) & csr_w_gpr_we;
     assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & csr_w_gpr_we;
-    assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & csr_w_gpr_we;
 
     wire [`EU_TO_GU_BUS_WD -1:0] eu_to_gu_bus;
     wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
@@ -104,8 +101,7 @@ module ysyx_25020037_exu (
         //rd[3:0],
         csrs_mtvec_wen,
         csrs_mepc_wen,
-        csrs_mstatus_wen,
-        csrs_mcause_wen
+        csrs_mstatus_wen
         //inst_ecall,
         //inst_mret       
     };
