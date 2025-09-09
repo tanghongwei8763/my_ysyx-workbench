@@ -192,7 +192,7 @@ module ysyx_25020037_exu (
                 end
             end
         end
-        if (exu_ready & idu_valid & !exu_dnpc_valid) begin
+        if (exu_ready && idu_valid && !exu_dnpc_valid) begin
             for (i = BYPASS_DEPTH - 1; i > 0; i = i - 1) begin
                 bypass_rd[i]       <= bypass_rd[i - 1];
                 bypass_data[i]     <= bypass_data[i - 1];

@@ -139,7 +139,7 @@ module ysyx_25020037_lsu (
                             arid <= 4'h0;
                             arlen <= AXI_LEN_SINGLE;
                             arsize <= {1'b0, data_rop};
-                            arburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
+                            arburst <= {1'b0, is_sdram};
                         end else if (is_write) begin
                             awvalid <= 1'b1;
                             wvalid <= 1'b1;
@@ -148,7 +148,7 @@ module ysyx_25020037_lsu (
                             awid <= 4'h0;
                             awlen <= AXI_LEN_SINGLE;
                             awsize <= {1'b0, data_wop};
-                            awburst <= is_sdram ? AXI_BURST_INCR : AXI_BURST_FIXED;
+                            awburst <= {1'b0, is_sdram};
                             wlast <= 1'b1;
                             case (data_wop)
                                 2'b00: wstrb <= (4'b0001 << addr_off);
