@@ -30,7 +30,7 @@ module ysyx_25020037_gpr (
   reg  [31: 0] mtvec;
   reg  [31: 0] mepc;
   reg  [31: 0] mstatus;
-  reg  [31: 0] mcause;
+  wire [31: 0] mcause    = 32'hb;
   wire [31: 0] mvendorid = 32'h79737978;
   wire [31: 0] marchid   = 32'h017DC685;
   //实例化寄存器
@@ -130,13 +130,13 @@ module ysyx_25020037_gpr (
     .wen         (mstatus_wen & wbu_valid)
   );
 
-  ysyx_25020037_Reg #(32, 32'h0) CSRS_mcause (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (mcause_data     ),
-    .dout        (mcause          ),
-    .wen         (mcause_wen & wbu_valid)
-  );
+  // ysyx_25020037_Reg #(32, 32'h0) CSRS_mcause (
+  //   .clk         (clk             ),
+  //   .rst         (rst             ),
+  //   .din         (mcause_data     ),
+  //   .dout        (mcause          ),
+  //   .wen         (mcause_wen & wbu_valid)
+  // );
   
   assign src1 = regs[rs1];
   assign src2 = regs[rs2];

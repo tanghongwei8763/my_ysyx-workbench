@@ -20,7 +20,7 @@ module ysyx_25020037_icache #(
     output wire                  cpu_ready,
     
     output wire                  mem_req,
-    output reg  [ADDR_WIDTH-1:0] mem_addr,
+    output wire [ADDR_WIDTH-1:0] mem_addr,
     input  wire [BLOCK_SIZE*8-1:0] mem_data,
     input  wire                  mem_ready
 );
@@ -30,7 +30,9 @@ wire [OFFSET_WIDTH-1:0]   offset;
 wire [ INDEX_WIDTH-1:0]   index;
 wire [   TAG_WIDTH-1:0]   tag;
 
-assign {tag, index, offset} = cpu_addr;
+assign offset = cpu_addr[OFFSET_WIDTH-1 : 0];
+assign index  = cpu_addr[OFFSET_WIDTH + INDEX_WIDTH - 1 : OFFSET_WIDTH];
+assign tag    = cpu_addr[ADDR_WIDTH-1 : OFFSET_WIDTH + INDEX_WIDTH];
 
 assign mem_addr = {cpu_addr[ADDR_WIDTH-1 : OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
 
@@ -38,7 +40,7 @@ reg [   TAG_WIDTH-1:0]  tag_array  [CACHE_BLOCKS-1:0];
 reg [BLOCK_SIZE*8-1:0]  data_array [CACHE_BLOCKS-1:0];
 reg [CACHE_BLOCKS-1:0]  valid_array;
 
-assign cpu_hit   = valid_array[index] & (tag_array[index] == tag);
+assign cpu_hit   = valid_array[index] && (tag_array[index] == tag);
 assign cpu_data  = data_array[index][offset*8 +: DATA_WIDTH];
 assign cpu_ready = (cpu_hit | mem_ready);
 assign mem_req   = ~cpu_hit;
