@@ -2,7 +2,6 @@
 
 //寄存器堆
 module ysyx_25020037_gpr (
-  input  wire         idu_valid,
   input  wire         wbu_valid,
   input  wire         exu_ready,
   input  wire         clk,

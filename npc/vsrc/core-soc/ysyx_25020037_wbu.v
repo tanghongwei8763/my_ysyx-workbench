@@ -3,7 +3,6 @@
 module ysyx_25020037_wbu (
     input  wire         lsu_valid,
     output reg          wbu_valid,
-    output reg          wbu_ready,
     input  wire         clk,
     input  wire         rst,
     input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
@@ -40,7 +39,7 @@ module ysyx_25020037_wbu (
     wire         final_gpr_we = ~rst & (gpr_we | rlsu_we);
     wire [31: 0] final_result = ~{32{rst}} & (csr_w_gpr_we ? csr_data : rdata_processed);
 
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         wbu_valid <= 1'b0;
         wu_to_gu_bus <= 'b0;
         if (lsu_valid) begin

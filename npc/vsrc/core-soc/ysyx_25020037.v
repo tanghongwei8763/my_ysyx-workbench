@@ -79,7 +79,7 @@ module ysyx_25020037 (
     assign io_slave_rid     = 4'b0;
 
     parameter BLOCK_SIZE   = 32'd16;
-    parameter CACHE_BLOCKS = 32'd4;
+    parameter CACHE_BLOCKS = 32'd2;
 
 `ifdef VERILATOR
     import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
@@ -182,7 +182,6 @@ module ysyx_25020037 (
     wire         icache_mem_ready;
 
     ysyx_25020037_gpr gpr_cpu (
-        .idu_valid        (idu_valid       ),
         .wbu_valid        (wbu_valid       ),
         .exu_ready        (exu_ready       ),
         .clk              (clock           ),
@@ -430,7 +429,6 @@ ysyx_25020037_clint u_clint (
     ysyx_25020037_wbu wbu_cpu(
         .lsu_valid    (lsu_valid    ),
         .wbu_valid    (wbu_valid    ),
-        .wbu_ready    (wbu_ready    ),
         .clk          (clock        ),
         .rst          (reset        ),
         .lu_to_wu_bus (lu_to_wu_bus ),
