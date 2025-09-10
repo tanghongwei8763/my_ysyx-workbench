@@ -11,3 +11,8 @@
 `define EU_TO_IC_BUS_WD 1
 
 `define RS_DATA 22
+`ifdef DRESET_VAL
+`define PC_RESET_VAL 32'h80000000
+`else
+`define PC_RESET_VAL 32'h30000000
+`endif
