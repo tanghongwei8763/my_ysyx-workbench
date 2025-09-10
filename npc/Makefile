@@ -43,6 +43,7 @@ VERILATOR_FLAGS += --trace -cc --exe \
 				   -MMD --build -cc  \
 					-O3 --x-assign fast --x-initial fast --noassert
 INCLUDES = -I./csrc/include \
+		   -I./vsrc/include \
            -I../ysyxSoC/perip/uart16550/rtl \
            -I../ysyxSoC/perip/spi/rtl 
 VERILATOR_FLAGS += $(INCLUDES)
