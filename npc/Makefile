@@ -43,7 +43,6 @@ VERILATOR_FLAGS += --trace -cc --exe \
 				   -MMD --build -cc  \
 					-O3 --x-assign fast --x-initial fast --noassert
 INCLUDES = -I./csrc/include \
-		   -I./vsrc/include \
            -I../ysyxSoC/perip/uart16550/rtl \
            -I../ysyxSoC/perip/spi/rtl 
 VERILATOR_FLAGS += $(INCLUDES) $(VERILOG_DEFINES)
@@ -76,7 +75,6 @@ endif
 CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
-VSRCS += $(wildcard $(CURDIR)/vsrc/include/*.v)
 VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
 ifeq ($(ARCH), riscv32e-npc)
 VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc/*.v)
@@ -105,8 +103,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 
 $(IVERILOG_BIN): ARCH=riscv32e-npc
 $(IVERILOG_BIN): TOPNAME=ysyx_25020037_npc
-$(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/include/*.v) \
-                 $(wildcard $(CURDIR)/vsrc/core/*.v) \
+$(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/core/*.v) \
                  $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                  vsrc/sim_top.v
 	@echo "Building iverilog simulation for NPC architecture..."
@@ -136,9 +133,8 @@ run: $(BIN)
 yosys:
 	cd $(NPC_HOME)/../../yosys-sta && make sta DESIGN=$(YOSYSTOP) \
 											SDC_FILE=$(NPC_HOME)/ysyx_25020037.sdc \
-											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core-soc -name "*.v")" \
+											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core -name "*.v")" \
 											CLK_FREQ_MHZ=250 \
-											INCLUDE_PATH=$(NPC_HOME)/vsrc/include
 	cd $(NPC_HOME)
 
 perf:
