@@ -101,9 +101,10 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
 $(IVERILOG_BIN): ARCH=riscv32e-npc
-$(IVERILOG_BIN): TOPNAME=ysyx_25020037
+$(IVERILOG_BIN): TOPNAME=ysyx_25020037_npc
 $(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/include/*.v) \
-                 $(wildcard $(CURDIR)/vsrc/core-npc/*.v) \
+                 $(wildcard $(CURDIR)/vsrc/core/*.v) \
+                 $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                  vsrc/sim_top.v
 	@echo "Building iverilog simulation for NPC architecture..."
 	$(IVERILOG) $(IVERILOG_FLAGS) $^
