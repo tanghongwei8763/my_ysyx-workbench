@@ -47,7 +47,7 @@ INCLUDES = -I./csrc/include \
 		   -I./vsrc/include \
            -I../ysyxSoC/perip/uart16550/rtl \
            -I../ysyxSoC/perip/spi/rtl 
-VERILATOR_FLAGS += $(INCLUDES)
+VERILATOR_FLAGS += $(INCLUDES) $(VERILOG_DEFINES)
 # VERILATOR_FLAGS += $(VERILOG_DEFINES)
 
 IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
