@@ -1,4 +1,4 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
+`include "ysyx_25020037_config.vh"
 
 module ysyx_25020037_icache #(
     parameter ADDR_WIDTH    = 32,
