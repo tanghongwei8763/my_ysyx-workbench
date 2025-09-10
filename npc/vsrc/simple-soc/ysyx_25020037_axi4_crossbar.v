@@ -121,11 +121,11 @@ wire uart_rlast;
 wire [3:0] uart_rid;
 
 always @(*) begin
-    is_uart_addr = (io_master_awvalid && (io_master_awaddr == UART_BASE)) 
-                 || (io_master_arvalid && (io_master_araddr == UART_BASE));
+    is_uart_addr = ((io_master_awaddr == UART_BASE)) 
+                 || ((io_master_araddr == UART_BASE));
     
-    is_sram_addr = (io_master_awvalid && (io_master_awaddr >= SRAM_BASE_START) && (io_master_awaddr <= SRAM_BASE_END))
-                 || (io_master_arvalid && (io_master_araddr >= SRAM_BASE_START) && (io_master_araddr <= SRAM_BASE_END));
+    is_sram_addr = ((io_master_awaddr >= SRAM_BASE_START) && (io_master_awaddr <= SRAM_BASE_END))
+                 || ((io_master_araddr >= SRAM_BASE_START) && (io_master_araddr <= SRAM_BASE_END));
 end
 
 ysyx_25020037_sram sram_cpu(
