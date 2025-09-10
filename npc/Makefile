@@ -2,7 +2,7 @@ ARCH ?= riscv32e-npc
 VVP = vvp
 IVERILOG = iverilog
 ifeq ($(ARCH), riscv32e-npc)
-TOPNAME = ysyx_25020037
+TOPNAME = ysyx_25020037_npc
 else
 ifeq ($(ARCH), riscv32e-ysyxsoc)
 TOPNAME = ysyxSoCFull
@@ -74,11 +74,11 @@ CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
 VSRCS += $(wildcard $(CURDIR)/vsrc/include/*.v)
+VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
 ifeq ($(ARCH), riscv32e-npc)
-VSRCS += $(wildcard $(CURDIR)/vsrc/core-npc/*.v)
+VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc/*.v)
 else
 ifeq ($(ARCH), riscv32e-ysyxsoc)
-VSRCS += $(wildcard $(CURDIR)/vsrc/core-soc/*.v)
 VSRCS += $(shell find $(CURDIR)/../ysyxSoC/perip -type f -name "*.v")
 VSRCS += $(shell find $(CURDIR)/../ysyxSoC/build -type f -name "*.v")
 endif
