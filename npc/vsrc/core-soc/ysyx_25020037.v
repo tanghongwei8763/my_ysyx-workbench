@@ -1,6 +1,9 @@
 `include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
 
 module ysyx_25020037 (
+`ifdef __ICARUS__
+    output  wire         ebreak_end,
+`endif
     input   wire         clock,
     input   wire         reset,
     input   wire         io_interrupt,
@@ -79,7 +82,7 @@ module ysyx_25020037 (
     assign io_slave_rid     = 4'b0;
 
     parameter BLOCK_SIZE   = 32'd16;
-    parameter CACHE_BLOCKS = 32'd64;
+    parameter CACHE_BLOCKS = 32'd4;
 
 `ifdef VERILATOR
     import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
@@ -423,6 +426,9 @@ ysyx_25020037_clint u_clint (
         .eu_to_ic_bus   (eu_to_ic_bus   ),
         .pc_updata      (pc_updata      ),
         .exu_dnpc_valid (exu_dnpc_valid ),
+`ifdef __ICARUS__
+        .ebreak_end     (ebreak_end     ),
+`endif
         .exu_dnpc       (exu_dnpc       )
     );
 
