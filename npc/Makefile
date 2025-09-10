@@ -1,14 +1,15 @@
 ARCH ?= riscv32e-npc
+VERILOG_DEFINES ?= 
 VVP = vvp
 IVERILOG = iverilog
 ifeq ($(ARCH), riscv32e-npc)
 TOPNAME = ysyx_25020037_npc
-VERILOG_DEFINES += -DPC_RESET_VAL=32'h80000000
+VERILOG_DEFINES = -DPC_RESET_VAL=32'h80000000
 else
 ifeq ($(ARCH), riscv32e-ysyxsoc)
 TOPNAME = ysyxSoCFull
 CXXFLAGS += -DCONFIG_YSYXSOC
-VERILOG_DEFINES += -DPC_RESET_VAL=32'h30000000
+VERILOG_DEFINES = -DPC_RESET_VAL=32'h30000000
 endif
 endif
 YOSYSTOP = ysyx_25020037
@@ -47,6 +48,7 @@ INCLUDES = -I./csrc/include \
            -I../ysyxSoC/perip/uart16550/rtl \
            -I../ysyxSoC/perip/spi/rtl 
 VERILATOR_FLAGS += $(INCLUDES)
+# VERILATOR_FLAGS += $(VERILOG_DEFINES)
 
 IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
     -DWAVE=$(WAVE) \
@@ -98,6 +100,7 @@ endif
 
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 	@rm -rf $(OBJ_DIR)
+	@echo "VERILOG_DEFINES: $(VERILOG_DEFINES)"
 	$(VERILATOR) $(VERILATOR_FLAGS) \
 		--top-module $(TOPNAME) $^ \
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
