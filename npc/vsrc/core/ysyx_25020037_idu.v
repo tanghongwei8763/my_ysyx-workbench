@@ -28,7 +28,7 @@ module ysyx_25020037_idu (
             csr_data
            } = gu_to_du_bus;
 
-    wire [31: 0] pc;
+    wire [29: 0] pc;
     wire [31: 0] inst;
     assign {pc,
             inst

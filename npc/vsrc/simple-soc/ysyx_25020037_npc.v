@@ -1,5 +1,3 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
-
 module ysyx_25020037_npc (
 `ifdef __ICARUS__
     output  wire         sim_end,

@@ -51,7 +51,7 @@ module ysyx_25020037_lsu (
 
     localparam AXI_LEN_SINGLE = 8'h0;
     reg         exu_dnpc_valid_r;
-    wire [31:0] pc;
+    wire [29:0] pc;
     wire [ 3:0] rd;
     wire        ecall_en;
     wire        mret_en;

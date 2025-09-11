@@ -16,7 +16,7 @@ module ysyx_25020037_exu (
 `ifdef __ICARUS__
     output wire         ebreak_end,
 `endif
-    output reg  [31: 0] exu_dnpc
+    output reg  [29: 0] exu_dnpc
 );
 `ifdef VERILATOR
     import "DPI-C" function void hit(input int inst_not_realize);
@@ -36,7 +36,7 @@ module ysyx_25020037_exu (
     wire [31: 0] src1;
     wire [31: 0] src2;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
-    wire [31: 0] pc;
+    wire [29: 0] pc;
     wire [ 1: 0] lw_lh_lb;
     wire [ 1: 0] sw_sh_sb;
     wire         is_fence_i;
@@ -149,7 +149,7 @@ module ysyx_25020037_exu (
     assign src2 = bypass_src2;
     assign exu_ready = lsu_ready & !src1_wait & !src2_wait;
 
-    wire [31: 0] dnpc_r;
+    wire [29: 0] dnpc_r;
     wire [31: 0] result;
     wire [31: 0] alu_src1;
     wire [31: 0] alu_src2;
@@ -159,7 +159,7 @@ module ysyx_25020037_exu (
     wire         alu_result2;
     wire [31: 0] csr_wcsr_data;
 
-    assign alu_src1 = src1_is_pc  ? pc  : src1;
+    assign alu_src1 = src1_is_pc  ? {pc,2'b0}  : src1;
     assign alu_src2 = src2_is_imm ? imm : src2;
     assign alu_src3 = src1;
     assign alu_src4 = src2;
@@ -177,10 +177,10 @@ module ysyx_25020037_exu (
 
     assign csr_wcsr_data    = ({32{csrrw_op}} & src1)
                             | ({32{csrrs_op}} & (src1 | csr_data));
-    assign dnpc_r           = ({32{ecall_en   | mret_en    }} & csr_data)
-                            | ({32{is_pc_jump & alu_result2}} & alu_result1);
+    assign dnpc_r           = ({30{ecall_en   | mret_en    }} & csr_data[31:2])
+                            | ({30{is_pc_jump & alu_result2}} & alu_result1[31:2]);
 
-    assign result    = is_pc_jump ? pc + 32'h4 : alu_result1;
+    assign result    = is_pc_jump ? {pc, 2'b0} + 32'h4 : alu_result1;
 
     always @(posedge clk) begin
         if (lsu_ready) begin
@@ -209,8 +209,8 @@ module ysyx_25020037_exu (
             eu_to_lu_bus <= 'b0;
         end else begin
             if(exu_ready) begin
-                if(dnpc_r != 32'b0 && ~exu_dnpc_valid) begin
-                    exu_dnpc_valid <= idu_valid & (dnpc_r != pc + 32'h4);
+                if(dnpc_r != 30'b0 && ~exu_dnpc_valid) begin
+                    exu_dnpc_valid <= idu_valid & (dnpc_r != pc + 30'h1);
                     exu_dnpc <= dnpc_r;
                 end else if (pc_updata) begin
                     exu_dnpc_valid <=1'b0;

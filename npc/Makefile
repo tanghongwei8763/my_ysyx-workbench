@@ -34,7 +34,7 @@ endif
 
 ISA ?= 
 ARGS ?= 
-IMG ?= /home/tanghongwei/ysyx-workbench/npc/rtthread-riscv32e-npc.elf
+IMG ?= /home/tanghongwei/ysyx-workbench/npc/rtthread-riscv32e-npc.bin
 
 SIMULATOR = $(BIN)
 
@@ -43,11 +43,13 @@ VERILATOR_FLAGS += --trace -cc --exe \
 				   -MMD --build -cc  \
 					-O3 --x-assign fast --x-initial fast --noassert
 INCLUDES = -I./csrc/include \
+		   -I./vsrc/core \
            -I../ysyxSoC/perip/uart16550/rtl \
            -I../ysyxSoC/perip/spi/rtl 
 VERILATOR_FLAGS += $(INCLUDES) $(VERILOG_DEFINES)
 
 IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
+    -I./vsrc/core \
     -DWAVE=$(WAVE) \
     -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
     -DWAVEFORM_PATH=\"$(WAVEFORM)\"
@@ -103,15 +105,16 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 
 $(IVERILOG_BIN): ARCH=riscv32e-npc
 $(IVERILOG_BIN): TOPNAME=ysyx_25020037_npc
-$(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/core/*.v) \
+$(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/core/*.vh) \
+				 $(wildcard $(CURDIR)/vsrc/core/*.v) \
                  $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                  vsrc/sim_top.v
 	@echo "Building iverilog simulation for NPC architecture..."
 	$(IVERILOG) $(IVERILOG_FLAGS) $^
 
 $(MEM_INIT): $(IMG)
-	@echo "Generating memory init from ELF..."
-	riscv64-linux-gnu-objcopy -O verilog --adjust-vma=-0x80000000 $^ $@
+	@echo "Generating memory init from BIN..."
+	riscv64-linux-gnu-objcopy -I binary -O verilog --adjust-vma=-0x00000000 $^ $@
 
 iverilog: $(MEM_INIT) $(IVERILOG_BIN)
 	@echo "Running iverilog simulation (WAVE=$(WAVE))..."
