@@ -13,5 +13,5 @@
 `ifdef RESET_VAL
 `define PC_RESET_VAL 30'h20000000
 `else
-`define PC_RESET_VAL 30'h20000000
+`define PC_RESET_VAL 30'h0C000000
 `endif
