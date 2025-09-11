@@ -1,4 +1,4 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
+`include "ysyx_25020037_config.vh"
 
 module ysyx_25020037_icache #(
     parameter ADDR_WIDTH    = 32,
@@ -20,7 +20,7 @@ module ysyx_25020037_icache #(
     output wire                  cpu_ready,
     
     output wire                  mem_req,
-    output reg  [ADDR_WIDTH-1:0] mem_addr,
+    output wire [ADDR_WIDTH-1:0] mem_addr,
     input  wire [BLOCK_SIZE*8-1:0] mem_data,
     input  wire                  mem_ready
 );

@@ -1,7 +1,7 @@
 module sim_top();
     reg clk;
     reg rst_n;
-    reg ebreak_end;  // 来自CPU的结束信号，拉高时终止仿真
+    reg sim_end;  // 来自CPU的结束信号，拉高时终止仿真
 
 
     // 宏定义：默认路径与配置（可通过Makefile传入参数覆盖）
@@ -31,8 +31,8 @@ module sim_top();
 
 
     // 3. 例化CPU顶层模块（ysyx_25020037）
-    ysyx_25020037 u_cpu (
-        .ebreak_end(ebreak_end),  // 输出：CPU执行完后拉高
+    ysyx_25020037_npc u_cpu (
+        .sim_end(sim_end),  // 输出：CPU执行完后拉高
         .clock(clk),              // 输入：系统时钟
         .reset(~rst_n)            // 输入：复位信号（若CPU是高电平复位，此处无需取反）
     );
@@ -41,13 +41,13 @@ module sim_top();
     // 4. 核心逻辑：仅当ebreak_end拉高时结束仿真
     initial begin
         // 打印仿真启动信息
-        $display("[SIM] Simulation started. Waiting for ebreak_end...");
+        $display("[SIM] Simulation started. Waiting for sim_end...");
         
         // 等待ebreak_end信号拉高（阻塞等待，直到条件满足）
-        wait(ebreak_end == 1'b1);
+        wait(sim_end == 1'b1);
         
         // 收到结束信号后，打印信息并终止仿真
-        $display("[SIM] ebreak_end detected! Simulation completed successfully.");
+        $display("[SIM] sim_end detected! Simulation completed successfully.");
         $finish;  // 终止仿真进程
     end
 

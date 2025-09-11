@@ -1,4 +1,4 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
+`include "ysyx_25020037_config.vh"
 
 module ysyx_25020037_idu (
     input  wire         clk,
@@ -7,9 +7,7 @@ module ysyx_25020037_idu (
     input  wire         exu_ready,
     output reg          idu_valid,
     output wire         idu_ready,
-    output wire [`RS_DATA-1: 0] rs_data,
     input  wire         exu_dnpc_valid,
-    input  wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
     input  wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus,
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
 );
@@ -19,54 +17,20 @@ module ysyx_25020037_idu (
        if(idu_valid & ~rst) begin performance_counter(32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N}, 32'b0);end
     end
 `endif
-    parameter MSTATUS   = 12'h300;
-    parameter MTVEC     = 12'h305;
-    parameter MEPC      = 12'h341;
-    parameter MCAUSE    = 12'h342;
-    parameter MVENDORID = 12'hF11;
-    parameter MARCHID   = 12'hF12;
 
-    wire [31: 0] src1;
-    wire [31: 0] src2;
-    wire [31: 0] csr_data;
-    assign {src1,
-            src2,
-            csr_data
-           } = gu_to_du_bus;
-
-    wire [31: 0] pc;
+    wire [29: 0] pc;
     wire [31: 0] inst;
     assign {pc,
             inst
            } = fu_to_du_bus;
 
-    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
-    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
     wire  gpr_we;
-    assign du_to_gu_bus = {
-        //pc,
-        //rd[3:0],
-        csrs_mtvec_wen,
-        csrs_mepc_wen,
-        csrs_mstatus_wen,
-        csrs_mcause_wen
-        //inst_ecall,
-        //inst_mret       
-    };
     assign du_to_lu_bus = {
         //lw_lh_lb,   
         //sw_sh_sb,
         inst_lb,        
-        inst_lh,
-        rlsu_we,         
-        wlsu_we   
-    };
-    assign du_to_wu_bus = {
-        //gpr_we,
-        //rlsu_we,        
-        csr_w_gpr_we
-        //csr_data
+        inst_lh
     };
 
     wire [ 4: 0] rs1;
@@ -82,11 +46,6 @@ module ysyx_25020037_idu (
     wire         src2_is_imm;
     wire         is_pc_jump;
     wire         double_cal;
-    wire         csr_w_gpr_we;
-    wire         csrs_mtvec_wen;
-    wire         csrs_mepc_wen;
-    wire         csrs_mstatus_wen;
-    wire         csrs_mcause_wen;
 
     wire [ 6:0] opcode_31_25;
     wire [ 5:0] opcode_31_26;
@@ -158,7 +117,6 @@ module ysyx_25020037_idu (
     assign rs1     = inst[19:15];
     assign rs2     = inst[24:20];
     assign rd      = inst[11: 7];
-    assign rs_data = {inst_ecall, inst_mret, imm[11:0], rs1[3:0], rs2[3:0]};
 
     assign immI  = {{20{inst[31]}}, inst[31:20]};
     assign immS  = {{20{inst[31]}}, inst[31:25], inst[11:7]};
@@ -270,27 +228,18 @@ module ysyx_25020037_idu (
     assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
     assign double_cal   = TYPE_B;
 
-    assign csr_w_gpr_we = inst_csrrw | inst_csrrs;
-    assign csrs_mtvec_wen     = (imm[11:0] == MTVEC) & csr_w_gpr_we;
-    assign csrs_mepc_wen      = (imm[11:0] == MEPC) & csr_w_gpr_we;
-    assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & csr_w_gpr_we;
-    assign csrs_mcause_wen    = (imm[11:0] == MCAUSE) & csr_w_gpr_we;
-
     assign idu_ready = exu_ready;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            idu_valid <= 1'b0;
             du_to_eu_bus <= 'b0;
         end else begin
             if (exu_ready) begin
                 idu_valid <= 1'b0;
                 du_to_eu_bus <= 'b0;
                 if (ifu_valid) begin
-                    idu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
+                    idu_valid <= ~exu_dnpc_valid;
                     du_to_eu_bus <= {
-                        du_to_gu_bus,
                         du_to_lu_bus,
-                        du_to_wu_bus,
                         pc,
                         lw_lh_lb,
                         sw_sh_sb,
@@ -299,8 +248,8 @@ module ysyx_25020037_idu (
                         rd[3:0],
                         rs1[3:0],
                         rs2[3:0],
-                        src1,
-                        src2,
+                        wlsu_we,
+                        rlsu_we,
                         gpr_we,  
                         alu_op,             
                         src1_is_pc,      
@@ -310,7 +259,6 @@ module ysyx_25020037_idu (
                         inst_ebreak,
                         inst_ecall,
                         inst_mret,
-                        csr_data,
                         inst_csrrs,
                         inst_csrrw
                     };

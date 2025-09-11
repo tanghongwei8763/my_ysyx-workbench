@@ -1,4 +1,4 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
+`include "ysyx_25020037_config.vh"
 
 module ysyx_25020037_ifu #(
     parameter BLOCK_SIZE = 4
@@ -6,7 +6,7 @@ module ysyx_25020037_ifu #(
     input  wire         clk,
     input  wire         rst,
     input  wire         exu_dnpc_valid,
-    input  wire [31: 0] exu_dnpc,
+    input  wire [29: 0] exu_dnpc,
     output wire         pc_updata,
     input  wire         idu_ready,
     output reg          ifu_valid,
@@ -47,17 +47,17 @@ module ysyx_25020037_ifu #(
     reg         state, next_state;
     wire [31:0] pc;
     wire [31:0] inst = fu_to_du_bus[31:0];
-    wire [31:0] snpc = pc + 32'h4;
-    wire [31:0] dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
+    wire [29:0] snpc = pc[31:2] + 30'h1;
+    wire [29:0] dnpc = exu_dnpc_valid ? exu_dnpc : snpc;
     wire [31:0] block_base_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
     wire        is_sdram = (block_base_addr[31:28] == SDRAM_BASE) | (block_base_addr[31:28] == SDRAM_END);
     reg  [1:0]  burst_cnt;
 
-    ysyx_25020037_Reg #(32, 32'h30000000) PC (
+    ysyx_25020037_Reg #(30, `PC_RESET_VAL) PC (
         .clk         (clk      ),
         .rst         (rst      ),
         .din         (dnpc     ),
-        .dout        (pc       ),
+        .dout        (pc[31:2] ),
         .wen         (pc_updata)
     );
     assign      pc_updata = (next_state == IDLE) & idu_ready;
@@ -74,11 +74,6 @@ module ysyx_25020037_ifu #(
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
-            ifu_valid <= 1'b0;
-            arvalid <= 1'b0;
-            rready <= 1'b0;
-            mem_ready <= 1'b0;
-            access_fault <= 1'b0;
             burst_cnt <= 2'd0;
             fu_to_du_bus <= 'b0;
         end else begin
@@ -89,7 +84,7 @@ module ysyx_25020037_ifu #(
                         ifu_valid <= 1'b0;
                         fu_to_du_bus <= 'b0;
                         if (icache_hit) begin
-                            fu_to_du_bus <= {pc, icache_data};
+                            fu_to_du_bus <= {pc[31:2], icache_data};
                             ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                         end else if (mem_req) begin
                             araddr <= block_base_addr;
@@ -114,7 +109,7 @@ module ysyx_25020037_ifu #(
                     if (rvalid && rready) begin
                         access_fault <= (rresp != 2'b00);
                         mem_data[burst_cnt*32 +: 32] <= rdata;
-                        burst_cnt <= burst_cnt + 1'b1;
+                        burst_cnt <= burst_cnt + 2'b1;
                         if (is_sdram) begin
                             if (rlast) begin
                                 mem_ready <= 1'b1;
@@ -132,10 +127,12 @@ module ysyx_25020037_ifu #(
                             end
                         end
                     end
+                    ifu_valid <= 1'b0;
+                    fu_to_du_bus <= 'b0;
                     if(icache_hit & idu_ready) begin
                         mem_ready <= 1'b0;
                         mem_data <= 'b0;
-                        fu_to_du_bus <= {pc, icache_data};
+                        fu_to_du_bus <= {pc[31:2], icache_data};
                         ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     end
                 end

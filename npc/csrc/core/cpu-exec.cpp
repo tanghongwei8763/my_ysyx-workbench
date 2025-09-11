@@ -24,10 +24,10 @@ extern VysyxSoCFull *top;
 #define wdata top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_wdata
 #define awvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awvalid
 #else
-#include "Vysyx_25020037___024root.h"
-#include "Vysyx_25020037.h"
-extern Vysyx_25020037 *top;
-#define pc top->rootp->ysyx_25020037__DOT__ifu_cpu__DOT__pc
+#include "Vysyx_25020037_npc___024root.h"
+#include "Vysyx_25020037_npc.h"
+extern Vysyx_25020037_npc *top;
+#define pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__ifu_cpu__DOT__pc
 #define inst 32
 #endif
 

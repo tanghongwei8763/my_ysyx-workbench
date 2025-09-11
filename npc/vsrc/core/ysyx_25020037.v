@@ -1,6 +1,9 @@
-`include "/home/tanghongwei/ysyx-workbench/npc/vsrc/include/ysyx_25020037_config.vh"
+`include "ysyx_25020037_config.vh"
 
 module ysyx_25020037 (
+`ifdef __ICARUS__
+    output  wire         ebreak_end,
+`endif
     input   wire         clock,
     input   wire         reset,
     input   wire         io_interrupt,
@@ -92,14 +95,11 @@ module ysyx_25020037 (
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
-    wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus;
-    wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
-    wire [`DU_TO_WU_BUS_WD -1:0] du_to_wu_bus;
-    wire [`DU_TO_GU_BUS_WD -1:0] du_to_gu_bus;
+    wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus;
     wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
 
     wire [`RS_DATA-1: 0] rs_data;
-    wire [31: 0] exu_dnpc;
+    wire [29: 0] exu_dnpc;
     wire         exu_dnpc_valid;
     wire         pc_updata;
     wire [31:0]  rdata_processed;
@@ -185,14 +185,13 @@ module ysyx_25020037 (
     wire         icache_mem_ready;
 
     ysyx_25020037_gpr gpr_cpu (
-        .idu_valid        (idu_valid       ),
         .wbu_valid        (wbu_valid       ),
         .exu_ready        (exu_ready       ),
         .clk              (clock           ),
         .rst              (reset           ),
         .rs_data          (rs_data         ),
         .wu_to_gu_bus     (wu_to_gu_bus    ),
-        .gu_to_du_bus     (gu_to_du_bus    )
+        .gu_to_eu_bus     (gu_to_eu_bus    )
     );          
     
     ysyx_25020037_ifu #(
@@ -256,9 +255,7 @@ module ysyx_25020037 (
         .exu_ready      (exu_ready      ),
         .idu_valid      (idu_valid      ),
         .idu_ready      (idu_ready      ),
-        .rs_data        (rs_data        ),
         .exu_dnpc_valid (exu_dnpc_valid ),
-        .gu_to_du_bus   (gu_to_du_bus   ),
         .fu_to_du_bus   (fu_to_du_bus   ),
         .du_to_eu_bus   (du_to_eu_bus   )
         );
@@ -421,19 +418,23 @@ ysyx_25020037_clint u_clint (
         .lsu_ready      (lsu_ready      ),
         .exu_ready      (exu_ready      ),
         .exu_valid      (exu_valid      ),
+        .rs_data        (rs_data        ),
         .rdata_processed(rdata_processed),
+        .gu_to_eu_bus   (gu_to_eu_bus   ),
         .du_to_eu_bus   (du_to_eu_bus   ),
         .eu_to_lu_bus   (eu_to_lu_bus   ),
         .eu_to_ic_bus   (eu_to_ic_bus   ),
         .pc_updata      (pc_updata      ),
         .exu_dnpc_valid (exu_dnpc_valid ),
+`ifdef __ICARUS__
+        .ebreak_end     (ebreak_end     ),
+`endif
         .exu_dnpc       (exu_dnpc       )
     );
 
     ysyx_25020037_wbu wbu_cpu(
         .lsu_valid    (lsu_valid    ),
         .wbu_valid    (wbu_valid    ),
-        .wbu_ready    (wbu_ready    ),
         .clk          (clock        ),
         .rst          (reset        ),
         .lu_to_wu_bus (lu_to_wu_bus ),
