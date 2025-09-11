@@ -1,7 +1,7 @@
 `define FU_TO_DU_BUS_WD 62
 `define DU_TO_EU_BUS_WD 110
 `define EU_TO_LU_BUS_WD 114
-`define LU_TO_WU_BUS_WD 107
+`define LU_TO_WU_BUS_WD 75
 `define WU_TO_GU_BUS_WD 74
 `define GU_TO_EU_BUS_WD 32*3
 

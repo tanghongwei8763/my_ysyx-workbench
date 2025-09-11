@@ -154,7 +154,6 @@ module ysyx_25020037_lsu (
                                 gpr_we,
                                 is_read,
                                 csr_wcsr_data,
-                                addr,
                                 addr
                             };
                         end
@@ -177,7 +176,6 @@ module ysyx_25020037_lsu (
                                 gpr_we,
                                 is_read,
                                 csr_wcsr_data,
-                                addr, 
                                 rdata_processed
                                 };
                             lsu_valid <= 1'b1;
