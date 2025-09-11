@@ -157,6 +157,7 @@ module ysyx_25020037_exu (
     wire [31: 0] alu_result1;
     wire         alu_result2;
     wire [31: 0] csr_wcsr_data;
+    wire [31: 0] data_channel;
 
     assign alu_src1 = src1_is_pc  ? {pc,2'b0}  : src1;
     assign alu_src2 = src2_is_imm ? imm : src2;
@@ -183,6 +184,8 @@ module ysyx_25020037_exu (
     assign result    = is_pc_jump   ? {pc, 2'b0} + 32'h4 : 
                        csr_w_gpr_we ? csr_data           :
                        alu_result1;
+
+    assign data_channel = is_write ? src2 : csr_wcsr_data;
 
     always @(posedge clk) begin
         if (lsu_ready) begin
@@ -233,9 +236,8 @@ module ysyx_25020037_exu (
                         is_read,
                         du_to_lu_bus,
                         gpr_we,
-                        csr_wcsr_data,       
-                        result,
-                        src2
+                        data_channel,
+                        result
                     };
                     eu_to_ic_bus <= is_fence_i;
                 end
