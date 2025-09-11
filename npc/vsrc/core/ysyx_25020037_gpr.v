@@ -18,7 +18,6 @@ module ysyx_25020037_gpr (
   parameter MVENDORID = 12'hF11;
   parameter MARCHID   = 12'hF12;
 
-  wire [29: 0] pc;
   wire [ 3: 0] rd;
   wire         ecall_en;
   wire         mret_en;
@@ -47,8 +46,7 @@ module ysyx_25020037_gpr (
     end
   endgenerate
 
-  assign {pc,
-          rd,
+  assign {rd,
           ecall_en,
           mret_en,
           eu_to_gu_bus,
@@ -85,13 +83,11 @@ module ysyx_25020037_gpr (
                          | ({32{imm == MARCHID  }} & marchid);
   wire         mepc_wen;
   wire         mstatus_wen;
-  wire [31: 0] mepc_data;
   wire [31: 0] mstatus_data;
 
   assign mepc_wen     = ecall_en | csrs_mepc_wen;
   assign mstatus_wen  = ecall_en | mret_en  | csrs_mstatus_wen;
  
-  assign mepc_data    = ecall_en ? {pc, 2'b0}: csr_wcsr_data;
   assign mstatus_data = ecall_en ? 32'h1800  :
                         mret_en  ? ((mstatus & ~(32'h1 << 3))
                       | (((mstatus & (32'h1 << 7)) >> 4))
@@ -111,7 +107,7 @@ module ysyx_25020037_gpr (
   ysyx_25020037_Reg #(32, 32'h0) CSRS_mepc (
     .clk         (clk             ),
     .rst         (rst             ),
-    .din         (mepc_data       ),
+    .din         (csr_wcsr_data   ),
     .dout        (mepc            ),
     .wen         (mepc_wen & wbu_valid)
   );

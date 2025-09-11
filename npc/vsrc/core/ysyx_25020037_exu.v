@@ -176,7 +176,8 @@ module ysyx_25020037_exu (
         );
 
     assign csr_wcsr_data    = ({32{csrrw_op}} & src1)
-                            | ({32{csrrs_op}} & (src1 | csr_data));
+                            | ({32{csrrs_op}} & (src1 | csr_data))
+                            | ({32{ecall_en}} & {pc,2'b0});
     assign dnpc_r           = ({30{ecall_en   | mret_en    }} & csr_data[31:2])
                             | ({30{is_pc_jump & alu_result2}} & alu_result1[31:2]);
 
@@ -221,7 +222,6 @@ module ysyx_25020037_exu (
                 if (idu_valid) begin
                     exu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     eu_to_lu_bus <= {
-                        pc,
                         rd,
                         ecall_en,
                         mret_en,

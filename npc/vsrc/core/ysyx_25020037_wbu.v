@@ -8,7 +8,6 @@ module ysyx_25020037_wbu (
     input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
     output reg  [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus
 );
-    wire [29: 0] pc;
     wire [ 3: 0] rd;
     wire         ecall_en;
     wire         mret_en;
@@ -20,8 +19,7 @@ module ysyx_25020037_wbu (
     wire [31: 0] addr;
     wire [31: 0] csr_wcsr_data;
     wire [31: 0] rdata_processed;
-    assign {pc,
-            rd,
+    assign {rd,
             ecall_en,
             mret_en,
             eu_to_gu_bus,
@@ -45,7 +43,6 @@ module ysyx_25020037_wbu (
         if (lsu_valid) begin
             wbu_valid <= 1'b1;
             wu_to_gu_bus <= {
-                pc,
                 rd,
                 ecall_en,
                 mret_en,

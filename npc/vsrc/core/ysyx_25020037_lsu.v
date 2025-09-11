@@ -51,7 +51,6 @@ module ysyx_25020037_lsu (
 
     localparam AXI_LEN_SINGLE = 8'h0;
     reg         exu_dnpc_valid_r;
-    wire [29:0] pc;
     wire [ 3:0] rd;
     wire        ecall_en;
     wire        mret_en;
@@ -69,8 +68,7 @@ module ysyx_25020037_lsu (
     wire [31:0] data;
     wire [31:0] addr_off = addr & 32'b11;
     wire [31:0] aligned_wdata = data << (addr_off << 3);
-    assign {pc,
-            rd,
+    assign {rd,
             ecall_en,
             mret_en,
             eu_to_gu_bus,
@@ -153,7 +151,6 @@ module ysyx_25020037_lsu (
                         end else begin
                             lsu_valid <= 1'b1;
                             lu_to_wu_bus <= {
-                                pc,
                                 rd,
                                 ecall_en,
                                 mret_en,
@@ -179,7 +176,6 @@ module ysyx_25020037_lsu (
                         end
                         if (rvalid && rready) begin
                             lu_to_wu_bus <= {
-                                pc,
                                 rd,
                                 ecall_en,
                                 mret_en,
