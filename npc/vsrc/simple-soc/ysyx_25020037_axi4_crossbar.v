@@ -67,9 +67,6 @@ localparam SRAM_BASE_START = 32'h80000000;
 localparam SRAM_BASE_END   = 32'h8fffffff;
 localparam UART_BASE       = 32'h10000000;
 
-reg is_uart_addr;
-reg is_sram_addr;
-
 wire sram_awready, sram_awvalid;
 wire [31:0] sram_awaddr;
 wire [3:0] sram_awid;
@@ -120,12 +117,38 @@ wire [31:0] uart_rdata;
 wire uart_rlast;
 wire [3:0] uart_rid;
 
+localparam IDLE    = 1'b0;
+localparam BUSY    = 1'b1;
+reg       is_uart_addr;
+reg       is_sram_addr;
+reg       state, next_state;
+
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        state <= IDLE;
+        is_sram_addr   <= 1'b0;
+        is_uart_addr   <= 1'b0;
+    end else begin
+        state <= next_state;
+        case (state)
+            IDLE: begin
+                is_uart_addr  <= (io_master_arvalid & (io_master_araddr == UART_BASE)) |
+                                 (io_master_awvalid & (io_master_awaddr == UART_BASE));
+                is_sram_addr  <= (io_master_arvalid & ((io_master_araddr >= SRAM_BASE_START) & (io_master_araddr <= SRAM_BASE_END))) |
+                                 (io_master_awvalid & ((io_master_awaddr >= SRAM_BASE_START) & (io_master_awaddr <= SRAM_BASE_END)));
+            end
+            default: begin end
+        endcase
+    end
+end
+
 always @(*) begin
-    is_uart_addr = ((io_master_awaddr == UART_BASE)) 
-                 || ((io_master_araddr == UART_BASE));
-    
-    is_sram_addr = ((io_master_awaddr >= SRAM_BASE_START) && (io_master_awaddr <= SRAM_BASE_END))
-                 || ((io_master_araddr >= SRAM_BASE_START) && (io_master_araddr <= SRAM_BASE_END));
+    case (state)
+        IDLE: next_state = (io_master_arvalid || io_master_awvalid) ? BUSY : IDLE;
+        BUSY: next_state = ((sram_rvalid & sram_rready) || (sram_bvalid & sram_bready)) |
+                           ((uart_rvalid & uart_rready) || (uart_bvalid & uart_bready)) ? IDLE : BUSY;
+        default: next_state = IDLE;
+    endcase
 end
 
 ysyx_25020037_sram sram_cpu(
