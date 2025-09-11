@@ -61,8 +61,6 @@ module ysyx_25020037_lsu (
     wire        is_read;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire        gpr_we;
-    wire [31:0] csr_data;
-    wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     wire [31:0] addr;
     wire [31:0] csr_wcsr_data;
     wire [31:0] data;
@@ -78,8 +76,6 @@ module ysyx_25020037_lsu (
             is_read,
             du_to_lu_bus,
             gpr_we,
-            csr_data,
-            eu_to_wu_bus, 
             csr_wcsr_data,     
             addr,
             data
@@ -157,8 +153,6 @@ module ysyx_25020037_lsu (
                                 eu_to_gu_bus,
                                 gpr_we,
                                 is_read,
-                                csr_data,
-                                eu_to_wu_bus,
                                 csr_wcsr_data,
                                 addr,
                                 addr
@@ -182,8 +176,6 @@ module ysyx_25020037_lsu (
                                 eu_to_gu_bus,
                                 gpr_we,
                                 is_read,
-                                csr_data,
-                                eu_to_wu_bus,
                                 csr_wcsr_data,
                                 addr, 
                                 rdata_processed

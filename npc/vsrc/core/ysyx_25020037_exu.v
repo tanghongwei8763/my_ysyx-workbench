@@ -104,7 +104,6 @@ module ysyx_25020037_exu (
     assign csrs_mstatus_wen   = (imm[11:0] == MSTATUS) & csr_w_gpr_we;
 
     wire [`EU_TO_GU_BUS_WD -1:0] eu_to_gu_bus;
-    wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     assign eu_to_gu_bus = {
         //pc,
         //rd[3:0],
@@ -113,12 +112,6 @@ module ysyx_25020037_exu (
         csrs_mstatus_wen
         //inst_ecall,
         //inst_mret       
-    };
-    assign eu_to_wu_bus = {
-        //gpr_we,
-        //rlsu_we,        
-        csr_w_gpr_we
-        //csr_data
     };
     reg src1_wait;
     reg src2_wait;
@@ -187,7 +180,9 @@ module ysyx_25020037_exu (
     assign dnpc_r           = ({30{ecall_en   | mret_en    }} & csr_data[31:2])
                             | ({30{is_pc_jump & alu_result2}} & alu_result1[31:2]);
 
-    assign result    = is_pc_jump ? {pc, 2'b0} + 32'h4 : alu_result1;
+    assign result    = is_pc_jump   ? {pc, 2'b0} + 32'h4 : 
+                       csr_w_gpr_we ? csr_data           :
+                       alu_result1;
 
     always @(posedge clk) begin
         if (lsu_ready) begin
@@ -205,7 +200,7 @@ module ysyx_25020037_exu (
                 bypass_is_load[i]  <= bypass_is_load[i - 1];
             end
             bypass_rd[0]       <= gpr_we ? rd      : bypass_rd[0];
-            bypass_data[0]     <= gpr_we ? (csrrs_op | csrrw_op) ? csr_data : result : bypass_data[0];
+            bypass_data[0]     <= gpr_we ? result  : bypass_data[0];
             bypass_is_load[0]  <= gpr_we ? is_read : bypass_is_load[0];
         end
     end
@@ -238,8 +233,6 @@ module ysyx_25020037_exu (
                         is_read,
                         du_to_lu_bus,
                         gpr_we,
-                        csr_data,
-                        eu_to_wu_bus,  
                         csr_wcsr_data,       
                         result,
                         src2
