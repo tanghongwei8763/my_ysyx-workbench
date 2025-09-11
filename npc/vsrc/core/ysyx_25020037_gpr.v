@@ -7,7 +7,7 @@ module ysyx_25020037_gpr (
   input  wire         clk,
   input  wire         rst,
   input  wire [`RS_DATA-1: 0] rs_data,
-  output wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
+  output wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus,
   input  wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus
 );
 
@@ -122,7 +122,7 @@ module ysyx_25020037_gpr (
   
   assign src1 = regs[rs1];
   assign src2 = regs[rs2];
-  assign gu_to_du_bus = {           
+  assign gu_to_eu_bus = {           
            src1,
            src2,
            csr_data

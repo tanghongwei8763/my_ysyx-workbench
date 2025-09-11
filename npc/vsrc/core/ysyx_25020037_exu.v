@@ -7,7 +7,9 @@ module ysyx_25020037_exu (
     input  wire         lsu_ready,
     output reg          exu_valid,
     output wire         exu_ready,
+    output wire [`RS_DATA-1: 0] rs_data,
     input  wire [31: 0] rdata_processed,
+    input  wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus,
     input  wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
@@ -33,6 +35,16 @@ module ysyx_25020037_exu (
     reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
     reg        bypass_is_load[BYPASS_DEPTH-1:0];
 
+    assign rs_data = {ecall_en, mret_en, imm[11:0], rs1, rs2};
+
+    wire [31: 0] src1_r;
+    wire [31: 0] src2_r;
+    wire [31: 0] csr_data;
+    assign {src1_r,
+            src2_r,
+            csr_data
+           } = gu_to_eu_bus;
+
     wire [31: 0] src1;
     wire [31: 0] src2;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
@@ -44,8 +56,6 @@ module ysyx_25020037_exu (
     wire [ 3: 0] rd;
     wire [ 3: 0] rs1;
     wire [ 3: 0] rs2;
-    wire [31: 0] src1_r;
-    wire [31: 0] src2_r;
     wire         is_write;
     wire         is_read;
     wire         gpr_we;
@@ -57,7 +67,6 @@ module ysyx_25020037_exu (
     wire         ebreak;
     wire         ecall_en;
     wire         mret_en;
-    wire [31: 0] csr_data;
     wire         csrrs_op;
     wire         csrrw_op;
     assign {du_to_lu_bus,
@@ -69,8 +78,6 @@ module ysyx_25020037_exu (
             rd,
             rs1,
             rs2,
-            src1_r,
-            src2_r, 
             is_write,
             is_read,
             gpr_we,
@@ -82,7 +89,6 @@ module ysyx_25020037_exu (
             ebreak,
             ecall_en,
             mret_en,
-            csr_data,
             csrrs_op,
             csrrw_op
            } = du_to_eu_bus;

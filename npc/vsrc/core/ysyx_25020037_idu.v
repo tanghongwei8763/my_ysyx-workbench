@@ -7,9 +7,7 @@ module ysyx_25020037_idu (
     input  wire         exu_ready,
     output reg          idu_valid,
     output wire         idu_ready,
-    output wire [`RS_DATA-1: 0] rs_data,
     input  wire         exu_dnpc_valid,
-    input  wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus,
     input  wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus,
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
 );
@@ -19,14 +17,6 @@ module ysyx_25020037_idu (
        if(idu_valid & ~rst) begin performance_counter(32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N}, 32'b0);end
     end
 `endif
-
-    wire [31: 0] src1;
-    wire [31: 0] src2;
-    wire [31: 0] csr_data;
-    assign {src1,
-            src2,
-            csr_data
-           } = gu_to_du_bus;
 
     wire [29: 0] pc;
     wire [31: 0] inst;
@@ -127,7 +117,6 @@ module ysyx_25020037_idu (
     assign rs1     = inst[19:15];
     assign rs2     = inst[24:20];
     assign rd      = inst[11: 7];
-    assign rs_data = {inst_ecall, inst_mret, imm[11:0], rs1[3:0], rs2[3:0]};
 
     assign immI  = {{20{inst[31]}}, inst[31:20]};
     assign immS  = {{20{inst[31]}}, inst[31:25], inst[11:7]};
@@ -248,7 +237,7 @@ module ysyx_25020037_idu (
                 idu_valid <= 1'b0;
                 du_to_eu_bus <= 'b0;
                 if (ifu_valid) begin
-                    idu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
+                    idu_valid <= ~exu_dnpc_valid;
                     du_to_eu_bus <= {
                         du_to_lu_bus,
                         pc,
@@ -259,8 +248,6 @@ module ysyx_25020037_idu (
                         rd[3:0],
                         rs1[3:0],
                         rs2[3:0],
-                        src1,
-                        src2,
                         wlsu_we,
                         rlsu_we,
                         gpr_we,  
@@ -272,7 +259,6 @@ module ysyx_25020037_idu (
                         inst_ebreak,
                         inst_ecall,
                         inst_mret,
-                        csr_data,
                         inst_csrrs,
                         inst_csrrw
                     };

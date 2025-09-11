@@ -95,7 +95,7 @@ module ysyx_25020037 (
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus;
     wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
-    wire [`GU_TO_DU_BUS_WD -1:0] gu_to_du_bus;
+    wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus;
     wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
 
     wire [`RS_DATA-1: 0] rs_data;
@@ -191,7 +191,7 @@ module ysyx_25020037 (
         .rst              (reset           ),
         .rs_data          (rs_data         ),
         .wu_to_gu_bus     (wu_to_gu_bus    ),
-        .gu_to_du_bus     (gu_to_du_bus    )
+        .gu_to_eu_bus     (gu_to_eu_bus    )
     );          
     
     ysyx_25020037_ifu #(
@@ -255,9 +255,7 @@ module ysyx_25020037 (
         .exu_ready      (exu_ready      ),
         .idu_valid      (idu_valid      ),
         .idu_ready      (idu_ready      ),
-        .rs_data        (rs_data        ),
         .exu_dnpc_valid (exu_dnpc_valid ),
-        .gu_to_du_bus   (gu_to_du_bus   ),
         .fu_to_du_bus   (fu_to_du_bus   ),
         .du_to_eu_bus   (du_to_eu_bus   )
         );
@@ -420,7 +418,9 @@ ysyx_25020037_clint u_clint (
         .lsu_ready      (lsu_ready      ),
         .exu_ready      (exu_ready      ),
         .exu_valid      (exu_valid      ),
+        .rs_data        (rs_data        ),
         .rdata_processed(rdata_processed),
+        .gu_to_eu_bus   (gu_to_eu_bus   ),
         .du_to_eu_bus   (du_to_eu_bus   ),
         .eu_to_lu_bus   (eu_to_lu_bus   ),
         .eu_to_ic_bus   (eu_to_ic_bus   ),
