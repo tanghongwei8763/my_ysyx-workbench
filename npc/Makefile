@@ -85,8 +85,8 @@ endif
 CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
-VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
-# VSRCS += $(wildcard $(CURDIR)/vsrc/ysyx_25020037.v)
+# VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
+VSRCS += $(wildcard $(CURDIR)/vsrc/ysyx_25020037.v)
 ifeq ($(ARCH), riscv32e-npc)
 VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc/*.v)
 else
