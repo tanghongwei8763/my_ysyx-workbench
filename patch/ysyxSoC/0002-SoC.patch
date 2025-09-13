@@ -1,7 +1,7 @@
 From 237289ff873daf42694f2b8feaa95756fc0dd68b Mon Sep 17 00:00:00 2001
 From: Tanghongwei <tanghongwei2024@outlook.com>
 Date: Sat, 13 Sep 2025 21:48:01 +0800
-Subject: [PATCH 2/2] SoC
+Subject: [PATCH 2/3] SoC
 
 ---
  perip/amba/apb_delayer.v  | 152 +++++------
