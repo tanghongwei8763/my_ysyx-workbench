@@ -6,6 +6,7 @@ CELLS ?= /home/tanghongwei/yosys-sta/nangate45/sim/cells.v
 VERILOG_MERGED = $(BUILD_DIR)/ysyx_25020037.v
 ifeq ($(ARCH), riscv32e-npc)
 TOPNAME = ysyx_25020037_npc
+VERILOG_DEFINES = -DRESET_VAL
 else
 ifeq ($(ARCH), riscv32e-ysyxsoc)
 TOPNAME = ysyxSoCFull
@@ -49,7 +50,7 @@ INCLUDES = -I./csrc/include \
 		   -I./vsrc/core \
            -I../ysyxSoC/perip/uart16550/rtl \
            -I../ysyxSoC/perip/spi/rtl 
-VERILATOR_FLAGS += $(INCLUDES)
+VERILATOR_FLAGS += $(INCLUDES) $(VERILOG_DEFINES)
 
 IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
     -I./vsrc/core \
