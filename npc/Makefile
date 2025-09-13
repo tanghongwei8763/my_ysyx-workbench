@@ -1,9 +1,9 @@
-ARCH ?= riscv32e-npc
-VERILOG_DEFINES ?= 
+ARCH ?= riscv32e-ysyxsoc
 VVP = vvp
 IVERILOG = iverilog
 NETLIST ?= /home/tanghongwei/yosys-sta/result/ysyx_25020037-250MHz/ysyx_25020037.v
 CELLS ?= /home/tanghongwei/yosys-sta/nangate45/sim/cells.v
+VERILOG_MERGED = $(BUILD_DIR)/ysyx_25020037.v
 ifeq ($(ARCH), riscv32e-npc)
 TOPNAME = ysyx_25020037_npc
 VERILOG_DEFINES = -DRESET_VAL
@@ -105,6 +105,24 @@ ifeq ($(nvboard), 1)
 CXXFLAGS += -DCONFIG_NVBOARD
 endif
 
+$(VERILOG_MERGED): $(wildcard $(CURDIR)/vsrc/core/*.v) $(wildcard $(CURDIR)/vsrc/core/*.vh)
+	@echo "Merging core Verilog files into $@..."
+	@echo "// Merged Verilog file with PC reset value 0x30000000" > $@
+	@echo \`define RESET_VAL 0 >> $@
+	@echo "" >> $@
+	
+	@for file in $(wildcard $(CURDIR)/vsrc/core/*.vh); do \
+		echo "// Included from $$file" >> $@; \
+		cat $$file >> $@; \
+		echo "" >> $@; \
+	done
+	
+	@for file in $(wildcard $(CURDIR)/vsrc/core/*.v); do \
+		echo "// Included from $$file" >> $@; \
+		cat $$file >> $@; \
+		echo "" >> $@; \
+	done
+
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_FLAGS) \
@@ -114,8 +132,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 
 $(IVERILOG_BIN): ARCH=riscv32e-npc
 $(IVERILOG_BIN): TOPNAME=ysyx_25020037_npc
-$(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/core/*.vh) \
-				 $(wildcard $(CURDIR)/vsrc/core/*.v) \
+$(IVERILOG_BIN): $(wildcard $(CURDIR)/build/ysyx_25020037.v) \
                  $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                  vsrc/sim_top.v
 	@echo "Building iverilog simulation for NPC architecture..."
@@ -149,6 +166,9 @@ sim-iverilog-netlist: $(MEM_INIT) $(IVERILOG_BIN_NETLIST)
 	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM_NETLIST) ]; then \
 		echo "Netlist Simulation Waveform: $(WAVEFORM_NETLIST)"; \
 	fi
+
+verilog: $(VERILOG_MERGED)
+	@echo "Generated merged Verilog file: $(VERILOG_MERGED)"
 
 run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
