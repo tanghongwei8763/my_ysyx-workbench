@@ -1,12 +1,11 @@
-ARCH ?= riscv32e-npc
-VERILOG_DEFINES ?= 
+ARCH ?= riscv32e-ysyxsoc
 VVP = vvp
 IVERILOG = iverilog
 NETLIST ?= /home/tanghongwei/yosys-sta/result/ysyx_25020037-250MHz/ysyx_25020037.v
 CELLS ?= /home/tanghongwei/yosys-sta/nangate45/sim/cells.v
+VERILOG_MERGED = $(BUILD_DIR)/ysyx_25020037.v
 ifeq ($(ARCH), riscv32e-npc)
 TOPNAME = ysyx_25020037_npc
-VERILOG_DEFINES = -DRESET_VAL
 else
 ifeq ($(ARCH), riscv32e-ysyxsoc)
 TOPNAME = ysyxSoCFull
@@ -50,7 +49,7 @@ INCLUDES = -I./csrc/include \
 		   -I./vsrc/core \
            -I../ysyxSoC/perip/uart16550/rtl \
            -I../ysyxSoC/perip/spi/rtl 
-VERILATOR_FLAGS += $(INCLUDES) $(VERILOG_DEFINES)
+VERILATOR_FLAGS += $(INCLUDES)
 
 IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
     -I./vsrc/core \
@@ -86,7 +85,8 @@ endif
 CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
-VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
+# VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
+VSRCS += $(wildcard $(CURDIR)/vsrc/ysyx_25020037.v)
 ifeq ($(ARCH), riscv32e-npc)
 VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc/*.v)
 else
@@ -104,6 +104,24 @@ CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 ifeq ($(nvboard), 1)
 CXXFLAGS += -DCONFIG_NVBOARD
 endif
+
+$(VERILOG_MERGED): $(wildcard $(CURDIR)/vsrc/core/*.v) $(wildcard $(CURDIR)/vsrc/core/*.vh)
+	@echo "Merging core Verilog files into $@..."
+	@echo "// Merged Verilog file with PC reset value 0x30000000" > $@
+	@echo \`define RESET_VAL 0 >> $@
+	@echo "" >> $@
+	
+	@for file in $(wildcard $(CURDIR)/vsrc/core/*.vh); do \
+		echo "// Included from $$file" >> $@; \
+		cat $$file >> $@; \
+		echo "" >> $@; \
+	done
+	
+	@for file in $(wildcard $(CURDIR)/vsrc/core/*.v); do \
+		echo "// Included from $$file" >> $@; \
+		cat $$file >> $@; \
+		echo "" >> $@; \
+	done
 
 $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 	@rm -rf $(OBJ_DIR)
@@ -149,6 +167,9 @@ sim-iverilog-netlist: $(MEM_INIT) $(IVERILOG_BIN_NETLIST)
 	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM_NETLIST) ]; then \
 		echo "Netlist Simulation Waveform: $(WAVEFORM_NETLIST)"; \
 	fi
+
+verilog: $(VERILOG_MERGED)
+	@echo "Generated merged Verilog file: $(VERILOG_MERGED)"
 
 run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
