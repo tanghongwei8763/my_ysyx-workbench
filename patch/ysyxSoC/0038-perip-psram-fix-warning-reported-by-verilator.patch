@@ -1,0 +1,120 @@
+From da22d4cf75926e39504b8a89b3f237dc7a38ec3f Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Tue, 19 Dec 2023 11:24:22 +0800
+Subject: [PATCH 38/74] perip,psram: fix warning reported by verilator
+
+---
+ perip/psram/efabless/EF_PSRAM_CTRL.v    | 16 ++++++++--------
+ perip/psram/efabless/EF_PSRAM_CTRL_wb.v |  6 ++++--
+ 2 files changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/perip/psram/efabless/EF_PSRAM_CTRL.v b/perip/psram/efabless/EF_PSRAM_CTRL.v
+index 3564858a..4305b2be 100644
+--- a/perip/psram/efabless/EF_PSRAM_CTRL.v
++++ b/perip/psram/efabless/EF_PSRAM_CTRL.v
+@@ -76,7 +76,7 @@ module PSRAM_READER (
+         endcase
+ 
+     always @ (posedge clk or negedge rst_n)
+-        if(!rst_n) state = IDLE;
++        if(!rst_n) state <= IDLE;
+         else state <= nstate;
+ 
+     // Drive the Serial Clock (sck) @ clk/2
+@@ -113,13 +113,13 @@ module PSRAM_READER (
+             saddr <= {addr[23:0]};
+ 
+     // Sample with the negedge of sck
+-    wire[7:0] byte_index = counter/2 - 10;
++    wire[1:0] byte_index = {counter[7:1] - 8'd10}[1:0];
+     always @ (posedge clk)
+         if(counter >= 20 && counter <= FINAL_COUNT)
+             if(sck)
+                 data[byte_index] <= {data[byte_index][3:0], din}; // Optimize!
+ 
+-    assign dout     =   (counter < 8)   ?   CMD_EBH[7 - counter]:
++    assign dout     =   (counter < 8)   ?   {3'b0, CMD_EBH[7 - counter]}:
+                         (counter == 8)  ?   saddr[23:20]        :
+                         (counter == 9)  ?   saddr[19:16]        :
+                         (counter == 10) ?   saddr[15:12]        :
+@@ -157,7 +157,7 @@ module PSRAM_WRITER (
+     output  wire [3:0]      dout,
+     output  wire            douten
+ );
+-    localparam  DATA_START = 14;
++    //localparam  DATA_START = 14;
+     localparam  IDLE = 1'b0,
+                 READ = 1'b1;
+ 
+@@ -166,7 +166,7 @@ module PSRAM_WRITER (
+     reg         state, nstate;
+     reg [7:0]   counter;
+     reg [23:0]  saddr;
+-    reg [7:0]   data [3:0];
++    //reg [7:0]   data [3:0];
+ 
+     wire[7:0]   CMD_38H = 8'h38;
+ 
+@@ -177,7 +177,7 @@ module PSRAM_WRITER (
+         endcase
+ 
+     always @ (posedge clk or negedge rst_n)
+-        if(!rst_n) state = IDLE;
++        if(!rst_n) state <= IDLE;
+         else state <= nstate;
+ 
+     // Drive the Serial Clock (sck) @ clk/2
+@@ -212,7 +212,7 @@ module PSRAM_WRITER (
+         else if((state == IDLE) && wr)
+             saddr <= addr;
+ 
+-    assign dout     =   (counter < 8)   ?   CMD_38H[7 - counter]:
++    assign dout     =   (counter < 8)   ?   {3'b0, CMD_38H[7 - counter]}:
+                         (counter == 8)  ?   saddr[23:20]        :
+                         (counter == 9)  ?   saddr[19:16]        :
+                         (counter == 10) ?   saddr[15:12]        :
+@@ -233,4 +233,4 @@ module PSRAM_WRITER (
+     assign done     = (counter == FINAL_COUNT);
+ 
+ 
+-endmodule
+\ No newline at end of file
++endmodule
+diff --git a/perip/psram/efabless/EF_PSRAM_CTRL_wb.v b/perip/psram/efabless/EF_PSRAM_CTRL_wb.v
+index 739a8cc8..7b5296db 100644
+--- a/perip/psram/efabless/EF_PSRAM_CTRL_wb.v
++++ b/perip/psram/efabless/EF_PSRAM_CTRL_wb.v
+@@ -60,13 +60,13 @@ module EF_PSRAM_CTRL_wb (
+     wire        mw_wr;
+     wire        mw_done;
+ 
+-    wire        doe;
++    //wire        doe;
+ 
+     // WB Control Signals
+     wire        wb_valid        =   cyc_i & stb_i;
+     wire        wb_we           =   we_i & wb_valid;
+     wire        wb_re           =   ~we_i & wb_valid;
+-    wire[3:0]   wb_byte_sel     =   sel_i & {4{wb_we}};
++    //wire[3:0]   wb_byte_sel     =   sel_i & {4{wb_we}};
+ 
+     // The FSM
+     reg         state, nstate;
+@@ -118,12 +118,14 @@ module EF_PSRAM_CTRL_wb (
+ 
+     wire [31:0] wdata = {byte3, byte2, byte1, byte0};
+ 
++    /*
+     wire [1:0]  waddr = (size==1 && sel_i[0]==1) ? 2'b00 :
+                         (size==1 && sel_i[1]==1) ? 2'b01 :
+                         (size==1 && sel_i[2]==1) ? 2'b10 :
+                         (size==1 && sel_i[3]==1) ? 2'b11 :
+                         (size==2 && sel_i[2]==1) ? 2'b10 :
+                         2'b00;
++                      */
+ 
+     assign mr_rd    = ( (state==ST_IDLE ) & wb_re );
+     assign mw_wr    = ( (state==ST_IDLE ) & wb_we );
+-- 
+2.34.1
+

@@ -1,0 +1,27 @@
+From e9f385d2d2c9d1fd41efbacb91f22ea6facd60d1 Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Mon, 20 Sep 2021 01:05:28 +0800
+Subject: [PATCH 27/74] amba,AXI4ToAPB: do not allow read to preempt write
+
+---
+ src/amba/AXI4ToAPB.scala | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/amba/AXI4ToAPB.scala b/src/amba/AXI4ToAPB.scala
+index 28cf81ed..234d03fe 100644
+--- a/src/amba/AXI4ToAPB.scala
++++ b/src/amba/AXI4ToAPB.scala
+@@ -69,7 +69,9 @@ class AXI4ToAPB(val aFlow: Boolean = true)(implicit p: Parameters) extends LazyM
+ 
+       val ar_enable = RegInit(false.B)
+       val aw_enable = RegInit(false.B)
+-      val ar_sel    = ar.valid && RegNext(!in.r.valid || in.r.ready)
++      // read can not preempt write
++      val ar_sel    = ar.valid && !aw_enable && RegNext(!in.r.valid || in.r.ready)
++      // read has higher priority than write in the same cycle
+       val aw_sel    = aw.valid && w.valid && !ar_sel && RegNext(!in.b.valid || in.b.ready)
+ 
+       val enable_r = ar_sel && !ar_enable
+-- 
+2.34.1
+

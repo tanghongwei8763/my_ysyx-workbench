@@ -1,0 +1,27 @@
+From 4e5f9a8241356c498fdb5e03e0ebb7b56ada0cae Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Sun, 31 Dec 2023 20:59:03 +0800
+Subject: [PATCH 52/74] device,SDRAM: add dummy module for sdramChisel
+
+---
+ src/device/SDRAM.scala | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/device/SDRAM.scala b/src/device/SDRAM.scala
+index 9287d167..7879b3c1 100644
+--- a/src/device/SDRAM.scala
++++ b/src/device/SDRAM.scala
+@@ -45,6 +45,10 @@ class sdram extends BlackBox {
+   val io = IO(Flipped(new SDRAMIO))
+ }
+ 
++class sdramChisel extends RawModule {
++  val io = IO(Flipped(new SDRAMIO))
++}
++
+ class AXI4SDRAM(address: Seq[AddressSet])(implicit p: Parameters) extends LazyModule {
+   val beatBytes = 8
+   val node = AXI4SlaveNode(Seq(AXI4SlavePortParameters(
+-- 
+2.34.1
+

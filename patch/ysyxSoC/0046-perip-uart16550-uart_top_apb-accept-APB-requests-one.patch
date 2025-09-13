@@ -1,0 +1,29 @@
+From 5328f569e8253e40adfda5cafb33def563e55548 Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Sat, 30 Dec 2023 11:40:34 +0800
+Subject: [PATCH 46/74] perip,uart16550,uart_top_apb: accept APB requests one
+ cycle earlier
+
+---
+ perip/uart16550/rtl/uart_top_apb.v | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/perip/uart16550/rtl/uart_top_apb.v b/perip/uart16550/rtl/uart_top_apb.v
+index 93f613cc..6be5532c 100644
+--- a/perip/uart16550/rtl/uart_top_apb.v
++++ b/perip/uart16550/rtl/uart_top_apb.v
+@@ -34,9 +34,8 @@ module uart_top_apb (
+    //--------------------------------------------------------
+    assign in_pready = in_psel && in_penable;
+    assign in_pslverr = 1'b0;
+-   //assign reg_we  = resetn & in_psel & ~in_penable &  in_pwrite;
+-   assign reg_we  = resetn & in_psel & in_penable &  in_pwrite;
+-   assign reg_re  = resetn & in_psel & in_penable & ~in_pwrite;
++   assign reg_we  = resetn & in_psel & ~in_penable &  in_pwrite;
++   assign reg_re  = resetn & in_psel & ~in_penable & ~in_pwrite;
+    assign reg_adr = in_paddr[2:0]; //assign adr_o   = in_paddr[2:0];
+    assign in_prdata  = (in_psel) ? {4{reg_dat8_r}} : 'h0;
+    always @ (in_paddr[1:0] or in_pwdata) begin
+-- 
+2.34.1
+

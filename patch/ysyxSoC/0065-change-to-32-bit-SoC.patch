@@ -1,0 +1,417 @@
+From 219d948cf0b9000f29a7ae2a2ceabc162263c337 Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Fri, 7 Jun 2024 23:10:43 +0800
+Subject: [PATCH 65/74] change to 32 bit SoC
+
+---
+ perip/amba/axi4_data_width_converter_64to32.v | 66 -------------------
+ perip/amba/axi4_delayer.v                     | 12 ++--
+ spec/cpu-interface.md                         |  6 +-
+ src/CPU.scala                                 |  2 +-
+ src/SoC.scala                                 |  2 +-
+ src/Top.scala                                 |  6 +-
+ src/amba/AXI4DataWidthConverter.scala         | 23 -------
+ src/amba/AXI4Delayer.scala                    |  4 +-
+ src/amba/AXI4ToAPB.scala                      |  8 +--
+ src/chiplink/Parameters.scala                 |  6 +-
+ src/device/ChipLinkBridge.scala               | 14 ++--
+ src/device/MROM.scala                         |  6 +-
+ src/device/SDRAM.scala                        |  9 +--
+ 13 files changed, 35 insertions(+), 129 deletions(-)
+ delete mode 100644 perip/amba/axi4_data_width_converter_64to32.v
+ delete mode 100644 src/amba/AXI4DataWidthConverter.scala
+
+diff --git a/perip/amba/axi4_data_width_converter_64to32.v b/perip/amba/axi4_data_width_converter_64to32.v
+deleted file mode 100644
+index dd24cdba..00000000
+--- a/perip/amba/axi4_data_width_converter_64to32.v
++++ /dev/null
+@@ -1,66 +0,0 @@
+-module AXI4DataWidthConverter64to32(
+-  input         clock,
+-  input         reset,
+-
+-  output        in_arready,
+-  input         in_arvalid,
+-  input  [3:0]  in_arid,
+-  input  [31:0] in_araddr,
+-  input  [7:0]  in_arlen,
+-  input  [2:0]  in_arsize,
+-  input  [1:0]  in_arburst,
+-  input         in_rready,
+-  output        in_rvalid,
+-  output [3:0]  in_rid,
+-  output [63:0] in_rdata,
+-  output [1:0]  in_rresp,
+-  output        in_rlast,
+-  output        in_awready,
+-  input         in_awvalid,
+-  input  [3:0]  in_awid,
+-  input  [31:0] in_awaddr,
+-  input  [7:0]  in_awlen,
+-  input  [2:0]  in_awsize,
+-  input  [1:0]  in_awburst,
+-  output        in_wready,
+-  input         in_wvalid,
+-  input  [63:0] in_wdata,
+-  input  [7:0]  in_wstrb,
+-  input         in_wlast,
+-                in_bready,
+-  output        in_bvalid,
+-  output [3:0]  in_bid,
+-  output [1:0]  in_bresp,
+-
+-  input         out_arready,
+-  output        out_arvalid,
+-  output [3:0]  out_arid,
+-  output [31:0] out_araddr,
+-  output [7:0]  out_arlen,
+-  output [2:0]  out_arsize,
+-  output [1:0]  out_arburst,
+-  output        out_rready,
+-  input         out_rvalid,
+-  input  [3:0]  out_rid,
+-  input  [31:0] out_rdata,
+-  input  [1:0]  out_rresp,
+-  input         out_rlast,
+-  input         out_awready,
+-  output        out_awvalid,
+-  output [3:0]  out_awid,
+-  output [31:0] out_awaddr,
+-  output [7:0]  out_awlen,
+-  output [2:0]  out_awsize,
+-  output [1:0]  out_awburst,
+-  input         out_wready,
+-  output        out_wvalid,
+-  output [31:0] out_wdata,
+-  output [3:0]  out_wstrb,
+-  output        out_wlast,
+-                out_bready,
+-  input         out_bvalid,
+-  input  [3:0]  out_bid,
+-  input  [1:0]  out_bresp
+-);
+-
+-endmodule
+diff --git a/perip/amba/axi4_delayer.v b/perip/amba/axi4_delayer.v
+index 18451a2b..f692803b 100644
+--- a/perip/amba/axi4_delayer.v
++++ b/perip/amba/axi4_delayer.v
+@@ -12,7 +12,7 @@ module axi4_delayer(
+   input         in_rready,
+   output        in_rvalid,
+   output [3:0]  in_rid,
+-  output [63:0] in_rdata,
++  output [31:0] in_rdata,
+   output [1:0]  in_rresp,
+   output        in_rlast,
+   output        in_awready,
+@@ -24,8 +24,8 @@ module axi4_delayer(
+   input  [1:0]  in_awburst,
+   output        in_wready,
+   input         in_wvalid,
+-  input  [63:0] in_wdata,
+-  input  [7:0]  in_wstrb,
++  input  [31:0] in_wdata,
++  input  [3:0]  in_wstrb,
+   input         in_wlast,
+                 in_bready,
+   output        in_bvalid,
+@@ -42,7 +42,7 @@ module axi4_delayer(
+   output        out_rready,
+   input         out_rvalid,
+   input  [3:0]  out_rid,
+-  input  [63:0] out_rdata,
++  input  [31:0] out_rdata,
+   input  [1:0]  out_rresp,
+   input         out_rlast,
+   input         out_awready,
+@@ -54,8 +54,8 @@ module axi4_delayer(
+   output [1:0]  out_awburst,
+   input         out_wready,
+   output        out_wvalid,
+-  output [63:0] out_wdata,
+-  output [7:0]  out_wstrb,
++  output [31:0] out_wdata,
++  output [3:0]  out_wstrb,
+   output        out_wlast,
+                 out_bready,
+   input         out_bvalid,
+diff --git a/spec/cpu-interface.md b/spec/cpu-interface.md
+index 440a40c5..a8d70cc4 100644
+--- a/spec/cpu-interface.md
++++ b/spec/cpu-interface.md
+@@ -18,8 +18,8 @@
+ | `output` | `[1:0]`  | `io_master_awburst` | `input`  | `[1:0]`  | `io_slave_awburst` |
+ | `input`  |          | `io_master_wready`  | `output` |          | `io_slave_wready`  |
+ | `output` |          | `io_master_wvalid`  | `input`  |          | `io_slave_wvalid`  |
+-| `output` | `[63:0]` | `io_master_wdata`   | `input`  | `[63:0]` | `io_slave_wdata`   |
+-| `output` | `[7:0]`  | `io_master_wstrb`   | `input`  | `[7:0]`  | `io_slave_wstrb`   |
++| `output` | `[31:0]` | `io_master_wdata`   | `input`  | `[31:0]` | `io_slave_wdata`   |
++| `output` | `[3:0]`  | `io_master_wstrb`   | `input`  | `[3:0]`  | `io_slave_wstrb`   |
+ | `output` |          | `io_master_wlast`   | `input`  |          | `io_slave_wlast`   |
+ | `output` |          | `io_master_bready`  | `input`  |          | `io_slave_bready`  |
+ | `input`  |          | `io_master_bvalid`  | `output` |          | `io_slave_bvalid`  |
+@@ -35,6 +35,6 @@
+ | `output` |          | `io_master_rready`  | `input`  |          | `io_slave_rready`  |
+ | `input`  |          | `io_master_rvalid`  | `output` |          | `io_slave_rvalid`  |
+ | `input`  | `[1:0]`  | `io_master_rresp`   | `output` | `[1:0]`  | `io_slave_rresp`   |
+-| `input`  | `[63:0]` | `io_master_rdata`   | `output` | `[63:0]` | `io_slave_rdata`   |
++| `input`  | `[31:0]` | `io_master_rdata`   | `output` | `[31:0]` | `io_slave_rdata`   |
+ | `input`  |          | `io_master_rlast`   | `output` |          | `io_slave_rlast`   |
+ | `input`  | `[3:0]`  | `io_master_rid`     | `output` | `[3:0]`  | `io_slave_rid`     |
+diff --git a/src/CPU.scala b/src/CPU.scala
+index 6c0498f8..7559195f 100644
+--- a/src/CPU.scala
++++ b/src/CPU.scala
+@@ -10,7 +10,7 @@ import freechips.rocketchip.diplomacy._
+ import freechips.rocketchip.util._
+ 
+ object CPUAXI4BundleParameters {
+-  def apply() = AXI4BundleParameters(addrBits = 32, dataBits = 64, idBits = ChipLinkParam.idBits)
++  def apply() = AXI4BundleParameters(addrBits = 32, dataBits = 32, idBits = ChipLinkParam.idBits)
+ }
+ 
+ class ysyx_00000000 extends BlackBox {
+diff --git a/src/SoC.scala b/src/SoC.scala
+index 80139fa7..4be26359 100644
+--- a/src/SoC.scala
++++ b/src/SoC.scala
+@@ -41,7 +41,7 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
+   ))
+   val lpsram = LazyModule(new APBPSRAM(AddressSet.misaligned(0x80000000L, 0x400000)))
+   val lmrom = LazyModule(new AXI4MROM(AddressSet.misaligned(0x20000000, 0x1000)))
+-  val sramNode = AXI4RAM(AddressSet.misaligned(0x0f000000, 0x2000).head, false, true, 8, None, Nil, false)
++  val sramNode = AXI4RAM(AddressSet.misaligned(0x0f000000, 0x2000).head, false, true, 4, None, Nil, false)
+ 
+   val sdramAddressSet = AddressSet.misaligned(0xa0000000L, 0x2000000)
+   val lsdram_apb = if (!Config.sdramUseAXI) Some(LazyModule(new APBSDRAM (sdramAddressSet))) else None
+diff --git a/src/Top.scala b/src/Top.scala
+index 4d562216..c00378a6 100644
+--- a/src/Top.scala
++++ b/src/Top.scala
+@@ -1,8 +1,8 @@
+ package ysyx
+ 
+ import chisel3._
+-import org.chipsalliance.cde.config.Parameters
+-import freechips.rocketchip.system.DefaultConfig
++import org.chipsalliance.cde.config.{Parameters, Config}
++import freechips.rocketchip.system._
+ import freechips.rocketchip.diplomacy.LazyModule
+ 
+ object Config {
+@@ -11,7 +11,7 @@ object Config {
+ }
+ 
+ class ysyxSoCTop extends Module {
+-  implicit val config: Parameters = new DefaultConfig
++  implicit val config: Parameters = new Config(new Edge32BitConfig ++ new DefaultRV32Config)
+ 
+   val io = IO(new Bundle { })
+   val dut = LazyModule(new ysyxSoCFull)
+diff --git a/src/amba/AXI4DataWidthConverter.scala b/src/amba/AXI4DataWidthConverter.scala
+deleted file mode 100644
+index 36eea8c2..00000000
+--- a/src/amba/AXI4DataWidthConverter.scala
++++ /dev/null
+@@ -1,23 +0,0 @@
+-package ysyx
+-
+-import chisel3._
+-import chisel3.util._
+-
+-import freechips.rocketchip.amba.axi4._
+-import freechips.rocketchip.util._
+-
+-class AXI4DataWidthConverter64to32IO extends Bundle {
+-  val clock = Input(Clock())
+-  val reset = Input(Bool())
+-  val in = Flipped(new AXI4Bundle(AXI4BundleParameters(addrBits = 32, dataBits = 64, idBits = 4)))
+-  val out = new AXI4Bundle(AXI4BundleParameters(addrBits = 32, dataBits = 32, idBits = 4))
+-}
+-
+-class AXI4DataWidthConverter64to32 extends BlackBox {
+-  val io = IO(new AXI4DataWidthConverter64to32IO)
+-}
+-
+-class AXI4DataWidthConverter64to32Chisel extends Module {
+-  val io = IO(new AXI4DataWidthConverter64to32IO)
+-  io.out <> io.in
+-}
+diff --git a/src/amba/AXI4Delayer.scala b/src/amba/AXI4Delayer.scala
+index b8711fa1..b60bb57d 100644
+--- a/src/amba/AXI4Delayer.scala
++++ b/src/amba/AXI4Delayer.scala
+@@ -12,8 +12,8 @@ import freechips.rocketchip.util._
+ class AXI4DelayerIO extends Bundle {
+   val clock = Input(Clock())
+   val reset = Input(Reset())
+-  val in = Flipped(new AXI4Bundle(AXI4BundleParameters(addrBits = 32, dataBits = 64, idBits = 4)))
+-  val out = new AXI4Bundle(AXI4BundleParameters(addrBits = 32, dataBits = 64, idBits = 4))
++  val in = Flipped(new AXI4Bundle(AXI4BundleParameters(addrBits = 32, dataBits = 32, idBits = 4)))
++  val out = new AXI4Bundle(AXI4BundleParameters(addrBits = 32, dataBits = 32, idBits = 4))
+ }
+ 
+ class axi4_delayer extends BlackBox {
+diff --git a/src/amba/AXI4ToAPB.scala b/src/amba/AXI4ToAPB.scala
+index 84772566..c8227820 100644
+--- a/src/amba/AXI4ToAPB.scala
++++ b/src/amba/AXI4ToAPB.scala
+@@ -19,11 +19,11 @@ case class AXI4ToAPBNode()(implicit valName: ValName) extends MixedAdapterNode(A
+     )
+   },
+   uFn = { sp =>
+-    val beatBytes = 8
++    val beatBytes = 4
+     AXI4SlavePortParameters(
+     slaves = sp.slaves.map { s =>
+       val maxXfer = TransferSizes(1, beatBytes)
+-      require(beatBytes == 8) // only support 8-byte data AXI
++      require(beatBytes == 4) // only support 8-byte data AXI
+       AXI4SlaveParameters(
+         address       = s.address,
+         resources     = s.resources,
+@@ -76,8 +76,8 @@ class AXI4ToAPB(val aFlow: Boolean = true)(implicit p: Parameters) extends LazyM
+       out.pwrite  := is_write
+       out.paddr   := Mux(is_write, awaddr_reg, araddr_reg)
+       out.pprot   := APBParameters.PROT_DEFAULT
+-      out.pwdata  := Mux(awaddr_reg(2), wdata_reg(63,32), wdata_reg(31,0))
+-      out.pstrb   := Mux(is_write, Mux(awaddr_reg(2), wstrb_reg(7,4), wstrb_reg(3,0)), 0.U)
++      out.pwdata  := wdata_reg
++      out.pstrb   := Mux(is_write, wstrb_reg, 0.U)
+ 
+       ar.ready := accept_read
+       w.ready  := accept_write
+diff --git a/src/chiplink/Parameters.scala b/src/chiplink/Parameters.scala
+index cdc1043e..8679a354 100644
+--- a/src/chiplink/Parameters.scala
++++ b/src/chiplink/Parameters.scala
+@@ -31,9 +31,9 @@ case class ChipLinkParams(TLUH: Seq[AddressSet], TLC: Seq[AddressSet], sourceBit
+ 
+   // Protocol supported operations:
+   val noXfer = TransferSizes.none
+-  val fullXfer = TransferSizes(1, 64) // !!! 4096)
+-  val acqXfer = TransferSizes(64, 64)
+-  val atomicXfer = TransferSizes(1, 8)
++  val fullXfer = TransferSizes(1, 32) // !!! 4096)
++  val acqXfer = TransferSizes(32, 32)
++  val atomicXfer = TransferSizes(1, 4)
+ 
+ }
+ 
+diff --git a/src/device/ChipLinkBridge.scala b/src/device/ChipLinkBridge.scala
+index 7ce54389..8ad77ea8 100644
+--- a/src/device/ChipLinkBridge.scala
++++ b/src/device/ChipLinkBridge.scala
+@@ -27,7 +27,7 @@ object ChipLinkParam {
+ class LinkTopBase(implicit p: Parameters) extends LazyModule {
+   val mbus = TLXbar()
+   val fxbar = TLXbar()
+-  val ferr = LazyModule(new TLError(DevNullParams(Seq(AddressSet(0x1000L, 0x1000L - 1)), 64, 64, region = RegionType.TRACKED)))
++  val ferr = LazyModule(new TLError(DevNullParams(Seq(AddressSet(0x1000L, 0x1000L - 1)), 32, 32, region = RegionType.TRACKED)))
+ 
+   val chiplinkParam = ChipLinkParams(
+     TLUH = List(ChipLinkParam.mmio),
+@@ -56,7 +56,7 @@ class LinkTopBaseImpl[+L <: LinkTopBase](_outer: L) extends LazyModuleImp(_outer
+ trait CanHaveAXI4MasterMemPortForLinkTop { this: LinkTopBase =>
+   private val portName = "axi4"
+   private val device = new MemoryDevice
+-  private val cacheBlockBytes = 64
++  private val cacheBlockBytes = 32
+   private val idBits = ChipLinkParam.idBits
+ 
+   val axi4MasterMemNode = AXI4SlaveNode(p(ExtMem).map { case MemoryPortParams(memPortParams, nMemoryChannels, _) =>
+@@ -134,7 +134,7 @@ trait CanHaveAXI4MasterMMIOPortForLinkTop { this: LinkTopBase =>
+   mmioPortParamsOpt.map { params =>
+     axi4MasterMMIONode := (AXI4Buffer()
+       := AXI4UserYanker()
+-      := AXI4Deinterleaver(64 /* blockBytes, literal OK? */)
++      := AXI4Deinterleaver(32 /* blockBytes, literal OK? */)
+       := AXI4IdIndexer(ChipLinkParam.idBits)
+       := TLToAXI4()) := mbus
+   }
+@@ -148,11 +148,11 @@ class ChipLinkMaster(implicit p: Parameters) extends LinkTopBase
+   with CanHaveAXI4MasterMemPortForLinkTop
+ {
+   // Dummy manager network
+-  val err = LazyModule(new TLError(DevNullParams(Seq(AddressSet(0x1000L, 0x1000L - 1)), 64, 64, region = RegionType.TRACKED)))
++  val err = LazyModule(new TLError(DevNullParams(Seq(AddressSet(0x1000L, 0x1000L - 1)), 32, 32, region = RegionType.TRACKED)))
+ 
+   // Hint & Atomic augment
+   mbus := TLAtomicAutomata(passthrough=false) := TLFIFOFixer(TLFIFOFixer.all) := TLHintHandler() := TLWidthWidget(4) := chiplink.node
+-  err.node := TLWidthWidget(8) := mbus
++  err.node := TLWidthWidget(4) := mbus
+ }
+ 
+ 
+@@ -165,9 +165,9 @@ class ChipLinkSlave(implicit p: Parameters) extends LinkTopBase
+   with CanHaveAXI4SlavePortForLinkTop
+ {
+   // Dummy manager network
+-  val err = LazyModule(new TLError(DevNullParams(Seq(AddressSet(0x1000L, 0x1000L - 1)), 64, 64, region = RegionType.TRACKED)))
++  val err = LazyModule(new TLError(DevNullParams(Seq(AddressSet(0x1000L, 0x1000L - 1)), 32, 32, region = RegionType.TRACKED)))
+ 
+   // Hint & Atomic augment
+   mbus := TLAtomicAutomata(passthrough=false) := TLFIFOFixer(TLFIFOFixer.all) := TLHintHandler() := TLWidthWidget(4) := chiplink.node
+-  err.node := TLWidthWidget(8) := mbus
++  err.node := TLWidthWidget(4) := mbus
+ }
+diff --git a/src/device/MROM.scala b/src/device/MROM.scala
+index a5bd1374..f2492344 100644
+--- a/src/device/MROM.scala
++++ b/src/device/MROM.scala
+@@ -30,7 +30,7 @@ class MROMHelper extends BlackBox with HasBlackBoxInline {
+ }
+ 
+ class AXI4MROM(address: Seq[AddressSet])(implicit p: Parameters) extends LazyModule {
+-  val beatBytes = 8
++  val beatBytes = 4
+   val node = AXI4SlaveNode(Seq(AXI4SlavePortParameters(
+     Seq(AXI4SlaveParameters(
+         address       = address,
+@@ -56,9 +56,9 @@ class AXI4MROM(address: Seq[AddressSet])(implicit p: Parameters) extends LazyMod
+     mrom.io.raddr := in.ar.bits.addr
+     mrom.io.ren := in.ar.fire
+     in.ar.ready := (state === stateIdle)
+-    assert(!(in.ar.fire && in.ar.bits.size === 3.U), "do not support 8 byte transfter")
++//    assert(!(in.ar.fire && in.ar.bits.size === 3.U), "do not support 8 byte transfter")
+ 
+-    in.r.bits.data := RegEnable(Fill(2, mrom.io.rdata), in.ar.fire)
++    in.r.bits.data := RegEnable(mrom.io.rdata, in.ar.fire)
+     in.r.bits.id := RegEnable(in.ar.bits.id, in.ar.fire)
+     in.r.bits.resp := 0.U
+     in.r.bits.last := true.B
+diff --git a/src/device/SDRAM.scala b/src/device/SDRAM.scala
+index 403647de..a823c718 100644
+--- a/src/device/SDRAM.scala
++++ b/src/device/SDRAM.scala
+@@ -50,7 +50,7 @@ class sdramChisel extends RawModule {
+ }
+ 
+ class AXI4SDRAM(address: Seq[AddressSet])(implicit p: Parameters) extends LazyModule {
+-  val beatBytes = 8
++  val beatBytes = 4
+   val node = AXI4SlaveNode(Seq(AXI4SlavePortParameters(
+     Seq(AXI4SlaveParameters(
+         address       = address,
+@@ -66,15 +66,10 @@ class AXI4SDRAM(address: Seq[AddressSet])(implicit p: Parameters) extends LazyMo
+     val (in, _) = node.in(0)
+     val sdram_bundle = IO(new SDRAMIO)
+ 
+-    val converter = Module(new AXI4DataWidthConverter64to32)
+-    converter.io.clock := clock
+-    converter.io.reset := reset.asBool
+-    converter.io.in <> in
+-
+     val msdram = Module(new sdram_top_axi)
+     msdram.io.clock := clock
+     msdram.io.reset := reset.asBool
+-    msdram.io.in <> converter.io.out
++    msdram.io.in <> in
+     sdram_bundle <> msdram.io.sdram
+   }
+ }
+-- 
+2.34.1
+

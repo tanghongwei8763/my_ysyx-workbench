@@ -1,0 +1,129 @@
+From fc4542c7637b5c80e13ed09b644e9266813280f6 Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Mon, 18 Dec 2023 22:13:53 +0800
+Subject: [PATCH 36/74] perip: add dummy bitrev as SPI slave
+
+---
+ perip/bitrev/bitrev.v       | 8 ++++++++
+ perip/flash/flash.v         | 2 +-
+ perip/spi/rtl/spi_top_apb.v | 9 +++------
+ src/SoC.scala               | 6 +++++-
+ src/device/SPI.scala        | 6 +++++-
+ 5 files changed, 22 insertions(+), 9 deletions(-)
+ create mode 100644 perip/bitrev/bitrev.v
+
+diff --git a/perip/bitrev/bitrev.v b/perip/bitrev/bitrev.v
+new file mode 100644
+index 00000000..f1c3b363
+--- /dev/null
++++ b/perip/bitrev/bitrev.v
+@@ -0,0 +1,8 @@
++module bitrev (
++  input  sck,
++  input  ss,
++  input  mosi,
++  output miso
++);
++  assign miso = 1'b1;
++endmodule
+diff --git a/perip/flash/flash.v b/perip/flash/flash.v
+index 8bf31dc9..480d7092 100644
+--- a/perip/flash/flash.v
++++ b/perip/flash/flash.v
+@@ -77,7 +77,7 @@ module flash (
+     end
+   end
+ 
+-  assign miso = {(state == data_t && counter == 8'd0) ? data_bswap : data}[31];
++  assign miso = ss ? 1'b1 : ({(state == data_t && counter == 8'd0) ? data_bswap : data}[31]);
+ 
+ endmodule
+ 
+diff --git a/perip/spi/rtl/spi_top_apb.v b/perip/spi/rtl/spi_top_apb.v
+index 883c54e3..cf174970 100644
+--- a/perip/spi/rtl/spi_top_apb.v
++++ b/perip/spi/rtl/spi_top_apb.v
+@@ -5,7 +5,7 @@
+ module spi_top_apb #(
+   parameter flash_addr_start = 32'h30000000,
+   parameter flash_addr_end   = 32'h3fffffff,
+-  parameter spi_ss_num       = 2
++  parameter spi_ss_num       = 8
+ ) (
+   input         clk,
+   input         resetn,
+@@ -39,7 +39,7 @@ flash_cmd flash_cmd_i(
+   .data(data)
+ );
+ assign spi_sck    = 1'b0;
+-assign spi_ss     = 2'b0;
++assign spi_ss     = 8'b0;
+ assign spi_mosi   = 1'b1;
+ assign in_pslverr = 1'b0;
+ assign in_pready  = in_penable && in_psel && !in_pwrite;
+@@ -47,9 +47,6 @@ assign in_prdata  = data[31:0];
+ 
+ `else
+ 
+-wire [7:0] ss_pad_o;
+-assign spi_ss = ss_pad_o[spi_ss_num-1:0];
+-
+ spi_top u0_spi_top (
+   .wb_clk_i(clk),
+   .wb_rst_i(!resetn),
+@@ -64,7 +61,7 @@ spi_top u0_spi_top (
+   .wb_err_o(in_pslverr),
+   .wb_int_o(),
+ 
+-  .ss_pad_o(ss_pad_o),
++  .ss_pad_o(spi_ss),
+   .sclk_pad_o(spi_sck),
+   .mosi_pad_o(spi_mosi),
+   .miso_pad_i(spi_miso)
+diff --git a/src/SoC.scala b/src/SoC.scala
+index a3415672..0f419619 100644
+--- a/src/SoC.scala
++++ b/src/SoC.scala
+@@ -106,10 +106,14 @@ class ysyxSoCFull(implicit p: Parameters) extends LazyModule {
+     }
+ 
+     masic.intr_from_chipSlave := false.B
++    masic.uart.rx := false.B
+ 
+     val flash = Module(new flash)
+     flash.io <> masic.spi
+     flash.io.ss := masic.spi.ss(0)
+-    masic.uart.rx := false.B
++    val bitrev = Module(new bitrev)
++    bitrev.io <> masic.spi
++    bitrev.io.ss := masic.spi.ss(7)
++    masic.spi.miso := List(bitrev.io, flash.io).map(_.miso).reduce(_&&_)
+   }
+ }
+diff --git a/src/device/SPI.scala b/src/device/SPI.scala
+index 93d5a072..bf35b43d 100644
+--- a/src/device/SPI.scala
++++ b/src/device/SPI.scala
+@@ -8,7 +8,7 @@ import org.chipsalliance.cde.config.Parameters
+ import freechips.rocketchip.diplomacy._
+ import freechips.rocketchip.util._
+ 
+-class SPIIO(val ssWidth: Int = 2) extends Bundle {
++class SPIIO(val ssWidth: Int = 8) extends Bundle {
+   val sck = Output(Bool())
+   val ss = Output(UInt(ssWidth.W))
+   val mosi = Output(Bool())
+@@ -29,6 +29,10 @@ class flash extends BlackBox {
+   val io = IO(Flipped(new SPIIO(1)))
+ }
+ 
++class bitrev extends BlackBox {
++  val io = IO(Flipped(new SPIIO(1)))
++}
++
+ class APBSPI(address: Seq[AddressSet])(implicit p: Parameters) extends LazyModule {
+   val node = APBSlaveNode(Seq(APBSlavePortParameters(
+     Seq(APBSlaveParameters(
+-- 
+2.34.1
+

@@ -1,0 +1,42 @@
+From 38df46debc6f9601d0c93329a04ac3fe326d8c8f Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Thu, 26 Aug 2021 15:28:54 +0800
+Subject: [PATCH 04/74] amba,axi4: remove optional signals
+
+---
+ patch/rocket-chip.patch | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/patch/rocket-chip.patch b/patch/rocket-chip.patch
+index 3f6ce479..0eb226ed 100644
+--- a/patch/rocket-chip.patch
++++ b/patch/rocket-chip.patch
+@@ -4,6 +4,25 @@ index abfcceb05..e69de29bb 100644
+ +++ b/src/main/resources/META-INF/services/firrtl.options.RegisteredLibrary
+ @@ -1 +0,0 @@
+ -firrtl.passes.memlib.MemLibOptions
++diff --git a/src/main/scala/amba/axi4/Parameters.scala b/src/main/scala/amba/axi4/Parameters.scala
++index b059fb192..bd1fa835b 100644
++--- a/src/main/scala/amba/axi4/Parameters.scala
+++++ b/src/main/scala/amba/axi4/Parameters.scala
++@@ -121,10 +121,10 @@ case class AXI4BundleParameters(
++   val lenBits   = AXI4Parameters.lenBits
++   val sizeBits  = AXI4Parameters.sizeBits
++   val burstBits = AXI4Parameters.burstBits
++-  val lockBits  = AXI4Parameters.lockBits
++-  val cacheBits = AXI4Parameters.cacheBits
++-  val protBits  = AXI4Parameters.protBits
++-  val qosBits   = AXI4Parameters.qosBits
+++  val lockBits  = 0 //AXI4Parameters.lockBits
+++  val cacheBits = 0 //AXI4Parameters.cacheBits
+++  val protBits  = 0 //AXI4Parameters.protBits
+++  val qosBits   = 0 //AXI4Parameters.qosBits
++   val respBits  = AXI4Parameters.respBits
++ 
++   def union(x: AXI4BundleParameters) =
+ diff --git a/src/main/scala/diplomacy/BundleBridge.scala b/src/main/scala/diplomacy/BundleBridge.scala
+ index e02d6f4f9..0e2eef8ba 100644
+ --- a/src/main/scala/diplomacy/BundleBridge.scala
+-- 
+2.34.1
+

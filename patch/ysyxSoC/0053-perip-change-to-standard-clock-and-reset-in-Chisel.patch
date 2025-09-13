@@ -1,0 +1,207 @@
+From 6ce4b15556e25560ac952b6f3de236f9657ef435 Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Sun, 31 Dec 2023 21:17:25 +0800
+Subject: [PATCH 53/74] perip: change to standard clock and reset in Chisel
+
+---
+ perip/psram/psram_top_apb.v        |  8 ++++----
+ perip/spi/rtl/spi_top_apb.v        | 10 +++++-----
+ perip/uart16550/rtl/uart_top_apb.v | 16 ++++++++--------
+ src/device/PSRAM.scala             |  8 ++++----
+ src/device/SPI.scala               |  8 ++++----
+ src/device/Uart16550.scala         |  8 ++++----
+ 6 files changed, 29 insertions(+), 29 deletions(-)
+
+diff --git a/perip/psram/psram_top_apb.v b/perip/psram/psram_top_apb.v
+index c4f160e5..0ba9c2f2 100644
+--- a/perip/psram/psram_top_apb.v
++++ b/perip/psram/psram_top_apb.v
+@@ -1,6 +1,6 @@
+ module psram_top_apb (
+-  input         clk,
+-  input         resetn,
++  input         clock,
++  input         reset,
+   input  [31:0] in_paddr,
+   input         in_psel,
+   input         in_penable,
+@@ -20,8 +20,8 @@ module psram_top_apb (
+   wire [3:0] din, dout, douten;
+   wire ack;
+   EF_PSRAM_CTRL_wb u0 (
+-    .clk_i(clk),
+-    .rst_i(!resetn),
++    .clk_i(clock),
++    .rst_i(reset),
+     .adr_i(in_paddr),
+     .dat_i(in_pwdata),
+     .dat_o(in_prdata),
+diff --git a/perip/spi/rtl/spi_top_apb.v b/perip/spi/rtl/spi_top_apb.v
+index 4635ff2a..92d37516 100644
+--- a/perip/spi/rtl/spi_top_apb.v
++++ b/perip/spi/rtl/spi_top_apb.v
+@@ -7,8 +7,8 @@ module spi_top_apb #(
+   parameter flash_addr_end   = 32'h3fffffff,
+   parameter spi_ss_num       = 8
+ ) (
+-  input         clk,
+-  input         resetn,
++  input         clock,
++  input         reset,
+   input  [31:0] in_paddr,
+   input         in_psel,
+   input         in_penable,
+@@ -32,7 +32,7 @@ module spi_top_apb #(
+ wire [31:0] data;
+ parameter invalid_cmd = 8'h0;
+ flash_cmd flash_cmd_i(
+-  .clock(clk),
++  .clock(clock),
+   .valid(in_psel && !in_penable),
+   .cmd(in_pwrite ? invalid_cmd : 8'h03),
+   .addr({8'b0, in_paddr[23:2], 2'b0}),
+@@ -49,8 +49,8 @@ assign in_prdata  = data[31:0];
+ `else
+ 
+ spi_top u0_spi_top (
+-  .wb_clk_i(clk),
+-  .wb_rst_i(!resetn),
++  .wb_clk_i(clock),
++  .wb_rst_i(reset),
+   .wb_adr_i(in_paddr[4:0]),
+   .wb_dat_i(in_pwdata),
+   .wb_dat_o(in_prdata),
+diff --git a/perip/uart16550/rtl/uart_top_apb.v b/perip/uart16550/rtl/uart_top_apb.v
+index 6be5532c..cd327a03 100644
+--- a/perip/uart16550/rtl/uart_top_apb.v
++++ b/perip/uart16550/rtl/uart_top_apb.v
+@@ -1,6 +1,6 @@
+ module uart_top_apb (
+-       input   wire        resetn
+-     , input   wire        clk
++       input   wire        reset
++     , input   wire        clock
+      , input   wire        in_psel
+      , input   wire        in_penable
+      , input   wire [2:0]   in_pprot
+@@ -34,8 +34,8 @@ module uart_top_apb (
+    //--------------------------------------------------------
+    assign in_pready = in_psel && in_penable;
+    assign in_pslverr = 1'b0;
+-   assign reg_we  = resetn & in_psel & ~in_penable &  in_pwrite;
+-   assign reg_re  = resetn & in_psel & ~in_penable & ~in_pwrite;
++   assign reg_we  = ~reset & in_psel & ~in_penable &  in_pwrite;
++   assign reg_re  = ~reset & in_psel & ~in_penable & ~in_pwrite;
+    assign reg_adr = in_paddr[2:0]; //assign adr_o   = in_paddr[2:0];
+    assign in_prdata  = (in_psel) ? {4{reg_dat8_r}} : 'h0;
+    always @ (in_paddr[1:0] or in_pwdata) begin
+@@ -53,7 +53,7 @@ module uart_top_apb (
+              `endif
+              endcase
+    end
+-   always @ (posedge clk) begin
++   always @ (posedge clock) begin
+      reg_dat8_w_reg <= reg_dat8_w;
+    end
+    //--------------------------------------------------------
+@@ -61,7 +61,7 @@ module uart_top_apb (
+    // As shown below reg_dat_i should be stable
+    // one-cycle after reg_we negates.
+    //              ___     ___     ___     ___     ___     ___
+-   //  clk      __|   |___|   |___|   |___|   |___|   |___|   |__
++   //  clock    __|   |___|   |___|   |___|   |___|   |___|   |__
+    //             ________________        ________________
+    //  reg_adr  XX________________XXXXXXXX________________XXXX
+    //             ________________
+@@ -74,8 +74,8 @@ module uart_top_apb (
+    //  reg_we   __|       |_____________________________________
+    //
+    uart_regs Uregs(
+-          .clk         (clk),
+-          .wb_rst_i    (~resetn),
++          .clk         (clock),
++          .wb_rst_i    (reset),
+           .wb_addr_i   (reg_adr),
+           .wb_dat_i    (in_pwrite ? reg_dat8_w:reg_dat8_w_reg),
+           .wb_dat_o    (reg_dat8_r),
+diff --git a/src/device/PSRAM.scala b/src/device/PSRAM.scala
+index cb19872d..09d889e4 100644
+--- a/src/device/PSRAM.scala
++++ b/src/device/PSRAM.scala
+@@ -17,8 +17,8 @@ class QSPIIO extends Bundle {
+ 
+ class psram_top_apb extends BlackBox {
+   val io = IO(new Bundle {
+-    val clk = Input(Clock())
+-    val resetn = Input(Bool())
++    val clock = Input(Clock())
++    val reset = Input(Reset())
+     val in = Flipped(new APBBundle(APBBundleParameters(addrBits = 32, dataBits = 32)))
+     val qspi = new QSPIIO
+   })
+@@ -48,8 +48,8 @@ class APBPSRAM(address: Seq[AddressSet])(implicit p: Parameters) extends LazyMod
+     val qspi_bundle = IO(new QSPIIO)
+ 
+     val mpsram = Module(new psram_top_apb)
+-    mpsram.io.clk := clock
+-    mpsram.io.resetn := ~reset.asBool
++    mpsram.io.clock := clock
++    mpsram.io.reset := reset
+     mpsram.io.in <> in
+     qspi_bundle <> mpsram.io.qspi
+   }
+diff --git a/src/device/SPI.scala b/src/device/SPI.scala
+index c31b36c0..c354bb92 100644
+--- a/src/device/SPI.scala
++++ b/src/device/SPI.scala
+@@ -17,8 +17,8 @@ class SPIIO(val ssWidth: Int = 8) extends Bundle {
+ 
+ class spi_top_apb extends BlackBox {
+   val io = IO(new Bundle {
+-    val clk = Input(Clock())
+-    val resetn = Input(Bool())
++    val clock = Input(Clock())
++    val reset = Input(Reset())
+     val in = Flipped(new APBBundle(APBBundleParameters(addrBits = 32, dataBits = 32)))
+     val spi = new SPIIO
+     val spi_irq_out = Output(Bool())
+@@ -44,8 +44,8 @@ class APBSPI(address: Seq[AddressSet])(implicit p: Parameters) extends LazyModul
+     val spi_bundle = IO(new SPIIO)
+ 
+     val mspi = Module(new spi_top_apb)
+-    mspi.io.clk := clock
+-    mspi.io.resetn := ~reset.asBool
++    mspi.io.clock := clock
++    mspi.io.reset := reset
+     mspi.io.in <> in
+     spi_bundle <> mspi.io.spi
+   }
+diff --git a/src/device/Uart16550.scala b/src/device/Uart16550.scala
+index e9ef33aa..e49c1f59 100644
+--- a/src/device/Uart16550.scala
++++ b/src/device/Uart16550.scala
+@@ -15,8 +15,8 @@ class UARTIO extends Bundle {
+ 
+ class uart_top_apb extends BlackBox {
+   val io = IO(new Bundle {
+-    val clk = Input(Clock())
+-    val resetn = Input(Bool())
++    val clock = Input(Clock())
++    val reset = Input(Reset())
+     val in = Flipped(new APBBundle(APBBundleParameters(addrBits = 32, dataBits = 32)))
+     val uart = new UARTIO
+   })
+@@ -37,8 +37,8 @@ class APBUart16550(address: Seq[AddressSet])(implicit p: Parameters) extends Laz
+     val uart = IO(new UARTIO)
+ 
+     val muart = Module(new uart_top_apb)
+-    muart.io.clk := clock
+-    muart.io.resetn := ~reset.asBool
++    muart.io.clock := clock
++    muart.io.reset := reset
+     muart.io.in <> in
+     uart <> muart.io.uart
+   }
+-- 
+2.34.1
+

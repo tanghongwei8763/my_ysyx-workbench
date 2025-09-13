@@ -1,0 +1,184 @@
+From fb5a4c141d80dca706d96cf196f10cacd6968e3e Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Tue, 19 Dec 2023 12:50:31 +0800
+Subject: [PATCH 39/74] device: add psram with APB interface
+
+---
+ perip/psram/psram.v         |  9 +++++++
+ perip/psram/psram_top_apb.v | 47 ++++++++++++++++++++++++++++++++++
+ src/SoC.scala               | 10 ++++++--
+ src/device/PSRAM.scala      | 51 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 115 insertions(+), 2 deletions(-)
+ create mode 100644 perip/psram/psram.v
+ create mode 100644 perip/psram/psram_top_apb.v
+ create mode 100644 src/device/PSRAM.scala
+
+diff --git a/perip/psram/psram.v b/perip/psram/psram.v
+new file mode 100644
+index 00000000..d9bdd882
+--- /dev/null
++++ b/perip/psram/psram.v
+@@ -0,0 +1,9 @@
++module psram(
++  input sck,
++  input ce_n,
++  inout [3:0] dio
++);
++
++  assign dio = 4'bz;
++
++endmodule
+diff --git a/perip/psram/psram_top_apb.v b/perip/psram/psram_top_apb.v
+new file mode 100644
+index 00000000..3086e765
+--- /dev/null
++++ b/perip/psram/psram_top_apb.v
+@@ -0,0 +1,47 @@
++module psram_top_apb (
++  input         clk,
++  input         resetn,
++  input  [31:0] in_paddr,
++  input         in_psel,
++  input         in_penable,
++  input  [2:0]  in_pprot,
++  input         in_pwrite,
++  input  [31:0] in_pwdata,
++  input  [3:0]  in_pstrb,
++  output        in_pready,
++  output [31:0] in_prdata,
++  output        in_pslverr,
++
++  output qspi_sck,
++  output qspi_ce_n,
++  inout  [3:0] qspi_dio
++);
++
++  wire [3:0] din, dout, douten;
++  EF_PSRAM_CTRL_wb u0 (
++    .clk_i(clk),
++    .rst_i(!resetn),
++    .adr_i(in_paddr),
++    .dat_i(in_pwdata),
++    .dat_o(in_prdata),
++    .sel_i(in_pstrb),
++    .cyc_i(in_penable),
++    .stb_i(in_psel),
++    .ack_o(in_pready),
++    .we_i(in_pwrite),
++  
++    .sck(qspi_sck),
++    .ce_n(qspi_ce_n),
++    .din(din),
++    .dout(dout),
++    .douten(douten)
++  );
++  
++  assign in_pslverr = 1'b0;
++  assign qspi_dio[0] = douten[0] ? dout[0] : 1'bz;
++  assign qspi_dio[1] = douten[1] ? dout[1] : 1'bz;
++  assign qspi_dio[2] = douten[2] ? dout[2] : 1'bz;
++  assign qspi_dio[3] = douten[3] ? dout[3] : 1'bz;
++  assign din = qspi_dio;
++
++endmodule
+diff --git a/src/SoC.scala b/src/SoC.scala
+index 0f419619..893803a1 100644
+--- a/src/SoC.scala
++++ b/src/SoC.scala
+@@ -35,10 +35,11 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
+     AddressSet.misaligned(0x10001000, 0x1000) ++    // SPI controller
+     AddressSet.misaligned(0x30000000, 0x10000000)   // XIP flash
+   ))
++  val lpsram = LazyModule(new APBPSRAM(AddressSet.misaligned(0x80000000L, 0x400000)))
+   val lmrom = LazyModule(new AXI4MROM(AddressSet.misaligned(0x20000000, 0x1000)))
+   val sramNode = AXI4RAM(AddressSet.misaligned(0x0f000000, 0x2000).head, false, true, 8, None, Nil, false)
+ 
+-  List(lspi.node, luart.node).map(_ := apbxbar)
++  List(lspi.node, luart.node, lpsram.node).map(_ := apbxbar)
+   List(apbxbar := AXI4ToAPB(), lmrom.node, sramNode).map(_ := xbar)
+   if (Config.hasChipLink) chiplinkNode.get := xbar
+   xbar := cpu.masterNode
+@@ -67,11 +68,13 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
+     val intr_from_chipSlave = IO(Input(Bool()))
+     cpu.module.interrupt := intr_from_chipSlave
+ 
+-    // expose spi and uart slave interface as ports
++    // expose slave I/O interface as ports
+     val spi = IO(chiselTypeOf(lspi.module.spi_bundle))
+     val uart = IO(chiselTypeOf(luart.module.uart))
++    val psram = IO(chiselTypeOf(lpsram.module.qspi_bundle))
+     uart <> luart.module.uart
+     spi <> lspi.module.spi_bundle
++    psram <> lpsram.module.qspi_bundle
+   }
+ }
+ 
+@@ -115,5 +118,8 @@ class ysyxSoCFull(implicit p: Parameters) extends LazyModule {
+     bitrev.io <> masic.spi
+     bitrev.io.ss := masic.spi.ss(7)
+     masic.spi.miso := List(bitrev.io, flash.io).map(_.miso).reduce(_&&_)
++
++    val psram = Module(new psram)
++    psram.io <> masic.psram
+   }
+ }
+diff --git a/src/device/PSRAM.scala b/src/device/PSRAM.scala
+new file mode 100644
+index 00000000..eb33012e
+--- /dev/null
++++ b/src/device/PSRAM.scala
+@@ -0,0 +1,51 @@
++package ysyx
++
++import chisel3._
++import chisel3.util._
++import chisel3.experimental.Analog
++
++import freechips.rocketchip.amba.apb._
++import org.chipsalliance.cde.config.Parameters
++import freechips.rocketchip.diplomacy._
++import freechips.rocketchip.util._
++
++class QSPIIO extends Bundle {
++  val sck = Output(Bool())
++  val ce_n = Output(Bool())
++  val dio = Analog(4.W)
++}
++
++class psram_top_apb extends BlackBox {
++  val io = IO(new Bundle {
++    val clk = Input(Clock())
++    val resetn = Input(Bool())
++    val in = Flipped(new APBBundle(APBBundleParameters(addrBits = 32, dataBits = 32)))
++    val qspi = new QSPIIO
++  })
++}
++
++class psram extends BlackBox {
++  val io = IO(Flipped(new QSPIIO))
++}
++
++class APBPSRAM(address: Seq[AddressSet])(implicit p: Parameters) extends LazyModule {
++  val node = APBSlaveNode(Seq(APBSlavePortParameters(
++    Seq(APBSlaveParameters(
++      address       = address,
++      executable    = true,
++      supportsRead  = true,
++      supportsWrite = true)),
++    beatBytes  = 4)))
++
++  lazy val module = new Impl
++  class Impl extends LazyModuleImp(this) {
++    val (in, _) = node.in(0)
++    val qspi_bundle = IO(new QSPIIO)
++
++    val mpsram = Module(new psram_top_apb)
++    mpsram.io.clk := clock
++    mpsram.io.resetn := ~reset.asBool
++    mpsram.io.in <> in
++    qspi_bundle <> mpsram.io.qspi
++  }
++}
+-- 
+2.34.1
+

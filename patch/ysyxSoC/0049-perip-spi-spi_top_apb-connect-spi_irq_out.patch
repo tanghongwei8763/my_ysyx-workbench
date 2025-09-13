@@ -1,0 +1,33 @@
+From 14fb8c1eb55f0ee63b233dfd8946f61eb3ee1d97 Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Sun, 31 Dec 2023 20:42:22 +0800
+Subject: [PATCH 49/74] perip,spi,spi_top_apb: connect spi_irq_out
+
+---
+ perip/spi/rtl/spi_top_apb.v | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/perip/spi/rtl/spi_top_apb.v b/perip/spi/rtl/spi_top_apb.v
+index cf174970..4635ff2a 100644
+--- a/perip/spi/rtl/spi_top_apb.v
++++ b/perip/spi/rtl/spi_top_apb.v
+@@ -41,6 +41,7 @@ flash_cmd flash_cmd_i(
+ assign spi_sck    = 1'b0;
+ assign spi_ss     = 8'b0;
+ assign spi_mosi   = 1'b1;
++assign spi_irq_out= 1'b0;
+ assign in_pslverr = 1'b0;
+ assign in_pready  = in_penable && in_psel && !in_pwrite;
+ assign in_prdata  = data[31:0];
+@@ -59,7 +60,7 @@ spi_top u0_spi_top (
+   .wb_cyc_i(in_penable),
+   .wb_ack_o(in_pready),
+   .wb_err_o(in_pslverr),
+-  .wb_int_o(),
++  .wb_int_o(spi_irq_out),
+ 
+   .ss_pad_o(spi_ss),
+   .sclk_pad_o(spi_sck),
+-- 
+2.34.1
+

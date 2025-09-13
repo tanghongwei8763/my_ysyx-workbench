@@ -1,0 +1,26 @@
+From 9fa1ded8c7d9ea88813c66d2b205c4d94fd21938 Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Sat, 28 Aug 2021 20:18:40 +0800
+Subject: [PATCH 12/74] SoC: fix cpu reset
+
+* it may be random value at the very beginning
+---
+ src/SoC.scala | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/SoC.scala b/src/SoC.scala
+index b1489697..358dd12f 100644
+--- a/src/SoC.scala
++++ b/src/SoC.scala
+@@ -61,7 +61,7 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
+     // generate delayed reset for cpu, since chiplink should finish reset
+     // to initialize some async modules before accept any requests from cpu
+     val cpu_reset = IO(Flipped(chiselTypeOf(reset)))
+-    cpu_reset := SynchronizerShiftReg(reset.asBool, 10)
++    cpu_reset := SynchronizerShiftReg(reset.asBool, 10) || reset.asBool
+ 
+     // expose cpu master interface as ports
+     val cpu_master  = IO(Flipped(HeterogeneousBag.fromNode(cpuMasterNode.out)))
+-- 
+2.34.1
+

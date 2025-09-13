@@ -1,0 +1,31 @@
+From f76106ce02fdda8c93da82e0a20956660e07976e Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Sun, 29 Aug 2021 12:08:07 +0800
+Subject: [PATCH 16/74] SoC: let UART use the same address as QEMU
+
+* now this SoC can run unmodified rt-thread from OSCPU
+---
+ src/SoC.scala | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/SoC.scala b/src/SoC.scala
+index bdb465d4..bcd52a8b 100644
+--- a/src/SoC.scala
++++ b/src/SoC.scala
+@@ -38,8 +38,11 @@ class ysyxSoCASIC(implicit p: Parameters) extends LazyModule {
+ 
+   val chiplinkNode = AXI4SlaveNodeGenerator(p(ExtBus), ChipLinkParam.allSpace)
+ 
+-  val luart = LazyModule(new APBUart16550(AddressSet.misaligned(0x20001000, 0x1000)))
+-  val lspi  = LazyModule(new APBSPI(AddressSet.misaligned(0x10000000, 0x10001000)))
++  val luart = LazyModule(new APBUart16550(AddressSet.misaligned(0x10000000, 0x1000)))
++  val lspi  = LazyModule(new APBSPI(
++    AddressSet.misaligned(0x10001000, 0x1000) ++    // SPI controller
++    AddressSet.misaligned(0x30000000, 0x10000000)   // XIP flash
++  ))
+ 
+   List(lspi.node, luart.node).map(_ := apbxbar)
+   List(chiplinkNode, apbxbar := AXI4ToAPB()).map(_ := xbar)
+-- 
+2.34.1
+

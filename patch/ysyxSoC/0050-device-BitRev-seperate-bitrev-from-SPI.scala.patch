@@ -1,0 +1,48 @@
+From d65246a8226f16275c02efd82293d4c4130c576d Mon Sep 17 00:00:00 2001
+From: Zihao Yu <yuzihao@ict.ac.cn>
+Date: Sun, 31 Dec 2023 20:54:21 +0800
+Subject: [PATCH 50/74] device,BitRev: seperate bitrev from SPI.scala
+
+---
+ src/device/BitRev.scala | 13 +++++++++++++
+ src/device/SPI.scala    |  4 ----
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+ create mode 100644 src/device/BitRev.scala
+
+diff --git a/src/device/BitRev.scala b/src/device/BitRev.scala
+new file mode 100644
+index 00000000..6bd3d572
+--- /dev/null
++++ b/src/device/BitRev.scala
+@@ -0,0 +1,13 @@
++package ysyx
++
++import chisel3._
++import chisel3.util._
++
++class bitrev extends BlackBox {
++  val io = IO(Flipped(new SPIIO(1)))
++}
++
++class bitrevChisel extends RawModule { // we do not need clock and reset
++  val io = IO(Flipped(new SPIIO(1)))
++  io.miso := true.B
++}
+diff --git a/src/device/SPI.scala b/src/device/SPI.scala
+index bf35b43d..c31b36c0 100644
+--- a/src/device/SPI.scala
++++ b/src/device/SPI.scala
+@@ -29,10 +29,6 @@ class flash extends BlackBox {
+   val io = IO(Flipped(new SPIIO(1)))
+ }
+ 
+-class bitrev extends BlackBox {
+-  val io = IO(Flipped(new SPIIO(1)))
+-}
+-
+ class APBSPI(address: Seq[AddressSet])(implicit p: Parameters) extends LazyModule {
+   val node = APBSlaveNode(Seq(APBSlavePortParameters(
+     Seq(APBSlaveParameters(
+-- 
+2.34.1
+
