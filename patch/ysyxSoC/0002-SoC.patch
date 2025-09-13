@@ -1,7 +1,7 @@
 From 55a34d31b0bca6df7af9d1a27750588a4886ef94 Mon Sep 17 00:00:00 2001
 From: Tanghongwei <tanghongwei2024@outlook.com>
 Date: Sun, 7 Sep 2025 10:14:30 +0800
-Subject: [PATCH 2/2] SoC
+Subject: [PATCH 2/3] SoC
 
 ---
  rocket-chip | 2 +-
