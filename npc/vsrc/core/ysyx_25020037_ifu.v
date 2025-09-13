@@ -70,12 +70,13 @@ module ysyx_25020037_ifu #(
         endcase
     end
 
-    assign icache_addr = pc;
+    assign icache_addr = {pc[31:2],2'b0};
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
             burst_cnt <= 2'd0;
             fu_to_du_bus <= 'b0;
+            mem_ready <= 1'b0;
         end else begin
             state <= next_state;
             case (state)

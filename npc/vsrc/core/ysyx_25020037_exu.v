@@ -15,9 +15,6 @@ module ysyx_25020037_exu (
     output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
     input  wire         pc_updata,
     output reg          exu_dnpc_valid,
-`ifdef __ICARUS__
-    output wire         ebreak_end,
-`endif
     output reg  [29: 0] exu_dnpc
 );
 `ifdef VERILATOR
@@ -157,6 +154,7 @@ module ysyx_25020037_exu (
     wire [31: 0] alu_result1;
     wire         alu_result2;
     wire [31: 0] csr_wcsr_data;
+    wire [31: 0] data_channel;
 
     assign alu_src1 = src1_is_pc  ? {pc,2'b0}  : src1;
     assign alu_src2 = src2_is_imm ? imm : src2;
@@ -183,6 +181,8 @@ module ysyx_25020037_exu (
     assign result    = is_pc_jump   ? {pc, 2'b0} + 32'h4 : 
                        csr_w_gpr_we ? csr_data           :
                        alu_result1;
+
+    assign data_channel = is_write ? src2 : csr_wcsr_data;
 
     always @(posedge clk) begin
         if (lsu_ready) begin
@@ -233,19 +233,14 @@ module ysyx_25020037_exu (
                         is_read,
                         du_to_lu_bus,
                         gpr_we,
-                        csr_wcsr_data,       
-                        result,
-                        src2
+                        data_channel,
+                        result
                     };
                     eu_to_ic_bus <= is_fence_i;
                 end
             end
         end
     end
-
-`ifdef __ICARUS__
-    assign ebreak_end = ~exu_dnpc_valid & idu_valid & ebreak;
-`endif
 
 `ifdef VERILATOR
     always @(*) begin

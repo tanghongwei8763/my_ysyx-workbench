@@ -2,6 +2,8 @@ ARCH ?= riscv32e-npc
 VERILOG_DEFINES ?= 
 VVP = vvp
 IVERILOG = iverilog
+NETLIST ?= /home/tanghongwei/yosys-sta/result/ysyx_25020037-250MHz/ysyx_25020037.v
+CELLS ?= /home/tanghongwei/yosys-sta/nangate45/sim/cells.v
 ifeq ($(ARCH), riscv32e-npc)
 TOPNAME = ysyx_25020037_npc
 VERILOG_DEFINES = -DRESET_VAL
@@ -23,7 +25,9 @@ BIN = $(BUILD_DIR)/$(TOPNAME)
 # Iverilog专用目录和文件，仅针对NPC架构
 IVERILOG_DIR = $(BUILD_DIR)/iverilog/npc
 IVERILOG_BIN = $(IVERILOG_DIR)/sim
+IVERILOG_BIN_NETLIST = $(IVERILOG_DIR)/sim_netlist
 WAVEFORM = $(IVERILOG_DIR)/waveform.fst
+WAVEFORM_NETLIST = $(IVERILOG_DIR)/waveform_netlist.fst
 MEM_INIT = $(IVERILOG_DIR)/mem_init.hex
 WAVE ?= 0
 
@@ -53,6 +57,11 @@ IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
     -DWAVE=$(WAVE) \
     -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
     -DWAVEFORM_PATH=\"$(WAVEFORM)\"
+IVERILOG_NETLIST_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
+    -I./vsrc/core \
+    -DWAVE=$(WAVE) \
+    -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
+    -DWAVEFORM_PATH=\"$(WAVEFORM_NETLIST)\"
 ifeq ($(WAVE), 1)
 IVERILOG_VVP_FLAGS = -lxt2  # 生成波形文件
 else
@@ -116,18 +125,30 @@ $(MEM_INIT): $(IMG)
 	@echo "Generating memory init from BIN..."
 	riscv64-linux-gnu-objcopy -I binary -O verilog --adjust-vma=-0x00000000 $^ $@
 
-iverilog: $(MEM_INIT) $(IVERILOG_BIN)
+sim-iverilog: $(MEM_INIT) $(IVERILOG_BIN)
 	@echo "Running iverilog simulation (WAVE=$(WAVE))..."
 	$(VVP) -n $(IVERILOG_BIN) $(IVERILOG_VVP_FLAGS)
 	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM) ]; then \
 		echo "Waveform: $(WAVEFORM)"; \
 	fi
 
-iverilog-view:
-	@gtkwave $(WAVEFORM) &
+$(IVERILOG_BIN_NETLIST): ARCH=riscv32e-npc
+$(IVERILOG_BIN_NETLIST): TOPNAME=ysyx_25020037_npc
+$(IVERILOG_BIN_NETLIST): $(NETLIST) \
+                         $(CELLS) \
+                 		 $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
+                         vsrc/sim_top.v
+	@echo "Building iverilog netlist simulation (NETLIST=$(NETLIST), CELLS=$(CELLS))..."
+	$(IVERILOG) $(IVERILOG_NETLIST_FLAGS) \
+		-DWAVEFORM_PATH=\"$(WAVEFORM_NETLIST)\" \
+		-o $@ $^
 
-iverilog-clean:
-	rm -rf $(IVERILOG_DIR)
+sim-iverilog-netlist: $(MEM_INIT) $(IVERILOG_BIN_NETLIST)
+	@echo "Running iverilog netlist simulation (WAVE=$(WAVE))..."
+	$(VVP) -n $(IVERILOG_BIN_NETLIST) $(IVERILOG_VVP_FLAGS)
+	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM_NETLIST) ]; then \
+		echo "Netlist Simulation Waveform: $(WAVEFORM_NETLIST)"; \
+	fi
 
 run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!

@@ -62,10 +62,9 @@ module ysyx_25020037_lsu (
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire        gpr_we;
     wire [31:0] addr;
-    wire [31:0] csr_wcsr_data;
-    wire [31:0] data;
+    wire [31:0] data_channel;
     wire [31:0] addr_off = addr & 32'b11;
-    wire [31:0] aligned_wdata = data << (addr_off << 3);
+    wire [31:0] aligned_wdata = data_channel << (addr_off << 3);
     assign {rd,
             ecall_en,
             mret_en,
@@ -76,9 +75,8 @@ module ysyx_25020037_lsu (
             is_read,
             du_to_lu_bus,
             gpr_we,
-            csr_wcsr_data,     
-            addr,
-            data
+            data_channel,     
+            addr
            } = eu_to_lu_bus;
 
     wire        bit_sext;
@@ -153,7 +151,7 @@ module ysyx_25020037_lsu (
                                 eu_to_gu_bus,
                                 gpr_we,
                                 is_read,
-                                csr_wcsr_data,
+                                data_channel,
                                 addr
                             };
                         end
@@ -175,7 +173,7 @@ module ysyx_25020037_lsu (
                                 eu_to_gu_bus,
                                 gpr_we,
                                 is_read,
-                                csr_wcsr_data,
+                                data_channel,
                                 rdata_processed
                                 };
                             lsu_valid <= 1'b1;
