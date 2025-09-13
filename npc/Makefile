@@ -85,8 +85,7 @@ endif
 CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
-# VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
-VSRCS += $(wildcard $(CURDIR)/vsrc/ysyx_25020037.v)
+VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
 ifeq ($(ARCH), riscv32e-npc)
 VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc/*.v)
 else
@@ -132,8 +131,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 
 $(IVERILOG_BIN): ARCH=riscv32e-npc
 $(IVERILOG_BIN): TOPNAME=ysyx_25020037_npc
-$(IVERILOG_BIN): $(wildcard $(CURDIR)/vsrc/core/*.vh) \
-				 $(wildcard $(CURDIR)/vsrc/core/*.v) \
+$(IVERILOG_BIN): $(wildcard $(CURDIR)/build/ysyx_25020037.v) \
                  $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                  vsrc/sim_top.v
 	@echo "Building iverilog simulation for NPC architecture..."
