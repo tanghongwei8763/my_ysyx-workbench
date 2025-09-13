@@ -15,9 +15,6 @@ module ysyx_25020037_exu (
     output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
     input  wire         pc_updata,
     output reg          exu_dnpc_valid,
-`ifdef __ICARUS__
-    output wire         ebreak_end,
-`endif
     output reg  [29: 0] exu_dnpc
 );
 `ifdef VERILATOR
@@ -244,10 +241,6 @@ module ysyx_25020037_exu (
             end
         end
     end
-
-`ifdef __ICARUS__
-    assign ebreak_end = ~exu_dnpc_valid & idu_valid & ebreak;
-`endif
 
 `ifdef VERILATOR
     always @(*) begin

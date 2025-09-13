@@ -44,15 +44,12 @@ module ysyx_25020037_sram (
 
 
     `ifdef __ICARUS__
-        // 关键：SRAM按字节存储（8位宽），匹配hex文件格式
         localparam SRAM_DEPTH = 8 * 1024 * 1024; // 4MB容量
         reg [7:0]  sram_array [0:SRAM_DEPTH-1];  // 8位宽存储数组
 
-        // 地址计算：减去0x80000000基地址偏移
         wire [31:0] sram_addr_r = {araddr[31:2], 2'b0} - 32'h80000000;
         wire [31:0] sram_addr_w = {awaddr[31:2], 2'b0} - 32'h80000000;
         wire [7:0] b0, b1, b2, b3;
-        // 读取4个连续字节
         assign b0 = sram_array[sram_addr_r + 0];
         assign b1 = sram_array[sram_addr_r + 1];
         assign b2 = sram_array[sram_addr_r + 2];
@@ -62,31 +59,25 @@ module ysyx_25020037_sram (
             `define MEM_INIT_PATH "/home/tanghongwei/ysyx-workbench/npc/build/iverilog/npc/mem_init.hex"
         `endif
 
-        // 修复1：将wire定义移到initial块外部（Verilog语法要求）
         wire [7:0] byte0, byte1, byte2, byte3;
         wire [31:0] init_inst;
 
-        // 初始化验证信号赋值
-        assign byte0 = sram_array[0]; // 0x80000000对应SRAM地址0
-        assign byte1 = sram_array[1]; // 0x80000001对应SRAM地址1
-        assign byte2 = sram_array[2]; // 0x80000002对应SRAM地址2
-        assign byte3 = sram_array[3]; // 0x80000003对应SRAM地址3
-        assign init_inst = {byte3, byte2, byte1, byte0}; // 大端拼接
+        assign byte0 = sram_array[0];
+        assign byte1 = sram_array[1];
+        assign byte2 = sram_array[2];
+        assign byte3 = sram_array[3];
+        assign init_inst = {byte3, byte2, byte1, byte0};
 
         initial begin
             integer i;
-            // 初始化SRAM为0，避免x态
             for (i = 0; i < SRAM_DEPTH; i = i + 1) begin
                 sram_array[i] = 8'h00;
             end
-            // 从hex文件加载数据
             $display("[SRAM][iverilog] Initializing from: %s", `MEM_INIT_PATH);
             $readmemh(`MEM_INIT_PATH, sram_array);
-            // 验证初始化结果
             $display("[SRAM][iverilog] Init check: addr 0x80000000 = 0x%08x", init_inst);
         end
 
-        // 状态转移逻辑
         always @(*) begin
             case (state)
                 IDLE: next_state = (arvalid | awvalid) ? BUSY : IDLE;      
@@ -95,7 +86,6 @@ module ysyx_25020037_sram (
             endcase
         end
 
-        // 时序逻辑
         always @(posedge clk or posedge rst) begin
             if (rst) begin
                 state <= IDLE;    

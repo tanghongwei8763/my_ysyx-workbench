@@ -57,6 +57,11 @@ IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
     -DWAVE=$(WAVE) \
     -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
     -DWAVEFORM_PATH=\"$(WAVEFORM)\"
+IVERILOG_NETLIST_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
+    -I./vsrc/core \
+    -DWAVE=$(WAVE) \
+    -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
+    -DWAVEFORM_PATH=\"$(WAVEFORM_NETLIST)\"
 ifeq ($(WAVE), 1)
 IVERILOG_VVP_FLAGS = -lxt2  # 生成波形文件
 else
@@ -134,7 +139,7 @@ $(IVERILOG_BIN_NETLIST): $(NETLIST) \
                  		 $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                          vsrc/sim_top.v
 	@echo "Building iverilog netlist simulation (NETLIST=$(NETLIST), CELLS=$(CELLS))..."
-	$(IVERILOG) $(IVERILOG_BASE_FLAGS) \
+	$(IVERILOG) $(IVERILOG_NETLIST_FLAGS) \
 		-DWAVEFORM_PATH=\"$(WAVEFORM_NETLIST)\" \
 		-o $@ $^
 

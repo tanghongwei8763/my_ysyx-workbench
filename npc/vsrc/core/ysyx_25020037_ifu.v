@@ -76,6 +76,7 @@ module ysyx_25020037_ifu #(
             state <= IDLE;
             burst_cnt <= 2'd0;
             fu_to_du_bus <= 'b0;
+            mem_ready <= 1'b0;
         end else begin
             state <= next_state;
             case (state)
