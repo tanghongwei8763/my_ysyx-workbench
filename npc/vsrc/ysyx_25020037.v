@@ -1,5 +1,4 @@
 // Merged Verilog file with PC reset value 0x30000000
-`define RESET_VAL 0
 
 // Included from /home/tanghongwei/ysyx-workbench/npc/vsrc/core/ysyx_25020037_config.vh
 `define FU_TO_DU_BUS_WD 62
