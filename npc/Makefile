@@ -119,7 +119,7 @@ $(VERILOG_MERGED): $(wildcard $(CURDIR)/vsrc/core/*.v) $(wildcard $(CURDIR)/vsrc
 	
 	@for file in $(wildcard $(CURDIR)/vsrc/core/*.v); do \
 		echo "// Included from $$file" >> $@; \
-		cat $$file >> $@; \
+		cat $$file | sed -e '/`include "ysyx_25020037_config.vh"/d' >> $@; \
 		echo "" >> $@; \
 	done
 
@@ -132,7 +132,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 
 $(IVERILOG_BIN): ARCH=riscv32e-npc
 $(IVERILOG_BIN): TOPNAME=ysyx_25020037_npc
-$(IVERILOG_BIN): $(wildcard $(CURDIR)/build/ysyx_25020037.v) \
+$(IVERILOG_BIN): $(VERILOG_MERGED) \
                  $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                  vsrc/sim_top.v
 	@echo "Building iverilog simulation for NPC architecture..."
