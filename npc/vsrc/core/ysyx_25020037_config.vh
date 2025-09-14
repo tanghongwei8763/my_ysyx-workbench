@@ -11,7 +11,7 @@
 
 `define RS_DATA 22
 `ifdef RESET_VAL
-`define PC_RESET_VAL 30'h20000000
+`define PC_RESET_VAL 32'h80000000
 `else
-`define PC_RESET_VAL 30'h0c000000
+`define PC_RESET_VAL 32'h30000000
 `endif

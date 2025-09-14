@@ -174,10 +174,10 @@ run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@$^ $(ARGS) $(IMG)
 
-yosys:
+yosys: $(VERILOG_MERGED)
 	cd $(NPC_HOME)/../../yosys-sta && make sta DESIGN=$(YOSYSTOP) \
 											SDC_FILE=$(NPC_HOME)/ysyx_25020037.sdc \
-											RTL_FILES="$(shell find $(NPC_HOME)/vsrc/core -name "*.v")" \
+											RTL_FILES="$(shell find $(NPC_HOME)/build -name "ysyx_25020037.v")" \
 											CLK_FREQ_MHZ=250 \
 	cd $(NPC_HOME)
 

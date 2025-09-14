@@ -15,7 +15,7 @@ module ysyx_25020037_exu (
     output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
     input  wire         pc_updata,
     output reg          exu_dnpc_valid,
-    output reg  [29: 0] exu_dnpc
+    output reg  [31: 0] exu_dnpc
 );
 `ifdef VERILATOR
     import "DPI-C" function void hit(input int inst_not_realize);
@@ -31,8 +31,6 @@ module ysyx_25020037_exu (
     reg [ 3:0] bypass_rd[     BYPASS_DEPTH-1:0];
     reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
     reg        bypass_is_load[BYPASS_DEPTH-1:0];
-
-    assign rs_data = {ecall_en, mret_en, imm[11:0], rs1, rs2};
 
     wire [31: 0] src1_r;
     wire [31: 0] src2_r;
@@ -145,7 +143,7 @@ module ysyx_25020037_exu (
     assign src2 = bypass_src2;
     assign exu_ready = lsu_ready & !src1_wait & !src2_wait;
 
-    wire [29: 0] dnpc_r;
+    wire [31: 0] dnpc_r;
     wire [31: 0] result;
     wire [31: 0] alu_src1;
     wire [31: 0] alu_src2;
@@ -172,11 +170,13 @@ module ysyx_25020037_exu (
         .alu_result2    (alu_result2)
         );
 
+    assign rs_data = {ecall_en, mret_en, imm[11:0], rs1, rs2};
+
     assign csr_wcsr_data    = ({32{csrrw_op}} & src1)
                             | ({32{csrrs_op}} & (src1 | csr_data))
                             | ({32{ecall_en}} & {pc,2'b0});
-    assign dnpc_r           = ({30{ecall_en   | mret_en    }} & csr_data[31:2])
-                            | ({30{is_pc_jump & alu_result2}} & alu_result1[31:2]);
+    assign dnpc_r           = ({32{ecall_en   | mret_en    }} & csr_data)
+                            | ({32{is_pc_jump & alu_result2}} & alu_result1);
 
     assign result    = is_pc_jump   ? {pc, 2'b0} + 32'h4 : 
                        csr_w_gpr_we ? csr_data           :
@@ -211,8 +211,8 @@ module ysyx_25020037_exu (
             eu_to_lu_bus <= 'b0;
         end else begin
             if(exu_ready) begin
-                if(dnpc_r != 30'b0 && ~exu_dnpc_valid) begin
-                    exu_dnpc_valid <= idu_valid & (dnpc_r != pc + 30'h1);
+                if(dnpc_r != 32'b0 && ~exu_dnpc_valid) begin
+                    exu_dnpc_valid <= idu_valid;
                     exu_dnpc <= dnpc_r;
                 end else if (pc_updata) begin
                     exu_dnpc_valid <=1'b0;

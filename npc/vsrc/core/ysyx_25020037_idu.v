@@ -26,12 +26,6 @@ module ysyx_25020037_idu (
 
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire  gpr_we;
-    assign du_to_lu_bus = {
-        //lw_lh_lb,   
-        //sw_sh_sb,
-        inst_lb,        
-        inst_lh
-    };
 
     wire [ 4: 0] rs1;
     wire [ 4: 0] rs2;
@@ -109,6 +103,13 @@ module ysyx_25020037_idu (
     wire        TYPE_U;
     wire        TYPE_J;
     wire        TYPE_N;
+
+    assign du_to_lu_bus = {
+        //lw_lh_lb,   
+        //sw_sh_sb,
+        inst_lb,        
+        inst_lh
+    };
 
     assign opcode_31_25  = inst[31:25];
     assign opcode_31_26  = inst[31:26];

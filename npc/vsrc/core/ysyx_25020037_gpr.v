@@ -32,19 +32,6 @@ module ysyx_25020037_gpr (
   wire [31: 0] mcause    = 32'hb;
   wire [31: 0] mvendorid = 32'h79737978;
   wire [31: 0] marchid   = 32'h017DC685;
-  //实例化寄存器
-  generate
-    genvar i;
-    for (i = 0; i < 16; i = i+1) begin : GPR16
-      ysyx_25020037_Reg #(32, 32'b0) gpr16 (
-        .clk        (clk        ), 
-        .rst        (rst        ), 
-        .din        (gpr_wdata  ), 
-        .dout       (regs[i]    ), 
-        .wen        ((rd != 4'b0) & wbu_valid & gpr_wen & (rd == i))
-        );
-    end
-  endgenerate
 
   assign {rd,
           ecall_en,
@@ -95,30 +82,25 @@ module ysyx_25020037_gpr (
                       & ~((32'h1 << 11) | (32'h1 << 12)) :
                       csr_wcsr_data;
 
-  //实例CSR处理器
-  ysyx_25020037_Reg #(32, 32'h0) CSRS_mtvec (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (csr_wcsr_data   ),
-    .dout        (mtvec           ),
-    .wen         (csrs_mtvec_wen & wbu_valid)
-  );
-
-  ysyx_25020037_Reg #(32, 32'h0) CSRS_mepc (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (csr_wcsr_data   ),
-    .dout        (mepc            ),
-    .wen         (mepc_wen & wbu_valid)
-  );
-
-  ysyx_25020037_Reg #(32, 32'h1800) CSRS_mstatus (
-    .clk         (clk             ),
-    .rst         (rst             ),
-    .din         (mstatus_data    ),
-    .dout        (mstatus         ),
-    .wen         (mstatus_wen & wbu_valid)
-  );
+  always @(posedge clk) begin
+    if (rst) begin
+      regs[0] <= 32'h0;
+      mstatus <= 32'h1800;
+    end else begin
+      if ((rd != 4'b0) && wbu_valid && gpr_wen) begin
+        regs[rd] <= gpr_wdata;
+      end
+      if (csrs_mtvec_wen & wbu_valid) begin
+        mtvec <= csr_wcsr_data;
+      end
+      if (mepc_wen & wbu_valid) begin
+        mepc <= csr_wcsr_data;
+      end
+      if (mstatus_wen & wbu_valid) begin
+        mstatus <= mstatus_data;
+      end
+    end
+  end
   
   assign src1 = regs[rs1];
   assign src2 = regs[rs2];
