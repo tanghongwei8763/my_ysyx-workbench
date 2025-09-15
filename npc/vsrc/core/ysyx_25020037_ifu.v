@@ -40,7 +40,6 @@ module ysyx_25020037_ifu #(
     localparam SDRAM_END  = 4'hB; 
 
     localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);
-    localparam TRANSFER_COUNT = BLOCK_SIZE / 4;
     localparam IDLE    = 1'b0;
     localparam BUSY    = 1'b1;
     
@@ -52,7 +51,7 @@ module ysyx_25020037_ifu #(
     wire [31:0] block_base_addr = {pc[31:OFFSET_WIDTH], {OFFSET_WIDTH{1'b0}}};
     wire        is_sdram = (block_base_addr[31:28] == SDRAM_BASE) | (block_base_addr[31:28] == SDRAM_END);
     reg  [1:0]  burst_cnt;
-
+    reg [31:0]  data_buf[0:2];
     assign      pc_updata = (next_state == IDLE) & idu_ready;
 
     always @(*) begin
@@ -62,24 +61,14 @@ module ysyx_25020037_ifu #(
             default: next_state = IDLE;
         endcase
     end
-    reg [127:0] mem_data_reg;
-    assign icache_addr = {pc[31:2],2'b0};
-    always @(*) begin
-      case(burst_cnt)
-        2'd0: mem_data_reg[31:0] = rdata;
-        2'd1: mem_data_reg[63:32] = rdata;
-        2'd2: mem_data_reg[95:64] = rdata;
-        2'd3: mem_data_reg[127:96] = rdata;
-      endcase
-    end
-    assign mem_data  = mem_data_reg;
+    assign icache_addr = pc;
+    assign mem_data = {rdata, data_buf[2], data_buf[1], data_buf[0]};
     assign mem_ready = is_sdram ? rlast : rvalid & (burst_cnt == 2'b11);
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             pc <= `PC_RESET_VAL;
             state <= IDLE;
             burst_cnt <= 2'd0;
-            fu_to_du_bus <= 'b0;
         end else begin
             pc <= pc_updata ? dnpc : pc;
             state <= next_state;
@@ -113,6 +102,12 @@ module ysyx_25020037_ifu #(
                     end
                     if (rvalid && rready) begin
                         access_fault <= (rresp != 2'b00);
+                        case(burst_cnt)
+                            2'd0: data_buf[0] <= rdata;
+                            2'd1: data_buf[1] <= rdata;
+                            2'd2: data_buf[2] <= rdata;
+                            default: ;
+                        endcase
                         burst_cnt <= burst_cnt + 2'b1;
                         if (is_sdram) begin
                             if (rlast) begin

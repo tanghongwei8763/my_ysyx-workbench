@@ -26,7 +26,7 @@ module ysyx_25020037_wbu (
             csr_wcsr_data,
             rdata_processed
            } = lu_to_wu_bus;
-    reg  [31: 0] regs [15:0];
+    reg  [31: 0] regs [14:0];
     reg  [31: 0] mtvec;
     reg  [31: 0] mepc;
     reg  [31: 0] mstatus;
@@ -80,11 +80,10 @@ module ysyx_25020037_wbu (
 
     always @(posedge clk) begin
       if (rst) begin
-        regs[0] <= 32'h0;
         mstatus <= 32'h1800;
       end else begin
         if ((rd != 4'b0) && gpr_wen) begin
-          regs[rd] <= gpr_wdata;
+          regs[rd-1] <= gpr_wdata;
         end
         if (csrs_mtvec_wen) begin
           mtvec <= csr_wcsr_data;
@@ -98,8 +97,8 @@ module ysyx_25020037_wbu (
       end
     end
     
-    assign src1 = regs[rs1];
-    assign src2 = regs[rs2];
+    assign src1 = (rs1 == 4'b0) ? 32'b0 : regs[rs1-1];
+    assign src2 = (rs2 == 4'b0) ? 32'b0 : regs[rs2-1];
     assign wu_to_eu_bus = {           
              src1,
              src2,
