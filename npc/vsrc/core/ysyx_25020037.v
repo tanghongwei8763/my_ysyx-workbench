@@ -79,20 +79,19 @@ module ysyx_25020037 (
     assign io_slave_rid     = 4'b0;
 
     parameter BLOCK_SIZE   = 32'd16;
-    parameter CACHE_BLOCKS = 32'd4;
+    parameter CACHE_BLOCKS = 32'd2;
 
 `ifdef VERILATOR
     import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
     always @(posedge clock) begin
-       performance_counter({27'b0, ifu_valid, idu_valid, exu_valid, lsu_valid, wbu_valid}, 32'b0, {31'b0, icache_hit});
+       performance_counter({28'b0, ifu_valid, idu_valid, exu_valid, lsu_valid}, 32'b0, {31'b0, icache_hit});
     end
 `endif
     wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus;
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus;
-    wire [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus;
-    wire [`GU_TO_EU_BUS_WD -1:0] gu_to_eu_bus;
+    wire [`WU_TO_EU_BUS_WD -1:0] wu_to_eu_bus;
     wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
 
     wire [`RS_DATA-1: 0] rs_data;
@@ -109,7 +108,6 @@ module ysyx_25020037 (
     wire         lsu_valid;
     wire         lsu_ready;
     wire         wbu_ready;
-    wire         wbu_valid;
 
     wire         ifu_arready;
     wire         ifu_arvalid;
@@ -180,17 +178,7 @@ module ysyx_25020037 (
     wire [31: 0] icache_mem_addr;
     wire [BLOCK_SIZE*8-1:0] icache_mem_data;
     wire         icache_mem_ready;
-
-    ysyx_25020037_gpr gpr_cpu (
-        .wbu_valid        (wbu_valid       ),
-        .exu_ready        (exu_ready       ),
-        .clk              (clock           ),
-        .rst              (reset           ),
-        .rs_data          (rs_data         ),
-        .wu_to_gu_bus     (wu_to_gu_bus    ),
-        .gu_to_eu_bus     (gu_to_eu_bus    )
-    );          
-    
+      
     ysyx_25020037_ifu #(
         .BLOCK_SIZE    (BLOCK_SIZE)
     ) ifu_cpu(
@@ -417,7 +405,7 @@ ysyx_25020037_clint u_clint (
         .exu_valid      (exu_valid      ),
         .rs_data        (rs_data        ),
         .rdata_processed(rdata_processed),
-        .gu_to_eu_bus   (gu_to_eu_bus   ),
+        .wu_to_eu_bus   (wu_to_eu_bus   ),
         .du_to_eu_bus   (du_to_eu_bus   ),
         .eu_to_lu_bus   (eu_to_lu_bus   ),
         .eu_to_ic_bus   (eu_to_ic_bus   ),
@@ -428,11 +416,12 @@ ysyx_25020037_clint u_clint (
 
     ysyx_25020037_wbu wbu_cpu(
         .lsu_valid    (lsu_valid    ),
-        .wbu_valid    (wbu_valid    ),
+        .exu_ready    (exu_ready    ),
         .clk          (clock        ),
         .rst          (reset        ),
+        .rs_data      (rs_data      ),
         .lu_to_wu_bus (lu_to_wu_bus ),
-        .wu_to_gu_bus (wu_to_gu_bus )
+        .wu_to_eu_bus (wu_to_eu_bus )
         );
 
 endmodule

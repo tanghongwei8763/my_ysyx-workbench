@@ -10,20 +10,19 @@
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
 #define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__pc_reg
-#define dut_gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
-#define dut_mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__mtvec
-#define dut_mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__mepc
-#define dut_mstatus top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__mstatus
-#define dut_mcause top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__mcause
+#define dut_gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__regs
+#define dut_mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__mtvec
+#define dut_mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__mepc
+#define dut_mstatus top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__mstatus
 #else
 #include "Vysyx_25020037_npc___024root.h"
 #include "Vysyx_25020037_npc.h"
 extern Vysyx_25020037_npc *top;
 #define dut_pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__ifu_cpu__DOT__pc
-#define dut_gpr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__regs
-#define dut_mtvec top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__mtvec
-#define dut_mepc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__mepc
-#define dut_mstatus top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__mstatus
+#define dut_gpr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__regs
+#define dut_mtvec top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__mtvec
+#define dut_mepc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__mepc
+#define dut_mstatus top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__mstatus
 #define dut_mcause 11
 #endif
 

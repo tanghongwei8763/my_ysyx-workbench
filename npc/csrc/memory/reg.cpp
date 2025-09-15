@@ -7,7 +7,7 @@
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_cpu__DOT__pc
-#define gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__regs
+#define gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #define mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mtvec
 #define mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mepc
 #define mstatus top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mstatus
@@ -18,7 +18,7 @@ extern VysyxSoCFull *top;
 #include "Vysyx_25020037_npc.h"
 extern Vysyx_25020037_npc *top;
 #define pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__ifu_cpu__DOT__pc
-#define gpr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__regs
+#define gpr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #define mtvec top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__mtvec
 #define mepc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__mepc
 #define mstatus top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__mstatus

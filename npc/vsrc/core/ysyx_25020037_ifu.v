@@ -33,8 +33,8 @@ module ysyx_25020037_ifu #(
     input  wire         icache_ready,
     input  wire         mem_req,
     input  wire [31: 0] mem_addr,
-    output reg  [BLOCK_SIZE*8-1:0] mem_data,
-    output reg          mem_ready
+    output wire [BLOCK_SIZE*8-1:0] mem_data,
+    output wire         mem_ready
 );
     localparam SDRAM_BASE = 4'hA; // A000_0000-BFFF_FFFF
     localparam SDRAM_END  = 4'hB; 
@@ -62,15 +62,24 @@ module ysyx_25020037_ifu #(
             default: next_state = IDLE;
         endcase
     end
-
+    reg [127:0] mem_data_reg;
     assign icache_addr = {pc[31:2],2'b0};
+    always @(*) begin
+      case(burst_cnt)
+        2'd0: mem_data_reg[31:0] = rdata;
+        2'd1: mem_data_reg[63:32] = rdata;
+        2'd2: mem_data_reg[95:64] = rdata;
+        2'd3: mem_data_reg[127:96] = rdata;
+      endcase
+    end
+    assign mem_data  = mem_data_reg;
+    assign mem_ready = is_sdram ? rlast : rvalid & (burst_cnt == 2'b11);
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             pc <= `PC_RESET_VAL;
             state <= IDLE;
             burst_cnt <= 2'd0;
             fu_to_du_bus <= 'b0;
-            mem_ready <= 1'b0;
         end else begin
             pc <= pc_updata ? dnpc : pc;
             state <= next_state;
@@ -88,7 +97,7 @@ module ysyx_25020037_ifu #(
                             arid <= 4'h0;
                             arsize <= 3'h2;
                             if (is_sdram) begin
-                                arlen <= 8'h3;  // 8'(TRANSFER_COUNT - 1);
+                                arlen <= 8'h3;
                                 arburst <= 2'h1;
                             end else begin
                                 arlen <= 8'h0;
@@ -104,17 +113,14 @@ module ysyx_25020037_ifu #(
                     end
                     if (rvalid && rready) begin
                         access_fault <= (rresp != 2'b00);
-                        mem_data[burst_cnt*32 +: 32] <= rdata;
                         burst_cnt <= burst_cnt + 2'b1;
                         if (is_sdram) begin
                             if (rlast) begin
-                                mem_ready <= 1'b1;
                                 rready <= 1'b0;
                                 burst_cnt <= 2'd0;
                             end
                         end else begin
-                            if ({{30{1'b0}}, burst_cnt} == (TRANSFER_COUNT - 1)) begin
-                                mem_ready <= 1'b1;
+                            if (burst_cnt == 2'b11) begin
                                 rready <= 1'b0;
                                 burst_cnt <= 2'd0;
                             end else begin
@@ -126,8 +132,6 @@ module ysyx_25020037_ifu #(
                     ifu_valid <= 1'b0;
                     fu_to_du_bus <= 'b0;
                     if(icache_hit & idu_ready) begin
-                        mem_ready <= 1'b0;
-                        mem_data <= 'b0;
                         fu_to_du_bus <= {pc[31:2], icache_data};
                         ifu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
                     end

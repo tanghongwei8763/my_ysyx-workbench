@@ -2,11 +2,12 @@
 
 module ysyx_25020037_wbu (
     input  wire         lsu_valid,
-    output reg          wbu_valid,
+    input  wire         exu_ready,
     input  wire         clk,
     input  wire         rst,
-    input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
-    output reg  [`WU_TO_GU_BUS_WD -1:0] wu_to_gu_bus
+    input  wire [`RS_DATA-1: 0] rs_data,
+    output wire [`WU_TO_EU_BUS_WD -1:0] wu_to_eu_bus,
+    input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus
 );
     wire [ 3: 0] rd;
     wire         ecall_en;
@@ -25,25 +26,84 @@ module ysyx_25020037_wbu (
             csr_wcsr_data,
             rdata_processed
            } = lu_to_wu_bus;
+    reg  [31: 0] regs [15:0];
+    reg  [31: 0] mtvec;
+    reg  [31: 0] mepc;
+    reg  [31: 0] mstatus;
+    wire [31: 0] mcause    = 32'hb;
+    wire [31: 0] mvendorid = 32'h79737978;
+    wire [31: 0] marchid   = 32'h017DC685;  
+    wire         gpr_wen   = lsu_valid & (gpr_we | rlsu_we);
+    wire [31: 0] gpr_wdata = rdata_processed;
 
-    wire         final_gpr_we = ~rst & (gpr_we | rlsu_we);
-    wire [31: 0] final_result = ~{32{rst}} & rdata_processed;
+    wire         inst_ecall;
+    wire         inst_mret;
+    wire [11: 0] imm;
+    wire [ 3: 0] rs1;
+    wire [ 3: 0] rs2;
+    assign {inst_ecall,
+            inst_mret,
+            imm,
+            rs1,
+            rs2
+           } = rs_data;
+    wire         csrs_mtvec_wen;
+    wire         csrs_mepc_wen;
+    wire         csrs_mstatus_wen;
+    assign {csrs_mtvec_wen,
+            csrs_mepc_wen,
+            csrs_mstatus_wen
+           } = eu_to_gu_bus;
+    wire [31: 0] src1;
+    wire [31: 0] src2;
+    wire [31: 0] csr_data; 
+    assign csr_data        = ({32{imm == `MTVEC || inst_ecall}} & mtvec)
+                           | ({32{imm == `MEPC  || inst_mret }} & mepc)
+                           | ({32{imm == `MSTATUS  }} & mstatus)
+                           | ({32{imm == `MCAUSE   }} & mcause)
+                           | ({32{imm == `MVENDORID}} & mvendorid)
+                           | ({32{imm == `MARCHID  }} & marchid);
+    wire         mepc_wen;
+    wire         mstatus_wen;
+    wire         mtvec_wen;
+    wire [31: 0] mstatus_data;
+    assign mtvec_wen    = lsu_valid & csrs_mepc_wen;
+    assign mepc_wen     = lsu_valid & (ecall_en | csrs_mepc_wen);
+    assign mstatus_wen  = lsu_valid & (ecall_en | mret_en  | csrs_mstatus_wen);
+    
+    assign mstatus_data = ecall_en ? 32'h1800  :
+                          mret_en  ? ((mstatus & ~(32'h1 << 3))
+                        | (((mstatus & (32'h1 << 7)) >> 4))
+                        | (32'h1 << 7))
+                        & ~((32'h1 << 11) | (32'h1 << 12)) :
+                        csr_wcsr_data;
 
     always @(posedge clk) begin
-        wbu_valid <= 1'b0;
-        wu_to_gu_bus <= 'b0;
-        if (lsu_valid) begin
-            wbu_valid <= 1'b1;
-            wu_to_gu_bus <= {
-                rd,
-                ecall_en,
-                mret_en,
-                eu_to_gu_bus,
-                csr_wcsr_data,     
-                final_gpr_we,         
-                final_result 
-            };
+      if (rst) begin
+        regs[0] <= 32'h0;
+        mstatus <= 32'h1800;
+      end else begin
+        if ((rd != 4'b0) && gpr_wen) begin
+          regs[rd] <= gpr_wdata;
         end
+        if (csrs_mtvec_wen) begin
+          mtvec <= csr_wcsr_data;
+        end
+        if (mepc_wen) begin
+          mepc <= csr_wcsr_data;
+        end
+        if (mstatus_wen) begin
+          mstatus <= mstatus_data;
+        end
+      end
     end
+    
+    assign src1 = regs[rs1];
+    assign src2 = regs[rs2];
+    assign wu_to_eu_bus = {           
+             src1,
+             src2,
+             csr_data
+           };
 
 endmodule
