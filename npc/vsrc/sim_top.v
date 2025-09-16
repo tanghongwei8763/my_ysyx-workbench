@@ -4,9 +4,6 @@ module sim_top();
 
 
     // 宏定义：默认路径与配置（可通过Makefile传入参数覆盖）
-    `ifndef MEM_INIT_PATH
-        `define MEM_INIT_PATH "./mem_init.hex"
-    `endif
     `ifndef WAVE
         `define WAVE 0  // 0=关闭波形，1=开启波形
     `endif

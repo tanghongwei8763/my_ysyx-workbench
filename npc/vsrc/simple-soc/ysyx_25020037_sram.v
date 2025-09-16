@@ -56,7 +56,7 @@ module ysyx_25020037_sram (
         assign b3 = sram_array[sram_addr_r + 3];
 
         `ifndef MEM_INIT_PATH
-            `define MEM_INIT_PATH "/home/tanghongwei/ysyx-workbench/npc/build/iverilog/npc/mem_init.hex"
+            `define MEM_INIT_PATH "../../build/iverilog/npc/mem_init.hex"
         `endif
 
         wire [7:0] byte0, byte1, byte2, byte3;
