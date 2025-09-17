@@ -1,6 +1,9 @@
 `include "ysyx_25020037_config.vh"
 
 module ysyx_25020037_exu (
+`ifdef __ICARUS__
+    output wire         sim_end,
+`endif
     input  wire         clk,
     input  wire         rst,
     input  wire         idu_valid,
@@ -170,6 +173,7 @@ module ysyx_25020037_exu (
                             | ({32{csrrs_op}} & (src1 | csr_data))
                             | ({32{ecall_en}} & {pc,2'b0});
     assign dnpc_r           = ({32{ecall_en   | mret_en    }} & csr_data)
+                            | ({32{is_fence_i              }} & {pc, 2'b0} + 32'h4)
                             | ({32{is_pc_jump & alu_result2}} & alu_result1);
 
     assign result    = is_pc_jump   ? {pc, 2'b0} + 32'h4 : 
@@ -236,6 +240,9 @@ module ysyx_25020037_exu (
         end
     end
 
+`ifdef __ICARUS__
+    assign sim_end = ~exu_dnpc_valid & idu_valid & ebreak;
+`endif
 `ifdef VERILATOR
     always @(*) begin
        if(~exu_dnpc_valid & idu_valid & ebreak) begin hit(32'b0); end

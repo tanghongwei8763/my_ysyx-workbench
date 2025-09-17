@@ -1,4 +1,5 @@
 module sim_top();
+    reg sim_end;
     reg clk;
     reg rst_n;
 
@@ -28,8 +29,9 @@ module sim_top();
 
     // 3. 例化CPU顶层模块（ysyx_25020037）
     ysyx_25020037_npc u_cpu (
-        .clock(clk),              // 输入：系统时钟
-        .reset(~rst_n)            // 输入：复位信号（若CPU是高电平复位，此处无需取反）
+        .sim_end    (sim_end),           // 输出：结束信号
+        .clock      (clk    ),           // 输入：系统时钟
+        .reset      (~rst_n )            // 输入：复位信号（若CPU是高电平复位，此处无需取反）
     );
 
 
@@ -39,7 +41,7 @@ module sim_top();
         $display("[SIM] Simulation started. Waiting for endless...");
         
         // 等待
-        wait(0);
+        wait(sim_end == 1);
         
         // 收到结束信号后，打印信息并终止仿真
         $display("[SIM] sim_end detected! Simulation completed successfully.");
