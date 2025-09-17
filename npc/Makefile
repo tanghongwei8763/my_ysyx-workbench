@@ -109,6 +109,7 @@ $(VERILOG_MERGED): $(wildcard $(CURDIR)/vsrc/core/*.v) $(wildcard $(CURDIR)/vsrc
 	@echo "Merging core Verilog files into $@..."
 	@echo "// Merged Verilog file with PC reset value 0x30000000" > $@
 	@echo \`define RESET_VAL 0 >> $@
+	@echo \`define __ICARUS__ 0 >> $@
 	@echo "" >> $@
 	
 	@for file in $(wildcard $(CURDIR)/vsrc/core/*.vh); do \
