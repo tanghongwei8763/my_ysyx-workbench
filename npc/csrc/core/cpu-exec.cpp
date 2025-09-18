@@ -16,6 +16,7 @@ extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_cpu__DOT__pc
 #define inst 32//(uint32_t)(top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__fu_to_du_bus & 0xFFFFFFFF)
 #define exu_dnpc_valid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__exu_dnpc_valid
+#define lsu_valid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_valid
 #define ifu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_access_fault
 #define lsu_access_fault top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_access_fault
 #define araddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_araddr
@@ -31,17 +32,6 @@ extern Vysyx_25020037_npc *top;
 #define inst 32
 #endif
 
-typedef enum {
-    INST_R,
-    INST_I,
-    INST_S,
-    INST_B,
-    INST_U,
-    INST_J,
-    INST_N,
-    INST_TYPE_COUNT
-} InstType;
-
 typedef struct {
     uint64_t count;      // 指令数量
     uint64_t clk;        // 消耗的时钟数
@@ -49,24 +39,9 @@ typedef struct {
 } TypeStats;
 
 typedef struct {
-    TypeStats ifu;
-    TypeStats lsu;
-    TypeStats exu;
-    TypeStats idu;
-    TypeStats wbu;
-} PerfCounter;
-
-typedef struct {
     uint64_t inst_sum;   // 总指令数
     uint64_t clk_sum;    // 总时钟数
     uint64_t g_timer;    // 总时间(us)
-    PerfCounter perf;    // 性能计数器
-    TypeStats types[INST_TYPE_COUNT];  // 各类型指令统计
-    InstType current_type;  // 当前执行的指令类型
-    int prev_valid;
-    int current_module;
-    uint64_t module_clk_start[5];  // 0:ifu, 1:idu, 2:exu, 3:lsu, 4:wbu
-    uint64_t module_time_start[5];
 } Stats;
 static Stats stats = {0};
 static int prev_valid = 0;
@@ -77,89 +52,8 @@ extern uint64_t get_time();
 static uint64_t current_total_clk_reg = 0;
 static int last_pc;
 
-static void update_module_stats(int valid, uint64_t current_total_clk) {
-    if(valid == 0) return;
-    // printf("0x%02x  %ld  ", valid, current_total_clk);
-    uint64_t clock_spend = current_total_clk - current_total_clk_reg;
-    // printf("%ld\n", clock_spend);
-    current_total_clk_reg = current_total_clk;
-
-    switch(valid) {
-        case 0x10:stats.perf.ifu.clk += clock_spend + 1; break;
-        case 0x08:stats.perf.idu.clk += clock_spend; break;
-        case 0x04:stats.perf.exu.clk += clock_spend; break;
-        case 0x02:stats.perf.lsu.clk += clock_spend; break;
-        case 0x01:stats.perf.wbu.clk += 2          ; break;
-    }
-}
-static uint64_t icache_hit = 0;
-extern "C" void performance_counter(int valid, int type_, int cache_hit) {
-    if((prev_valid != valid) && (valid != 0)) prev_valid = valid;
-
-    icache_hit += ((cache_hit >> 0) & 0x01);
-    stats.perf.ifu.count += ((valid >> 4) & 0x01);
-    stats.perf.idu.count += ((valid >> 3) & 0x01);
-    stats.perf.exu.count += ((valid >> 2) & 0x01);
-    stats.perf.lsu.count += ((valid >> 1) & 0x01);
-    stats.perf.wbu.count += ((valid >> 0) & 0x01);
-    if ((type_ >> 6) & 0x01) { stats.types[INST_R].count++; stats.current_type = INST_R; }
-    if ((type_ >> 5) & 0x01) { stats.types[INST_I].count++; stats.current_type = INST_I; }
-    if ((type_ >> 4) & 0x01) { stats.types[INST_S].count++; stats.current_type = INST_S; }
-    if ((type_ >> 3) & 0x01) { stats.types[INST_B].count++; stats.current_type = INST_B; }
-    if ((type_ >> 2) & 0x01) { stats.types[INST_U].count++; stats.current_type = INST_U; }
-    if ((type_ >> 1) & 0x01) { stats.types[INST_J].count++; stats.current_type = INST_J; }
-    if ((type_ >> 0) & 0x01) { stats.types[INST_N].count++; stats.current_type = INST_N; }
-}
 
 static void inst_infomation() {
-//     printf("+----------------+----------------------+\n");
-//     printf("| cache\t\t | 命中率\t\t|\n");
-//     printf("+----------------+----------------------+\n");
-//     printf("| -icache\t | %-15.4f\t|\n", (double)icache_hit / stats.inst_sum);
-//     printf("+----------------+----------------------+\n");
-// #ifdef CONFIG_YSYXSOC
-//     printf("| 模块耗时统计   | 时钟占比\t\t|\n");
-//     printf("+----------------+----------------------+\n");
-//     const char* module_names[5] = {"ifu", "idu", "exu", "lsu", "wbu"};
-//     TypeStats* modules[5] = {
-//         &stats.perf.ifu, &stats.perf.idu, 
-//         &stats.perf.exu, &stats.perf.lsu, &stats.perf.wbu
-//     };
-    
-//     for (int i = 0; i < 5; i++) {
-//         double clk_ratio = stats.clk_sum > 0 ? 
-//             (double)modules[i]->clk / stats.clk_sum * 100 : 0;
-//         double time_ratio = stats.g_timer > 0 ? 
-//             (double)modules[i]->time / stats.g_timer * 100 : 0;
-        
-//         printf("| - %-12s | %-10ld(%.1f%%)\t|\n",
-//                module_names[i],
-//                modules[i]->clk,
-//                clk_ratio);
-//     }
-//     printf("+----------------+----------------------------------------------+\n");
-    
-//     // 打印指令类型统计表格
-//     printf("| 指令类型统计   | 时钟占比             时间占比\t\t|\n");
-//     printf("+----------------+----------------------------------------------+\n");
-    
-//     const char* type_names[INST_TYPE_COUNT] = {"R", "I", "S", "B", "U", "J", "N"};
-//     for (int i = 0; i < INST_TYPE_COUNT; i++) {
-//         double clk_ratio = stats.clk_sum > 0 ? 
-//             (double)stats.types[i].clk / stats.clk_sum * 100 : 0;
-//         double time_ratio = stats.g_timer > 0 ? 
-//             (double)stats.types[i].time / stats.g_timer * 100 : 0;
-        
-//         printf("| %-5s %-8ld | %-10ld(%.1f%%)\t%-10ld(%.1f%%)\t|\n",
-//                type_names[i],
-//                stats.types[i].count / 2,
-//                stats.types[i].clk,
-//                clk_ratio,
-//                stats.types[i].time,
-//                time_ratio);
-//     }
-//     printf("+---------------------------------------------------------------+\n");
-// #endif
     Log("IPC = %.4f", (double)stats.inst_sum / stats.clk_sum);
     Log("host time spent = %ld us", stats.g_timer);
     Log("total guest instructions = %ld", stats.inst_sum);
@@ -281,10 +175,6 @@ static void exec_once() {
            (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
 #endif
 #endif
-        if(prev_valid_reg != prev_valid){
-            prev_valid_reg = prev_valid;
-            update_module_stats(prev_valid_reg, clk_sum_reg);
-        }
         timer_start = get_time();
         single_cycle();
         timer_end = get_time();
@@ -294,12 +184,10 @@ static void exec_once() {
     
     stats.clk_sum += clk_sum_reg;
     stats.g_timer += time_spent;
-    stats.types[stats.current_type].clk += clk_sum_reg;
-    stats.types[stats.current_type].time += time_spent;
 
 #ifdef CONFIG_YSYXSOC
 #ifdef CONFIG_DIFFTEST
-    if(!exu_dnpc_valid) trace_and_difftest();
+    if(!exu_dnpc_valid & lsu_valid) trace_and_difftest();
 #endif
 #endif
 }

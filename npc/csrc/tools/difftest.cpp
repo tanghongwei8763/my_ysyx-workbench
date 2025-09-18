@@ -9,7 +9,7 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
-#define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__pc_reg
+#define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_cpu__DOT__pc
 #define dut_gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #define dut_mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__mtvec
 #define dut_mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__mepc
@@ -23,7 +23,6 @@ extern Vysyx_25020037_npc *top;
 #define dut_mtvec top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__mtvec
 #define dut_mepc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__mepc
 #define dut_mstatus top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__mstatus
-#define dut_mcause 11
 #endif
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) = NULL;
@@ -86,7 +85,6 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   dut_r->mtvec   = dut_mtvec;
   dut_r->mepc    = dut_mepc;
   dut_r->mstatus = dut_mstatus;
-  dut_r->mcause  = dut_mcause;
   ref_difftest_regcpy(dut_r, DIFFTEST_TO_REF);
 }
 
@@ -108,12 +106,11 @@ void difftest_step(vaddr_t pc, vaddr_t npc) {
     dut_r->mtvec   = dut_mtvec;
     dut_r->mepc    = dut_mepc;
     dut_r->mstatus = dut_mstatus;
-    dut_r->mcause  = dut_mcause;
     ref_difftest_regcpy(dut_r, DIFFTEST_TO_REF);
     is_skip_ref = false;
     return;
   }
-
+printf("!!\n");
   ref_difftest_exec(1);
 
   ref_difftest_regcpy(ref_r, DIFFTEST_TO_DUT);

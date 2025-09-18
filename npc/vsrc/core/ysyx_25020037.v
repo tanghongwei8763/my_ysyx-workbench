@@ -84,12 +84,6 @@ module ysyx_25020037 (
     parameter BLOCK_SIZE   = 32'd16;
     parameter CACHE_BLOCKS = 32'd2;
 
-`ifdef VERILATOR
-    import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
-    always @(posedge clock) begin
-       performance_counter({28'b0, ifu_valid, idu_valid, exu_valid, lsu_valid}, 32'b0, {31'b0, icache_hit});
-    end
-`endif
     wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus;
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;

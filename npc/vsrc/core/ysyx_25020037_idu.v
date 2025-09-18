@@ -11,13 +11,6 @@ module ysyx_25020037_idu (
     input  wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus,
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
 );
-`ifdef VERILATOR
-    import "DPI-C" function void performance_counter(input int valid, input int type_, input int cache_hit);
-    always @(posedge clk) begin
-       if(idu_valid & ~rst) begin performance_counter(32'b0, {25'b0, TYPE_R,TYPE_I,TYPE_S,TYPE_B,TYPE_U,TYPE_J,TYPE_N}, 32'b0);end
-    end
-`endif
-
     wire [29: 0] pc;
     wire [31: 0] inst;
     assign {pc,
