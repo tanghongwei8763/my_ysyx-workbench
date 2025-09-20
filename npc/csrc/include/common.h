@@ -12,6 +12,10 @@
 #include <cstdlib>
 #include <cstring>
 
+#ifdef CONFIG_NVBOARD
+#include <nvboard.h>
+#endif
+
 enum {
     NPC_END, NPC_RUNING, 
     NPC_STOP, NPC_ABORT,NPC_QUIT

@@ -13,7 +13,6 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 #ifdef CONFIG_NVBOARD
-#include <nvboard.h>
 extern void nvboard_bind_all_pins(VysyxSoCFull* top);
 #endif
 
@@ -135,14 +134,7 @@ int main (int argc, char** argv) {
 #ifdef CONFIG_NVBOARD
     nvboard_bind_all_pins(top);
     nvboard_init();
- 
-    reset(10);
-    init_monitor(argc, argv);
-    while(1) {
-        nvboard_update();
-        single_cycle();
-    }
-#else
+#endif
     Verilated::traceEverOn(true);
 
     contextp = new VerilatedContext;
@@ -162,5 +154,4 @@ int main (int argc, char** argv) {
     sdb_mainloop();
     
     return is_exit_status_bad();
-#endif
 }    

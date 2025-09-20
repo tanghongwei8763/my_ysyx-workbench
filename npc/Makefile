@@ -31,7 +31,7 @@ WAVEFORM_NETLIST = $(IVERILOG_DIR)/waveform_netlist.fst
 MEM_INIT = $(IVERILOG_DIR)/mem_init.hex
 WAVE ?= 0
 
-nvboard ?= 0
+nvboard ?= 1
 ifndef NVBOARD_HOME
 $(error NVBOARD_HOME is not set. Please set the environment variable NVBOARD_HOME to your NVBoard installation path)
 endif

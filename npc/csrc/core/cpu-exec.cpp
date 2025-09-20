@@ -176,6 +176,9 @@ static void exec_once() {
 #endif
 #endif
         timer_start = get_time();
+#ifdef CONFIG_NVBOARD
+        nvboard_update();
+#endif
         single_cycle();
         timer_end = get_time();
         time_spent += timer_end - timer_start;
