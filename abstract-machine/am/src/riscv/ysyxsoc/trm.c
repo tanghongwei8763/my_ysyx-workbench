@@ -20,6 +20,7 @@ void init_uart(uint32_t baud_rate) {
   outb(UART_REG_LC, inb(UART_REG_LC) | 0x80);
   outb(UART_REG_TX, 0x01);
   outb(UART_REG_LC, inb(UART_REG_LC) & 0x7F);
+  outb(UART_REG_IC, 0xC7);
 }
 
 void spi_tx_start() {

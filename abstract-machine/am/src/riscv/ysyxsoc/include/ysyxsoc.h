@@ -7,6 +7,7 @@
 
 #define UART16550            0x10000000L
 #define UART_REG_TX          UART16550 + 0x0
+#define UART_REG_IC          UART16550 + 0x2
 #define UART_REG_LC          UART16550 + 0x3
 #define UART_REG_DL1         UART16550 + 0x0
 #define UART_REG_DL2         UART16550 + 0x1
