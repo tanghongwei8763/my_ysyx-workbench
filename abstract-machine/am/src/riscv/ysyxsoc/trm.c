@@ -18,9 +18,7 @@ static const char mainargs[MAINARGS_MAX_LEN] = MAINARGS_PLACEHOLDER; // defined 
 
 void init_uart(uint32_t baud_rate) {
   outb(UART_REG_LC, inb(UART_REG_LC) | 0x80);
-  uint16_t divisior = (uint16_t)(50000000/(16 * baud_rate));
-  outb(UART_REG_DL2, divisior >> 8);
-  outb(UART_REG_DL1, divisior & 0xFF);
+  outb(UART_REG_TX, 0x01);
   outb(UART_REG_LC, inb(UART_REG_LC) & 0x7F);
 }
 
