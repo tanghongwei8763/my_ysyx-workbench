@@ -1,7 +1,7 @@
 From e8c979d46af6c59fe6165f1e588e7e17adc19eff Mon Sep 17 00:00:00 2001
 From: Tanghongwei <tanghongwei2024@outlook.com>
 Date: Sat, 13 Sep 2025 22:52:41 +0800
-Subject: [PATCH 4/6] build
+Subject: [PATCH 4/7] build
 
 ---
  .gitignore          |    1 -
