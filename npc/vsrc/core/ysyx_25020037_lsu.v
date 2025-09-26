@@ -3,7 +3,6 @@ module ysyx_25020037_lsu (
     input  wire         clk,
     input  wire         rst,
     input  wire         exu_valid,
-    input  wire         wbu_ready,
     output wire         lsu_ready,
     output reg          lsu_valid,
     input  wire         exu_dnpc_valid,

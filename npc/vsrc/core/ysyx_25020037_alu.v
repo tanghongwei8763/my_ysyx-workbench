@@ -1,5 +1,4 @@
 module ysyx_25020037_alu(
-  input  wire        double_cal,
   input  wire [16:0] alu_op,
   input  wire [31:0] alu_src1,
   input  wire [31:0] alu_src2,
@@ -77,9 +76,6 @@ assign op_bgeu = alu_op[14];
 assign op_blt  = alu_op[15];
 assign op_bltu = alu_op[16];
 
-
-
-
 assign adder_a   = alu_src1;
 assign adder_b   = (op_sub | op_slt | op_sltu) ? ~alu_src2 : alu_src2;
 assign adder_cin = (op_sub | op_slt | op_sltu) ? 1'b1      : 1'b0;
@@ -120,23 +116,22 @@ assign sr_result   = sr64_result[31:0];
 assign beq_result    = (alu_src3 == alu_src4);
 assign bne_result    = ~beq_result;
 
-assign alu_result1 = ({32{op_add|op_sub|double_cal}} & add_sub_result)
-                   | ({32{op_slt       }} & slt_result)
-                   | ({32{op_sltu      }} & sltu_result)
-                   | ({32{op_and       }} & and_result)
-                   | ({32{op_or        }} & or_result)
-                   | ({32{op_xor       }} & xor_result)
-                   | ({32{op_lui       }} & lui_result)
-                   | ({32{op_sll       }} & sll_result)
-                   | ({32{op_srl|op_sra}} & sr_result);
+assign alu_result1 = op_slt        ? slt_result  :
+                     op_sltu       ? sltu_result :
+                     op_and        ? and_result  :
+                     op_or         ? or_result   :
+                     op_xor        ? xor_result  :
+                     op_lui        ? lui_result  :
+                     op_sll        ? sll_result  :
+                     op_srl|op_sra ? sr_result   :
+                     add_sub_result; 
 
-assign alu_result2 = ~double_cal ? 1'b1 : 
-                      op_beq     ? beq_result  :
-                      op_blt     ? blt_result  :
-                      op_bltu    ? bltu_result :
-                      op_bge     ? bge_result  :
-                      op_bgeu    ? bgeu_result :
-                      op_bne     ? bne_result  :
-                      1'b0; 
+assign alu_result2 = op_beq     ? beq_result  :
+                     op_blt     ? blt_result  :
+                     op_bltu    ? bltu_result :
+                     op_bge     ? bge_result  :
+                     op_bgeu    ? bgeu_result :
+                     op_bne     ? bne_result  :
+                     1'b0; 
 
 endmodule

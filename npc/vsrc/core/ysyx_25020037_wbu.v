@@ -57,12 +57,12 @@ module ysyx_25020037_wbu (
     wire [31: 0] src1;
     wire [31: 0] src2;
     wire [31: 0] csr_data; 
-    assign csr_data        = ({32{imm == `MTVEC || inst_ecall}} & mtvec)
-                           | ({32{imm == `MEPC  || inst_mret }} & mepc)
-                           | ({32{imm == `MSTATUS  }} & mstatus)
-                           | ({32{imm == `MCAUSE   }} & mcause)
-                           | ({32{imm == `MVENDORID}} & mvendorid)
-                           | ({32{imm == `MARCHID  }} & marchid);
+    assign csr_data = (imm == `MTVEC || inst_ecall) ? mtvec :
+                      (imm == `MEPC  || inst_mret ) ? mepc  :
+                      imm == `MSTATUS   ? mstatus           :
+                      imm == `MCAUSE    ? mcause            :
+                      imm == `MVENDORID ? mvendorid         :
+                      marchid; // imm == `MARCHID
     wire         mepc_wen;
     wire         mstatus_wen;
     wire         mtvec_wen;

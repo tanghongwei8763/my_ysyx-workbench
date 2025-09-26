@@ -1,9 +1,6 @@
 `include "ysyx_25020037_config.vh"
 
 module ysyx_25020037 (
-`ifdef __ICARUS__
-    output  wire         sim_end,
-`endif
     input   wire         clock,
     input   wire         reset,
     input   wire         io_interrupt,
@@ -104,7 +101,6 @@ module ysyx_25020037 (
     wire         exu_ready;
     wire         lsu_valid;
     wire         lsu_ready;
-    wire         wbu_ready;
 
     wire         ifu_arready;
     wire         ifu_arvalid;
@@ -168,13 +164,9 @@ module ysyx_25020037 (
     wire         lsu_access_fault;
 
     wire [31: 0] icache_addr;
+    wire         icache_valid;
     wire [31: 0] icache_data;
     wire         icache_hit;
-    wire         icache_ready;
-    wire         icache_mem_req;
-    wire [31: 0] icache_mem_addr;
-    wire [BLOCK_SIZE*8-1:0] icache_mem_data;
-    wire         icache_mem_ready;
       
     ysyx_25020037_ifu #(
         .BLOCK_SIZE    (BLOCK_SIZE)
@@ -186,8 +178,22 @@ module ysyx_25020037 (
         .pc_updata     (pc_updata        ),
         .idu_ready     (idu_ready        ),
         .ifu_valid     (ifu_valid        ),
-        .access_fault  (ifu_access_fault ),
         .fu_to_du_bus  (fu_to_du_bus     ),
+        .icache_addr   (icache_addr      ),
+        .icache_valid  (icache_valid     ),
+        .icache_data   (icache_data      ),
+        .icache_hit    (icache_hit       )
+        );
+
+    ysyx_25020037_icache #(
+        .ADDR_WIDTH    (32),
+        .DATA_WIDTH    (32),
+        .CACHE_BLOCKS  (CACHE_BLOCKS),
+        .BLOCK_SIZE    (BLOCK_SIZE)
+    ) u_icache (
+        .clk           (clock            ),
+        .rst           (reset            ),
+        .access_fault  (ifu_access_fault ),
         .arready       (ifu_arready      ),
         .arvalid       (ifu_arvalid      ),
         .araddr        (ifu_araddr       ),
@@ -201,33 +207,11 @@ module ysyx_25020037 (
         .rdata         (ifu_rdata        ),
         .rlast         (ifu_rlast        ),
         .rid           (ifu_rid          ),
-        .icache_addr   (icache_addr      ),
-        .icache_data   (icache_data      ),
-        .icache_hit    (icache_hit       ),
-        .icache_ready  (icache_ready     ),
-        .mem_req       (icache_mem_req   ),
-        .mem_addr      (icache_mem_addr  ),
-        .mem_data      (icache_mem_data  ),
-        .mem_ready     (icache_mem_ready )
-        );
-
-    ysyx_25020037_icache #(
-        .ADDR_WIDTH    (32),
-        .DATA_WIDTH    (32),
-        .CACHE_BLOCKS  (CACHE_BLOCKS),
-        .BLOCK_SIZE    (BLOCK_SIZE)
-    ) u_icache (
-        .clk           (clock           ),
-        .rst           (reset           ),
-        .eu_to_ic_bus  (eu_to_ic_bus    ),
-        .cpu_addr      (icache_addr     ),
-        .cpu_data      (icache_data     ),
-        .cpu_hit       (icache_hit      ),
-        .cpu_ready     (icache_ready    ),
-        .mem_req       (icache_mem_req  ),
-        .mem_addr      (icache_mem_addr ),
-        .mem_data      (icache_mem_data ),
-        .mem_ready     (icache_mem_ready)
+        .eu_to_ic_bus  (eu_to_ic_bus     ),
+        .cpu_addr      (icache_addr      ),
+        .cpu_valid     (icache_valid     ),
+        .cpu_data      (icache_data      ),
+        .cpu_hit       (icache_hit       )
     );
 
     ysyx_25020037_idu idu_cpu(
@@ -242,12 +226,28 @@ module ysyx_25020037 (
         .du_to_eu_bus   (du_to_eu_bus   )
         );
 
+    ysyx_25020037_exu exu_cpu(
+        .clk            (clock          ),
+        .rst            (reset          ),
+        .idu_valid      (idu_valid      ),
+        .lsu_ready      (lsu_ready      ),
+        .exu_ready      (exu_ready      ),
+        .exu_valid      (exu_valid      ),
+        .rs_data        (rs_data        ),
+        .rdata_processed(rdata_processed),
+        .wu_to_eu_bus   (wu_to_eu_bus   ),
+        .du_to_eu_bus   (du_to_eu_bus   ),
+        .eu_to_lu_bus   (eu_to_lu_bus   ),
+        .eu_to_ic_bus   (eu_to_ic_bus   ),
+        .pc_updata      (pc_updata      ),
+        .exu_dnpc_valid (exu_dnpc_valid ),
+        .exu_dnpc       (exu_dnpc       )
+    );
 
     ysyx_25020037_lsu lsu_cpu(
         .clk            (clock           ),
         .rst            (reset           ),
         .exu_valid      (exu_valid       ),
-        .wbu_ready      (wbu_ready       ),
         .lsu_ready      (lsu_ready       ),
         .lsu_valid      (lsu_valid       ),
         .exu_dnpc_valid (exu_dnpc_valid  ),
@@ -392,27 +392,6 @@ ysyx_25020037_clint u_clint (
         .rlast      (clint_rlast  ),
         .rid        (clint_rid    )
 );
-
-    ysyx_25020037_exu exu_cpu(
-`ifdef __ICARUS__
-        .sim_end        (sim_end        ),
-`endif
-        .clk            (clock          ),
-        .rst            (reset          ),
-        .idu_valid      (idu_valid      ),
-        .lsu_ready      (lsu_ready      ),
-        .exu_ready      (exu_ready      ),
-        .exu_valid      (exu_valid      ),
-        .rs_data        (rs_data        ),
-        .rdata_processed(rdata_processed),
-        .wu_to_eu_bus   (wu_to_eu_bus   ),
-        .du_to_eu_bus   (du_to_eu_bus   ),
-        .eu_to_lu_bus   (eu_to_lu_bus   ),
-        .eu_to_ic_bus   (eu_to_ic_bus   ),
-        .pc_updata      (pc_updata      ),
-        .exu_dnpc_valid (exu_dnpc_valid ),
-        .exu_dnpc       (exu_dnpc       )
-    );
 
     ysyx_25020037_wbu wbu_cpu(
         .lsu_valid    (lsu_valid    ),

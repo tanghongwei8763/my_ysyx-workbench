@@ -32,7 +32,6 @@ module ysyx_25020037_idu (
     wire         src1_is_pc;
     wire         src2_is_imm;
     wire         is_pc_jump;
-    wire         double_cal;
 
     wire [ 6:0] opcode_31_25;
     wire [ 5:0] opcode_31_26;
@@ -221,8 +220,7 @@ module ysyx_25020037_idu (
                            inst_jarl  ;
 
                       
-    assign is_pc_jump   = inst_jal | inst_jarl | TYPE_B | inst_ecall | inst_mret;
-    assign double_cal   = TYPE_B;
+    assign is_pc_jump   = inst_jal | inst_jarl | inst_ecall | inst_mret;
 
     assign idu_ready = exu_ready;
     always @(posedge clk or posedge rst) begin
@@ -230,8 +228,6 @@ module ysyx_25020037_idu (
             du_to_eu_bus <= 'b0;
         end else begin
             if (exu_ready) begin
-                idu_valid <= 1'b0;
-                du_to_eu_bus <= 'b0;
                 if (ifu_valid) begin
                     idu_valid <= ~exu_dnpc_valid;
                     du_to_eu_bus <= {
@@ -250,14 +246,16 @@ module ysyx_25020037_idu (
                         alu_op,             
                         src1_is_pc,      
                         src2_is_imm,     
-                        is_pc_jump,      
-                        double_cal,      
-                        inst_ebreak,
+                        is_pc_jump,   
                         inst_ecall,
                         inst_mret,
                         inst_csrrs,
-                        inst_csrrw
+                        inst_csrrw,
+                        inst_ebreak
                     };
+                end else begin
+                    idu_valid <= 1'b0;
+                    du_to_eu_bus <= 'b0;
                 end
             end
         end

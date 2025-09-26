@@ -44,7 +44,7 @@ module ysyx_25020037_sram (
 
 
     `ifdef __ICARUS__
-        localparam SRAM_DEPTH = 8 * 1024 * 1024; // 4MB容量
+        localparam SRAM_DEPTH = 1024 * 1024; // 4MB容量
         reg [7:0]  sram_array [0:SRAM_DEPTH-1];  // 8位宽存储数组
 
         wire [31:0] sram_addr_r = {araddr[31:2], 2'b0} - 32'h80000000;

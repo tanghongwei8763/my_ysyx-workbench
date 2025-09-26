@@ -1,7 +1,7 @@
 ARCH ?= riscv32e-ysyxsoc
 VVP = vvp
 IVERILOG = iverilog
-NETLIST ?= /home/tanghongwei/yosys-sta/result/ysyx_25020037-250MHz/ysyx_25020037.netlist.fixed.v
+NETLIST ?= /home/tanghongwei/yosys-sta/result/ysyx_25020037-500MHz/ysyx_25020037.netlist.fixed.v
 CELLS ?= /home/tanghongwei/yosys-sta/nangate45/sim/cells.v
 VERILOG_MERGED = $(BUILD_DIR)/ysyx_25020037.v
 ifeq ($(ARCH), riscv32e-npc)
@@ -57,8 +57,7 @@ IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
     -DWAVE=$(WAVE) \
     -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
     -DWAVEFORM_PATH=\"$(WAVEFORM)\"
-IVERILOG_NETLIST_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
-    -I./vsrc/core \
+IVERILOG_NETLIST_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN_NETLIST) \
     -DWAVE=$(WAVE) \
     -DMEM_INIT_PATH=\"$(MEM_INIT)\" \
     -DWAVEFORM_PATH=\"$(WAVEFORM_NETLIST)\"
@@ -134,6 +133,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 $(IVERILOG_BIN): ARCH=riscv32e-npc
 $(IVERILOG_BIN): TOPNAME=ysyx_25020037_npc
 $(IVERILOG_BIN): $(VERILOG_MERGED) \
+                         $(CELLS) \
                  $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                  vsrc/sim_top.v
 	@echo "Building iverilog simulation for NPC architecture..."
@@ -157,9 +157,7 @@ $(IVERILOG_BIN_NETLIST): $(NETLIST) \
                  		 $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
                          vsrc/sim_top.v
 	@echo "Building iverilog netlist simulation (NETLIST=$(NETLIST), CELLS=$(CELLS))..."
-	$(IVERILOG) $(IVERILOG_NETLIST_FLAGS) \
-		-DWAVEFORM_PATH=\"$(WAVEFORM_NETLIST)\" \
-		-o $@ $^
+	$(IVERILOG) $(IVERILOG_NETLIST_FLAGS) $^
 
 sim-iverilog-netlist: $(MEM_INIT) $(IVERILOG_BIN_NETLIST)
 	@echo "Running iverilog netlist simulation (WAVE=$(WAVE))..."
@@ -179,7 +177,7 @@ yosys: $(VERILOG_MERGED)
 	cd $(NPC_HOME)/../../yosys-sta && make sta DESIGN=$(YOSYSTOP) \
 											SDC_FILE=$(NPC_HOME)/ysyx_25020037.sdc \
 											RTL_FILES="$(shell find $(NPC_HOME)/build -name "ysyx_25020037.v")" \
-											CLK_FREQ_MHZ=250 \
+											CLK_FREQ_MHZ=500 \
 	cd $(NPC_HOME)
 
 perf:

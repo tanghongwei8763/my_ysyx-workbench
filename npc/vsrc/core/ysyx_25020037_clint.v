@@ -34,6 +34,7 @@ module ysyx_25020037_clint(
             state <= IDLE;   
             arready <= 1'b1;
             rvalid <= 1'b0;
+            rid <= 4'b0;
             mtimel <= 32'h0;
             mtimeh <= 32'h0;
         end else begin
