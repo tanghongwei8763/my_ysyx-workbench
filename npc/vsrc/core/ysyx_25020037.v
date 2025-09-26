@@ -1,6 +1,9 @@
 `include "ysyx_25020037_config.vh"
 
 module ysyx_25020037 (
+`ifdef __ICARUS__
+    output  wire         sim_end,
+`endif
     input   wire         clock,
     input   wire         reset,
     input   wire         io_interrupt,
@@ -227,6 +230,9 @@ module ysyx_25020037 (
         );
 
     ysyx_25020037_exu exu_cpu(
+`ifdef __ICARUS__
+        .sim_end        (sim_end        ),
+`endif
         .clk            (clock          ),
         .rst            (reset          ),
         .idu_valid      (idu_valid      ),

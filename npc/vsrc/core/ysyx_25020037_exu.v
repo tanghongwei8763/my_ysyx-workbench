@@ -1,6 +1,9 @@
 `include "ysyx_25020037_config.vh"
 
 module ysyx_25020037_exu (
+`ifdef __ICARUS__
+    output wire         sim_end,
+`endif
     input  wire         clk,
     input  wire         rst,
     input  wire         idu_valid,
@@ -235,6 +238,9 @@ module ysyx_25020037_exu (
         end
     end
 
+`ifdef __ICARUS__
+    assign sim_end = ~exu_dnpc_valid & idu_valid & ebreak;
+`endif
 `ifdef VERILATOR
     always @(*) begin
        if(~exu_dnpc_valid & idu_valid & ebreak) begin hit(32'b0); end

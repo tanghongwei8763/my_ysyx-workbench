@@ -1,4 +1,5 @@
 module sim_top();
+    reg sim_end;
     reg clk;
     reg rst_n;
 
@@ -23,15 +24,16 @@ module sim_top();
 
 
     ysyx_25020037_npc u_cpu (
+        .sim_end    (sim_end),           // 输出：结束信号
         .clock      (clk    ),           // 输入：系统时钟
         .reset      (~rst_n )            // 输入：复位信号
     );
 
 
     initial begin
-        $display("[SIM] Simulation started. Waiting for ebreak...");
+        $display("[SIM] Simulation started. Waiting for endless...");
         
-        wait(u_cpu.cpu.du_to_eu_bus[0] == 1);
+        wait(sim_end == 1);
         
         $display("[SIM] sim_end detected! Simulation completed successfully.");
         $finish;

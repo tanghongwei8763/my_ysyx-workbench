@@ -1,4 +1,7 @@
 module ysyx_25020037_npc (
+`ifdef __ICARUS__
+    output  wire         sim_end,
+`endif
     input   wire         clock,
     input   wire         reset
 );
@@ -63,6 +66,9 @@ module ysyx_25020037_npc (
     wire [ 3: 0] io_slave_rid     ;
 
 ysyx_25020037 cpu (
+`ifdef __ICARUS__
+    .sim_end            (sim_end            ),
+`endif
     .clock              (clock              ),
     .reset              (reset              ),
     .io_interrupt       (1'b0               ),
