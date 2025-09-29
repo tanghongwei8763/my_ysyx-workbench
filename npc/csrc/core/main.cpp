@@ -17,13 +17,13 @@ extern void nvboard_bind_all_pins(VysyxSoCFull* top);
 #endif
 
 VysyxSoCFull *top = new VysyxSoCFull("top");
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__ifu_cpu__DOT__pc
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 #define gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #else
 #include "Vysyx_25020037_npc___024root.h"
 #include "Vysyx_25020037_npc.h"
 Vysyx_25020037_npc *top = new Vysyx_25020037_npc("top");
-#define pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__ifu_cpu__DOT__pc
+#define pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__pc
 #define gpr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #endif
 

@@ -40,7 +40,7 @@ module ysyx_25020037_exu (
     wire [31: 0] src1;
     wire [31: 0] src2;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
-    wire [29: 0] pc;
+    wire [31: 0] pc;
     wire [ 1: 0] lw_lh_lb;
     wire [ 1: 0] sw_sh_sb;
     wire         is_fence_i;
@@ -83,60 +83,61 @@ module ysyx_25020037_exu (
             ebreak
            } = du_to_eu_bus;
 
+    wire   c_mtvec     = (imm[11:0] == `MTVEC || ecall_en);
+    wire   c_mepc      = (imm[11:0] == `MEPC  || mret_en );
+    // wire   c_mstatus    = (imm[11:0] == `MSTATUS          );
+    wire   c_mcause    = (imm[11:0] == `MCAUSE           );
+    wire   c_mvendorid = (imm[11:0] == `MVENDORID        );
+    wire   c_marchid   = (imm[11:0] == `MARCHID          );
+    assign rs_data     = {c_mtvec, c_mepc, c_mcause, c_mvendorid, c_marchid, rs1, rs2};
+
     wire   csr_w_gpr_we;
     wire   csrs_mtvec_wen;
     wire   csrs_mepc_wen;
-    wire   csrs_mstatus_wen;
+    assign csr_w_gpr_we   = csrrs_op | csrrw_op;
+    assign csrs_mtvec_wen = (imm[11:0] == `MTVEC) & csr_w_gpr_we;
+    assign csrs_mepc_wen  = ((imm[11:0] == `MEPC) & csr_w_gpr_we) | ecall_en;
 
-    assign csr_w_gpr_we = csrrs_op | csrrw_op;
-    assign csrs_mtvec_wen     = (imm[11:0] == `MTVEC) & csr_w_gpr_we;
-    assign csrs_mepc_wen      = (imm[11:0] == `MEPC) & csr_w_gpr_we;
-    assign csrs_mstatus_wen   = (imm[11:0] == `MSTATUS) & csr_w_gpr_we;
-
-    wire [`EU_TO_GU_BUS_WD -1:0] eu_to_gu_bus;
-    assign eu_to_gu_bus = {
-        //pc,
-        //rd[3:0],
+    wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
+    assign eu_to_wu_bus = {
         csrs_mtvec_wen,
-        csrs_mepc_wen,
-        csrs_mstatus_wen
-        //inst_ecall,
-        //inst_mret       
+        csrs_mepc_wen   
     };
-
-    reg [31:0] bypass_data_rs1, bypass_data_rs2;
-    reg        bypass_wait_rs1, bypass_wait_rs2;
+    reg src1_wait;
+    reg src2_wait;
+    reg [31:0] bypass_src1;
+    reg [31:0] bypass_src2;
     always @(*) begin
-        bypass_data_rs1 = src1_r;
-        bypass_wait_rs1 = 1'b0;
-        bypass_data_rs2 = src2_r;
-        bypass_wait_rs2 = 1'b0;
-
-        if (rs1 != 4'd0) begin
-            if (bypass_rd[0] == rs1) begin
-                bypass_data_rs1 = bypass_data[0];
-                bypass_wait_rs1 = bypass_is_load[0];
-            end else if (bypass_rd[1] == rs1) begin
-                bypass_data_rs1 = bypass_data[1];
-                bypass_wait_rs1 = bypass_is_load[1];
+        bypass_src1 = src1_r;
+        src1_wait = 1'b0;
+        if ((bypass_rd[0] == rs1) && (rs1 != 4'd0)) begin
+            bypass_src1 = bypass_data[0];
+            src1_wait = bypass_is_load[0];
+        end
+        else if ((bypass_rd[1] == rs1) && (rs1 != 4'd0)) begin
+            bypass_src1 = bypass_data[1];
+            src1_wait = bypass_is_load[1];
             end
         end
 
-        if (rs2 != 4'd0) begin
-            if (bypass_rd[0] == rs2) begin
-                bypass_data_rs2 = bypass_data[0];
-                bypass_wait_rs2 = bypass_is_load[0];
-            end else if (bypass_rd[1] == rs2) begin
-                bypass_data_rs2 = bypass_data[1];
-                bypass_wait_rs2 = bypass_is_load[1];
-            end
+    always @(*) begin
+        bypass_src2 = src2_r;
+        src2_wait = 1'b0;
+        if ((bypass_rd[0] == rs2) && (rs2 != 4'd0)) begin
+            bypass_src2 = bypass_data[0];
+            src2_wait = bypass_is_load[0];
+        end
+        else if ((bypass_rd[1] == rs2) && (rs2 != 4'd0)) begin
+            bypass_src2 = bypass_data[1];
+            src2_wait = bypass_is_load[1];
         end
     end
 
-    assign src1 = bypass_data_rs1;
-    assign src2 = bypass_data_rs2;
-    assign exu_ready = lsu_ready & !bypass_wait_rs1 & !bypass_wait_rs2;
+    assign src1 = bypass_src1;
+    assign src2 = bypass_src2;
+    assign exu_ready = lsu_ready & !src1_wait & !src2_wait;
 
+    wire [31: 0] snpc;
     wire [31: 0] dnpc_r;
     wire [31: 0] result;
     wire [31: 0] alu_src1;
@@ -148,7 +149,8 @@ module ysyx_25020037_exu (
     wire [31: 0] csr_wcsr_data;
     wire [31: 0] data_channel;
 
-    assign alu_src1 = src1_is_pc  ? {pc,2'b0}  : src1;
+    assign snpc     = pc + 32'h4;
+    assign alu_src1 = src1_is_pc  ? pc  : src1;
     assign alu_src2 = src2_is_imm ? imm : src2;
     assign alu_src3 = src1;
     assign alu_src4 = src2;
@@ -163,18 +165,15 @@ module ysyx_25020037_exu (
         .alu_result2    (alu_result2)
         );
 
-    assign rs_data = {ecall_en, mret_en, imm[11:0], rs1, rs2};
+    assign csr_wcsr_data  = ({32{csrrw_op}} & src1)
+                          | ({32{csrrs_op}} & (src1 | csr_data))
+                          | ({32{ecall_en}} & pc);
+    assign dnpc_r         = ({32{ecall_en   | mret_en    }} & csr_data) 
+                          | ({32{is_pc_jump | alu_result2}} & alu_result1) 
+                          | ({32{is_fence_i              }} & snpc);
 
-    assign csr_wcsr_data  = csrrw_op ? src1 :
-                            csrrs_op ? (src1 | csr_data) :
-                            {pc,2'b0}; // ecall_en
-    assign dnpc_r         = ecall_en   | mret_en     ? csr_data :
-                            is_pc_jump | alu_result2 ? alu_result1 :
-                            is_fence_i               ? {pc, 2'b0} + 32'h4 :
-                            32'b0;
-
-    assign result    = is_pc_jump   ? {pc, 2'b0} + 32'h4 : 
-                       csr_w_gpr_we ? csr_data           :
+    assign result    = is_pc_jump   ? snpc     :
+                       csr_w_gpr_we ? csr_data :
                        alu_result1;
 
     assign data_channel = is_write ? src2 : csr_wcsr_data;
@@ -190,13 +189,13 @@ module ysyx_25020037_exu (
             end
         end
         if (exu_ready && idu_valid && !exu_dnpc_valid) begin
-            bypass_rd[1]       <= bypass_rd[0];
-            bypass_data[1]     <= bypass_data[0];
-            bypass_is_load[1]  <= bypass_is_load[0];
+            bypass_rd[1]       = bypass_rd[0];
+            bypass_data[1]     = bypass_data[0];
+            bypass_is_load[1]  = bypass_is_load[0];
 
-            bypass_rd[0]       <= gpr_we ? rd      : bypass_rd[0];
-            bypass_data[0]     <= gpr_we ? result  : bypass_data[0];
-            bypass_is_load[0]  <= gpr_we ? is_read : bypass_is_load[0];
+            bypass_rd[0]       = gpr_we ? rd      : bypass_rd[0];
+            bypass_data[0]     = gpr_we ? result  : bypass_data[0];
+            bypass_is_load[0]  = gpr_we ? is_read : bypass_is_load[0];
         end
     end
 
@@ -213,12 +212,10 @@ module ysyx_25020037_exu (
                     exu_dnpc_valid <=1'b0;
                 end
                 if (idu_valid) begin
-                    exu_valid <= exu_dnpc_valid ? 1'b0 : 1'b1;
+                    exu_valid <= ~exu_dnpc_valid;
                     eu_to_lu_bus <= {
                         rd,
-                        ecall_en,
-                        mret_en,
-                        eu_to_gu_bus,
+                        eu_to_wu_bus,
                         lw_lh_lb,
                         sw_sh_sb,
                         is_write,

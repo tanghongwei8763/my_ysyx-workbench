@@ -35,6 +35,7 @@ module ysyx_25020037_clint(
             arready <= 1'b1;
             rvalid <= 1'b0;
             rid <= 4'b0;
+            rresp <= 2'b00;
             mtimel <= 32'h0;
             mtimeh <= 32'h0;
         end else begin
@@ -59,12 +60,9 @@ module ysyx_25020037_clint(
 `ifdef VERILATOR
                     difftest_skip_ref();
 `endif
-                    rdata <= (clint_offset == 4'h0) ? mtimel :
-                             (clint_offset == 4'h4) ? mtimeh :
-                             32'b0;
+                    rdata <= (clint_offset == 4'h0) ? mtimel : mtimeh;
                     rvalid <= 1'b1;
                     rlast <= 1'b1;
-                    rresp <= 2'b00;
                 end
             endcase
         end

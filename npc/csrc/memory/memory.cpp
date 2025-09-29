@@ -10,12 +10,12 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
-#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__gpr_cpu__DOT__pc_reg
+#define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
 #else
 #include "Vysyx_25020037_npc___024root.h"
 #include "Vysyx_25020037_npc.h"
 extern Vysyx_25020037_npc *top;
-#define pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__ifu_cpu__DOT__pc
+#define pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__pc
 #endif
 
 static const uint32_t img [] = {

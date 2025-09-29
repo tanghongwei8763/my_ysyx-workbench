@@ -48,14 +48,9 @@ wire         bne_result;
 
 wire [31: 0] adder_a;
 wire [31: 0] adder_b;
-wire [31: 0] adder_c;
-wire [31: 0] adder_d;
 wire         adder_cin;
-wire         adder_cin1;
 wire [31: 0] adder_result;
-wire [31: 0] adder_result1;
 wire         adder_cout;
-wire         adder_cout1;
 
 assign op_add  = alu_op[ 0];
 assign op_sub  = alu_op[ 1];
@@ -78,12 +73,8 @@ assign op_bltu = alu_op[16];
 
 assign adder_a   = alu_src1;
 assign adder_b   = (op_sub | op_slt | op_sltu) ? ~alu_src2 : alu_src2;
-assign adder_cin = (op_sub | op_slt | op_sltu) ? 1'b1      : 1'b0;
+assign adder_cin = (op_sub | op_slt | op_sltu);
 assign {adder_cout, adder_result} = adder_a + adder_b + {{32{1'b0}}, adder_cin};
-
-assign adder_c    = alu_src3;
-assign adder_d    = ~alu_src4;
-assign {adder_cout1, adder_result1} = adder_c + adder_d + 33'b1;
 
 assign add_sub_result = adder_result;
 
@@ -91,47 +82,38 @@ assign slt_result[31:1] = 31'b0;
 assign slt_result[0]    = (alu_src1[31] & ~alu_src2[31])
                         | ((alu_src1[31] ~^ alu_src2[31]) & adder_result[31]);
 
-assign blt_result    = (alu_src3[31] & ~alu_src4[31])
-                     | ((alu_src3[31] ~^ alu_src4[31]) & adder_result1[31]);
-assign bge_result    = ~blt_result;
-
 assign sltu_result[31:1] = 31'b0;
 assign sltu_result[0]    = ~adder_cout;
-
-assign bltu_result    = ~adder_cout1;
-assign bgeu_result    = ~bltu_result;
-
 assign and_result = alu_src1 & alu_src2;
 assign or_result  = alu_src1 | alu_src2;
 assign xor_result = alu_src1 ^ alu_src2;
 assign lui_result = alu_src2;
-
-
 assign sll_result = alu_src1 << alu_src2[4:0];
-
 assign sr64_result = {{32{op_sra & alu_src1[31]}}, alu_src1[31:0]} >> alu_src2[4:0];
-
 assign sr_result   = sr64_result[31:0];
 
 assign beq_result    = (alu_src3 == alu_src4);
 assign bne_result    = ~beq_result;
+assign blt_result    = ($signed(alu_src3) < $signed(alu_src4));
+assign bge_result    = ~blt_result;
+assign bltu_result   = ($unsigned(alu_src3) < $unsigned(alu_src4));
+assign bgeu_result   = ~bltu_result;
 
-assign alu_result1 = op_slt        ? slt_result  :
-                     op_sltu       ? sltu_result :
-                     op_and        ? and_result  :
-                     op_or         ? or_result   :
-                     op_xor        ? xor_result  :
-                     op_lui        ? lui_result  :
-                     op_sll        ? sll_result  :
-                     op_srl|op_sra ? sr_result   :
-                     add_sub_result; 
+assign alu_result1 = ({32{op_add|op_sub}} & add_sub_result)
+                   | ({32{op_slt       }} & slt_result    )
+                   | ({32{op_sltu      }} & sltu_result   )
+                   | ({32{op_and       }} & and_result    )
+                   | ({32{op_or        }} & or_result     )
+                   | ({32{op_xor       }} & xor_result    )
+                   | ({32{op_lui       }} & lui_result    )
+                   | ({32{op_sll       }} & sll_result    )
+                   | ({32{op_srl|op_sra}} & sr_result     );
 
-assign alu_result2 = op_beq     ? beq_result  :
-                     op_blt     ? blt_result  :
-                     op_bltu    ? bltu_result :
-                     op_bge     ? bge_result  :
-                     op_bgeu    ? bgeu_result :
-                     op_bne     ? bne_result  :
-                     1'b0; 
+assign alu_result2 = (op_beq  & beq_result ) 
+                   | (op_blt  & blt_result )
+                   | (op_bltu & bltu_result)
+                   | (op_bge  & bge_result )
+                   | (op_bgeu & bgeu_result)
+                   | (op_bne  & bne_result ); 
 
 endmodule

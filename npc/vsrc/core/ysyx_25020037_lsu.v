@@ -4,12 +4,10 @@ module ysyx_25020037_lsu (
     input  wire         rst,
     input  wire         exu_valid,
     output wire         lsu_ready,
-    output reg          lsu_valid,
     input  wire         exu_dnpc_valid,
-    output wire [31: 0] rdata_processed,
+    output reg  [31: 0] rdata_processed,
     input  wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
-    output reg          access_fault,
 
     input  wire         awready,
     output reg          awvalid,
@@ -41,6 +39,15 @@ module ysyx_25020037_lsu (
     input  wire         rlast,
     input  wire [ 3: 0] rid
 );
+`ifdef VERILATOR
+    import "DPI-C" function void access_fault(input int ifu, input int lsu);
+    always @(posedge clk) begin
+        if ((rresp != 2'b00) || (bresp != 2'b00)) begin
+            access_fault(32'b0, {31'b0, 1'b1});
+        end
+    end
+`endif
+
     localparam IDLE    = 1'b0;
     localparam BUSY    = 1'b1;
     reg        state, next_state;
@@ -51,9 +58,7 @@ module ysyx_25020037_lsu (
     localparam AXI_LEN_SINGLE = 8'h0;
     reg         exu_dnpc_valid_r;
     wire [ 3:0] rd;
-    wire        ecall_en;
-    wire        mret_en;
-    wire [`EU_TO_GU_BUS_WD -1:0] eu_to_gu_bus;
+    wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     wire [ 1:0] data_rop;
     wire [ 1:0] data_wop;
     wire        is_write;
@@ -65,9 +70,7 @@ module ysyx_25020037_lsu (
     wire [31:0] addr_off = addr & 32'b11;
     wire [31:0] aligned_wdata = data_channel << (addr_off << 3);
     assign {rd,
-            ecall_en,
-            mret_en,
-            eu_to_gu_bus,
+            eu_to_wu_bus,
             data_rop,
             data_wop,
             is_write,
@@ -89,20 +92,20 @@ module ysyx_25020037_lsu (
     always @(*) begin
         case (state)
             IDLE: begin next_state = (exu_valid & (is_write | is_read)) ? BUSY : IDLE; end
-            BUSY: begin next_state = (lsu_valid | (bvalid & wlast) | (rvalid & rlast)) ? IDLE : BUSY; end
+            BUSY: begin next_state = ((bvalid & wlast) | (rvalid & rlast)) ? IDLE : BUSY; end
             default: next_state = IDLE;
         endcase
     end
 
     wire [31: 0] lsu_rdata;
     assign lsu_rdata = rdata >> (addr_off << 3);
-    assign rdata_processed = (data_rop == 2'b00) ? 
-                             (bit_sext ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} 
-                                       : {24'b0          , lsu_rdata[ 7:0]} ) :
-                             (data_rop == 2'b01) ? 
-                             (half_sext ? {{16{lsu_rdata[15]}}, lsu_rdata[15:0]} 
-                                        : {16'b0          , lsu_rdata[15:0]}) :
-                             lsu_rdata;
+    always @(*) begin
+        case (data_rop)
+            2'b00: begin rdata_processed = bit_sext  ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} : {24'b0, lsu_rdata[ 7:0]}; end
+            2'b01: begin rdata_processed = half_sext ? {{16{lsu_rdata[15]}}, lsu_rdata[15:0]} : {16'b0, lsu_rdata[15:0]}; end
+            default: begin rdata_processed = lsu_rdata; end
+        endcase
+    end
 
     assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
     always @(posedge clk or posedge rst) begin
@@ -115,7 +118,6 @@ module ysyx_25020037_lsu (
             exu_dnpc_valid_r <= exu_dnpc_valid;
             case (state)
                 IDLE: begin
-                    lsu_valid <= 1'b0;
                     lu_to_wu_bus <= 'b0;
                     if (exu_valid) begin
                         if (is_read) begin
@@ -142,14 +144,10 @@ module ysyx_25020037_lsu (
                                 default: wstrb <= 4'b0000;
                             endcase
                         end else begin
-                            lsu_valid <= 1'b1;
                             lu_to_wu_bus <= {
                                 rd,
-                                ecall_en,
-                                mret_en,
-                                eu_to_gu_bus,
+                                eu_to_wu_bus,
                                 gpr_we,
-                                is_read,
                                 data_channel,
                                 addr
                             };
@@ -157,7 +155,6 @@ module ysyx_25020037_lsu (
                     end
                 end
                 BUSY: begin
-                    lsu_valid <= 1'b0;
                     lu_to_wu_bus <= 'b0;
                     if (is_read) begin
                         if (arvalid && arready) begin
@@ -167,16 +164,11 @@ module ysyx_25020037_lsu (
                         if (rvalid && rready) begin
                             lu_to_wu_bus <= {
                                 rd,
-                                ecall_en,
-                                mret_en,
-                                eu_to_gu_bus,
+                                eu_to_wu_bus,
                                 gpr_we,
-                                is_read,
                                 data_channel,
                                 rdata_processed
                                 };
-                            lsu_valid <= 1'b1;
-                            access_fault <= (rresp != 2'b00);
                             rready <= 1'b0;
                         end
                     end else if (is_write) begin 
@@ -186,8 +178,6 @@ module ysyx_25020037_lsu (
                             bready <= 1'b1;
                         end
                         if (bvalid && bready) begin
-                            lsu_valid <= 1'b1;
-                            access_fault <= (bresp != 2'b00);
                             bready <= 1'b0;
                         end
                     end

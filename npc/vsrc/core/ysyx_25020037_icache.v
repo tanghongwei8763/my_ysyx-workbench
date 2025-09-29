@@ -11,7 +11,6 @@ module ysyx_25020037_icache #(
 ) (
     input  wire         clk,
     input  wire         rst,
-    output reg          access_fault,
 
     input  wire         arready,
     output reg          arvalid,
@@ -31,9 +30,18 @@ module ysyx_25020037_icache #(
 
     input  wire [ADDR_WIDTH-1:0] cpu_addr,
     input  wire                  cpu_valid,
-    output wire [DATA_WIDTH-1:0] cpu_data,
+    output wire [DATA_WIDTH-1:0] inst,
     output wire                  cpu_hit
 );
+`ifdef VERILATOR
+    import "DPI-C" function void access_fault(input int ifu, input int lsu);
+    always @(posedge clk) begin
+        if (rresp != 2'b00) begin
+            access_fault({31'b0, 1'b1}, 32'b0);
+        end
+    end
+`endif
+
 wire is_fence_i = eu_to_ic_bus;
 
 localparam SDRAM_BASE = 4'hA; // A000_0000-BFFF_FFFF
@@ -59,9 +67,8 @@ reg [   TAG_WIDTH-1:0]  tag_array  [CACHE_BLOCKS-1:0];
 reg [BLOCK_SIZE*8-1:0]  data_array [CACHE_BLOCKS-1:0];
 reg [CACHE_BLOCKS-1:0]  valid_array;
 
-assign cpu_hit   = valid_array[index] && (tag_array[index] == tag);
-assign cpu_data  = data_array[index][offset*8 +: DATA_WIDTH];
-
+assign cpu_hit = valid_array[index] && (tag_array[index] == tag);
+assign inst    = data_array[index][offset*8 +: DATA_WIDTH];
 always @(*) begin
     case (state)
         IDLE:  begin next_state = cpu_valid ? (cpu_hit) ? IDLE : BUSY : IDLE; end
@@ -100,7 +107,6 @@ always @(posedge clk or posedge rst) begin
                     rready <= 1'b1;
                 end
                 if (rvalid && rready) begin
-                    access_fault <= (rresp != 2'b00);
                     case(burst_cnt)
                         2'd0: data_array[index][ 31: 0] <= rdata;
                         2'd1: data_array[index][ 63:32] <= rdata;
@@ -111,14 +117,12 @@ always @(posedge clk or posedge rst) begin
                     if (is_sdram) begin
                         if (rlast) begin
                             rready <= 1'b0;
-                            burst_cnt <= 2'd0;
                             tag_array[index]    <= tag;
                             valid_array[index]  <= 1'b1;
                         end
                     end else begin
                         if (burst_cnt == 2'b11) begin
                             rready <= 1'b0;
-                            burst_cnt <= 2'd0;
                             tag_array[index]    <= tag;
                             valid_array[index]  <= 1'b1;
                         end else begin
@@ -128,7 +132,6 @@ always @(posedge clk or posedge rst) begin
                     end
                 end
             end
-            default: begin end
         endcase
     end
 end

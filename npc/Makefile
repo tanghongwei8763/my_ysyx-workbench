@@ -145,9 +145,6 @@ $(MEM_INIT): $(IMG)
 sim-iverilog: $(MEM_INIT) $(IVERILOG_BIN)
 	@echo "Running iverilog simulation (WAVE=$(WAVE))..."
 	$(VVP) -n $(IVERILOG_BIN) $(IVERILOG_VVP_FLAGS)
-	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM) ]; then \
-		echo "Waveform: $(WAVEFORM)"; \
-	fi
 
 $(IVERILOG_BIN_NETLIST): ARCH=riscv32e-npc
 $(IVERILOG_BIN_NETLIST): TOPNAME=ysyx_25020037_npc
@@ -161,9 +158,6 @@ $(IVERILOG_BIN_NETLIST): $(NETLIST) \
 sim-iverilog-netlist: $(MEM_INIT) $(IVERILOG_BIN_NETLIST)
 	@echo "Running iverilog netlist simulation (WAVE=$(WAVE))..."
 	$(VVP) -n $(IVERILOG_BIN_NETLIST) $(IVERILOG_VVP_FLAGS)
-	@if [ $(WAVE) -eq 1 ] && [ -f $(WAVEFORM_NETLIST) ]; then \
-		echo "Netlist Simulation Waveform: $(WAVEFORM_NETLIST)"; \
-	fi
 
 verilog: $(VERILOG_MERGED)
 	@echo "Generated merged Verilog file: $(VERILOG_MERGED)"

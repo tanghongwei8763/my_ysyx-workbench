@@ -36,6 +36,7 @@ void single_cycle();
 void sdb_mainloop();
 void cpu_exec(int n);
 void hit(int inst_not_realize);
+void access_fault(int ifu, int lsu);
 void finish();
 
 #ifdef __cplusplus

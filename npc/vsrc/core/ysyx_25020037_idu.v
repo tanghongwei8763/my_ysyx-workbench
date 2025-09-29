@@ -8,15 +8,10 @@ module ysyx_25020037_idu (
     output reg          idu_valid,
     output wire         idu_ready,
     input  wire         exu_dnpc_valid,
-    input  wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus,
+    input  wire [31: 0] pc,
+    input  wire [31: 0] inst,
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
 );
-    wire [29: 0] pc;
-    wire [31: 0] inst;
-    assign {pc,
-            inst
-           } = fu_to_du_bus;
-
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire  gpr_we;
 
@@ -63,7 +58,7 @@ module ysyx_25020037_idu (
     wire        inst_sll;
     wire        inst_slli;
     wire        inst_slti;
-    wire        inst_sltiu;//seqz
+    wire        inst_sltiu;
     wire        inst_sra;
     wire        inst_srai;
     wire        inst_srl;
@@ -97,8 +92,6 @@ module ysyx_25020037_idu (
     wire        TYPE_N;
 
     assign du_to_lu_bus = {
-        //lw_lh_lb,   
-        //sw_sh_sb,
         inst_lb,        
         inst_lh
     };
@@ -163,9 +156,17 @@ module ysyx_25020037_idu (
     assign inst_ebreak    = (opcode_06_00 == 7'h73) & (rd == 5'h00) & (opcode_14_12 == 3'h0) & (rs1 == 5'h00) & (rs2 == 5'h01) & (opcode_31_25 == 7'h00);
     assign inst_waiting   = (opcode_06_00 == 7'h00) & (rd == 5'h00) & (opcode_14_12 == 3'h0) & (rs1 == 5'h00) & (rs2 == 5'h00) & (opcode_31_25 == 7'h00);
 
+    assign TYPE_R = (opcode_06_00 == 7'h33);
+    assign TYPE_I = (opcode_06_00 == 7'h13) | rlsu_we | inst_jarl | inst_csrrw | inst_csrrs | inst_fence_i; 
+    assign TYPE_S = (opcode_06_00 == 7'h23);
+    assign TYPE_B = (opcode_06_00 == 7'h63);
+    assign TYPE_U = inst_auipc  | inst_lui;
+    assign TYPE_J = inst_jal;
+    assign TYPE_N = inst_ebreak | inst_waiting;
+
     assign alu_op[ 0] = inst_add  | inst_addi | inst_auipc | inst_jal | inst_sb  |
                         inst_jarl | inst_lw   | inst_lbu   | inst_lh  | inst_lhu |
-                        inst_sw   | inst_sh   | inst_lb;
+                        inst_sw   | inst_sh   | inst_lb    | TYPE_B;
     assign alu_op[ 1] = inst_sub;
     assign alu_op[ 2] = inst_slt  | inst_slti;
     assign alu_op[ 3] = inst_sltu | inst_sltiu;
@@ -184,17 +185,6 @@ module ysyx_25020037_idu (
     assign alu_op[15] = inst_blt;
     assign alu_op[16] = inst_bltu;
 
-    assign TYPE_R = inst_add    | inst_and  | inst_sub   | inst_or   | inst_xor  | 
-                    inst_sra    | inst_srl  | inst_slt   | inst_sltu | inst_sll;
-    assign TYPE_I = inst_addi   | inst_jarl | inst_sltiu | inst_srai | inst_andi | 
-                    inst_xori   | inst_srli | inst_slli  | inst_ori  | inst_csrrw|
-                    inst_slti   | inst_csrrs| rlsu_we    | inst_fence_i;
-    assign TYPE_S = inst_sw     | inst_sh   | inst_sb;
-    assign TYPE_B = inst_bne    | inst_beq  | inst_bge | inst_bgeu  | inst_blt  | inst_bltu;
-    assign TYPE_U = inst_auipc  | inst_lui;
-    assign TYPE_J = inst_jal;
-    assign TYPE_N = inst_ebreak | inst_waiting;
-
     assign imm = ({32{TYPE_I}} & immI)
                | ({32{TYPE_S}} & immS)
                | ({32{TYPE_B}} & immB)
@@ -205,22 +195,15 @@ module ysyx_25020037_idu (
                     inst_addi | inst_jarl | inst_sltiu| inst_srai  | inst_andi | 
                     inst_xori | inst_srli | inst_slli | inst_ori   | inst_csrrw|
                     inst_csrrs| inst_jal  | inst_auipc| inst_lui   | inst_slti;
-    assign sw_sh_sb = {inst_sw, inst_sh};
+    assign sw_sh_sb = opcode_14_12[1:0];
     assign lw_lh_lb = {inst_lw, (inst_lh | inst_lhu)};
     assign wlsu_we = TYPE_S;
-    assign rlsu_we = inst_lw | inst_lh | inst_lhu | inst_lb | inst_lbu;
+    assign rlsu_we = (opcode_06_00 == 7'h03);
 
-    assign src1_is_pc    = inst_jal | inst_auipc | TYPE_B;
-    assign src2_is_imm   = TYPE_I     |
-                           TYPE_S     |
-                           inst_lui   |
-                           inst_auipc |
-                           TYPE_J     |
-                           TYPE_B     |   //B型指令使用参数类型都一致
-                           inst_jarl  ;
+    assign src1_is_pc    = inst_jal | TYPE_B | inst_auipc;
+    assign src2_is_imm   = TYPE_I   | TYPE_S | TYPE_J | TYPE_B | inst_lui | inst_auipc | inst_jarl;
 
-                      
-    assign is_pc_jump   = inst_jal | inst_jarl | inst_ecall | inst_mret;
+    assign is_pc_jump   = inst_jal | inst_jarl;
 
     assign idu_ready = exu_ready;
     always @(posedge clk or posedge rst) begin

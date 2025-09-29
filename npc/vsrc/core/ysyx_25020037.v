@@ -84,7 +84,6 @@ module ysyx_25020037 (
     parameter BLOCK_SIZE   = 32'd16;
     parameter CACHE_BLOCKS = 32'd2;
 
-    wire [`FU_TO_DU_BUS_WD -1:0] fu_to_du_bus;
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus;
@@ -102,7 +101,6 @@ module ysyx_25020037 (
     wire         idu_ready;
     wire         exu_valid;
     wire         exu_ready;
-    wire         lsu_valid;
     wire         lsu_ready;
 
     wire         ifu_arready;
@@ -163,12 +161,10 @@ module ysyx_25020037 (
     wire         clint_rlast;
     wire [3:0]   clint_rid;
 
-    wire         ifu_access_fault;
-    wire         lsu_access_fault;
-
     wire [31: 0] icache_addr;
     wire         icache_valid;
-    wire [31: 0] icache_data;
+    wire [31: 0] pc;
+    wire [31: 0] inst;
     wire         icache_hit;
       
     ysyx_25020037_ifu #(
@@ -181,10 +177,9 @@ module ysyx_25020037 (
         .pc_updata     (pc_updata        ),
         .idu_ready     (idu_ready        ),
         .ifu_valid     (ifu_valid        ),
-        .fu_to_du_bus  (fu_to_du_bus     ),
+        .pc            (pc               ),
         .icache_addr   (icache_addr      ),
         .icache_valid  (icache_valid     ),
-        .icache_data   (icache_data      ),
         .icache_hit    (icache_hit       )
         );
 
@@ -196,7 +191,6 @@ module ysyx_25020037 (
     ) u_icache (
         .clk           (clock            ),
         .rst           (reset            ),
-        .access_fault  (ifu_access_fault ),
         .arready       (ifu_arready      ),
         .arvalid       (ifu_arvalid      ),
         .araddr        (ifu_araddr       ),
@@ -213,7 +207,7 @@ module ysyx_25020037 (
         .eu_to_ic_bus  (eu_to_ic_bus     ),
         .cpu_addr      (icache_addr      ),
         .cpu_valid     (icache_valid     ),
-        .cpu_data      (icache_data      ),
+        .inst          (inst             ),
         .cpu_hit       (icache_hit       )
     );
 
@@ -225,7 +219,8 @@ module ysyx_25020037 (
         .idu_valid      (idu_valid      ),
         .idu_ready      (idu_ready      ),
         .exu_dnpc_valid (exu_dnpc_valid ),
-        .fu_to_du_bus   (fu_to_du_bus   ),
+        .pc             (pc             ),
+        .inst           (inst           ),
         .du_to_eu_bus   (du_to_eu_bus   )
         );
 
@@ -255,12 +250,10 @@ module ysyx_25020037 (
         .rst            (reset           ),
         .exu_valid      (exu_valid       ),
         .lsu_ready      (lsu_ready       ),
-        .lsu_valid      (lsu_valid       ),
         .exu_dnpc_valid (exu_dnpc_valid  ),
         .rdata_processed(rdata_processed ),
         .eu_to_lu_bus   (eu_to_lu_bus    ),
         .lu_to_wu_bus   (lu_to_wu_bus    ),
-        .access_fault   (lsu_access_fault),
         .awready        (lsu_awready     ),
         .awvalid        (lsu_awvalid     ),
         .awaddr         (lsu_awaddr      ),
@@ -400,8 +393,6 @@ ysyx_25020037_clint u_clint (
 );
 
     ysyx_25020037_wbu wbu_cpu(
-        .lsu_valid    (lsu_valid    ),
-        .exu_ready    (exu_ready    ),
         .clk          (clock        ),
         .rst          (reset        ),
         .rs_data      (rs_data      ),
