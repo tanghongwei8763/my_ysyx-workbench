@@ -6,10 +6,11 @@ CELLS ?= /home/tanghongwei/yosys-sta/nangate45/sim/cells.v
 VERILOG_MERGED = $(BUILD_DIR)/ysyx_25020037.v
 ifeq ($(ARCH), riscv32e-npc)
 TOPNAME = ysyx_25020037_npc
-VERILOG_DEFINES = -DRESET_VAL
+VERILOG_DEFINES = -DNPC
 else
 ifeq ($(ARCH), riscv32e-ysyxsoc)
 TOPNAME = ysyxSoCFull
+VERILOG_DEFINES = -DYSYXSOC
 CXXFLAGS += -DCONFIG_YSYXSOC
 nvboard ?= 1
 endif
@@ -107,7 +108,6 @@ endif
 $(VERILOG_MERGED): $(wildcard $(CURDIR)/vsrc/core/*.v) $(wildcard $(CURDIR)/vsrc/core/*.vh)
 	@echo "Merging core Verilog files into $@..."
 	@echo "// Merged Verilog file with PC reset value 0x30000000" > $@
-	@echo \`define RESET_VAL 0 >> $@
 	@echo "" >> $@
 	
 	@for file in $(wildcard $(CURDIR)/vsrc/core/*.vh); do \
