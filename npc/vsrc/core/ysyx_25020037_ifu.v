@@ -25,10 +25,10 @@ module ysyx_25020037_ifu #(
     assign ifu_valid    = icache_hit & ~exu_dnpc_valid;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-`ifdef YSYXSOC
-            pc <= `YSYXSOC_RESET_VAL;
-`else
+`ifdef NPC
             pc <= `NPC_RESET_VAL;
+`else
+            pc <= `YSYXSOC_RESET_VAL;
 `endif
         end else begin
             pc <= pc_updata ? dnpc : pc;

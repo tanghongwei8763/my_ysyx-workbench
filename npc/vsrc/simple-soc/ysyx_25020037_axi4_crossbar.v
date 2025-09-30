@@ -65,6 +65,8 @@ module ysyx_25020037_axi4_crossbar (
 
 localparam SRAM_BASE_START = 32'h80000000;
 localparam SRAM_BASE_END   = 32'h8fffffff;
+localparam FLASH_INIT1     = 32'h30000000;
+localparam FLASH_INIT2     = 32'h3000000c;
 localparam UART_BASE       = 32'h10000000;
 
 wire sram_awready, sram_awvalid;
@@ -135,7 +137,8 @@ always @(posedge clk or posedge rst) begin
                 is_uart_addr  <= (io_master_arvalid & (io_master_araddr == UART_BASE)) |
                                  (io_master_awvalid & (io_master_awaddr == UART_BASE));
                 is_sram_addr  <= (io_master_arvalid & ((io_master_araddr >= SRAM_BASE_START) & (io_master_araddr <= SRAM_BASE_END))) |
-                                 (io_master_awvalid & ((io_master_awaddr >= SRAM_BASE_START) & (io_master_awaddr <= SRAM_BASE_END)));
+                                 (io_master_awvalid & ((io_master_awaddr >= SRAM_BASE_START) & (io_master_awaddr <= SRAM_BASE_END))) |
+                                 (io_master_arvalid & ((io_master_araddr >= FLASH_INIT1    ) | (io_master_araddr <= FLASH_INIT2)));
             end
             default: begin end
         endcase
