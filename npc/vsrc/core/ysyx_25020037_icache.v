@@ -73,7 +73,7 @@ always @(*) begin
     case (state)
         IDLE:  begin next_state = cpu_valid ? (cpu_hit) ? IDLE : BUSY : IDLE; end
         BUSY:  begin next_state = (cpu_hit) ? IDLE : BUSY; end
-        default: next_state = IDLE;
+        default: next_state = state;
     endcase
 end
 always @(posedge clk or posedge rst) begin
