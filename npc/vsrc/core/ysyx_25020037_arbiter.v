@@ -126,7 +126,7 @@ always @(*) begin
         IFU_ACCESS : next_master = ifu_rlast ? IDLE : IFU_ACCESS;
         LSU_ACCESS : next_master = ((lsu_rlast || (io_master_bvalid & io_master_bready)) |
                                     (clint_rvalid & clint_rready)) ? IDLE : LSU_ACCESS;
-        default: next_master = current_master;
+        default: next_master = IDLE;
     endcase
 end
 
