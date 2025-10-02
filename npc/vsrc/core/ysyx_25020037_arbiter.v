@@ -104,7 +104,12 @@ always @(posedge clk or posedge rst) begin
     if (rst) begin
         current_master <= IDLE;
     end else begin
-        current_master <= next_master;
+        case (next_master)
+            IDLE      : current_master <= next_master;
+            IFU_ACCESS: current_master <= next_master;
+            LSU_ACCESS: current_master <= next_master;
+            default   : current_master <= current_master;
+        endcase
         case (current_master)
             IDLE: begin
                 is_clint_addr <= (lsu_arvalid & ((lsu_araddr[31:16] == CLINT_BASE)));
@@ -118,8 +123,8 @@ always @(*) begin
     case (current_master)
         IDLE       : next_master = (lsu_arvalid || lsu_awvalid) ? LSU_ACCESS  :
                             (ifu_arvalid) ? IFU_ACCESS : IDLE;
-        IFU_ACCESS : next_master = ifu_rlast ? IDLE : IFU_ACCESS;
-        LSU_ACCESS : next_master = ((lsu_rlast || (io_master_bvalid & io_master_bready)) |
+        IFU_ACCESS : next_master = (ifu_rvalid && ifu_rready && ifu_rlast) ? IDLE : IFU_ACCESS;
+        LSU_ACCESS : next_master = (((lsu_rvalid && lsu_rready && lsu_rlast) || (io_master_bvalid & io_master_bready)) |
                                     (clint_rvalid & clint_rready)) ? IDLE : LSU_ACCESS;
         default: next_master = IDLE;
     endcase
