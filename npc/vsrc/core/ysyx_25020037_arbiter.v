@@ -104,12 +104,7 @@ always @(posedge clk or posedge rst) begin
     if (rst) begin
         current_master <= IDLE;
     end else begin
-        case (next_master)
-            IDLE      : current_master <= next_master;
-            IFU_ACCESS: current_master <= next_master;
-            LSU_ACCESS: current_master <= next_master;
-            default   : current_master <= current_master;
-        endcase
+        current_master <= next_master;
         case (current_master)
             IDLE: begin
                 is_clint_addr <= (lsu_arvalid & ((lsu_araddr[31:16] == CLINT_BASE)));
