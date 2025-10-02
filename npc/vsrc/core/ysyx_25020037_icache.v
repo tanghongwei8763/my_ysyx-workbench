@@ -83,11 +83,7 @@ always @(posedge clk or posedge rst) begin
         valid_array <= 'b0;
         burst_cnt <= 2'd0;
     end else begin
-        case (next_state)
-            IDLE: state <= next_state;
-            BUSY: state <= next_state;
-            default: state <= state;
-        endcase
+        state <= next_state;
         valid_array <= is_fence_i ? 'b0 : valid_array;
         case (state)
             IDLE: begin

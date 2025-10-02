@@ -114,11 +114,7 @@ module ysyx_25020037_lsu (
             awvalid <= 1'b0;
             arvalid <= 1'b0;
         end else begin
-        case (next_state)
-            IDLE: state <= next_state;
-            BUSY: state <= next_state;
-            default: state <= state;
-        endcase
+            state <= next_state;
             exu_dnpc_valid_r <= exu_dnpc_valid;
             case (state)
                 IDLE: begin
