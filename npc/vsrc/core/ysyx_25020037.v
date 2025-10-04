@@ -79,7 +79,7 @@ module ysyx_25020037 (
     assign io_slave_rid     = 4'b0;
 
     parameter BLOCK_SIZE   = 32'd16;
-    parameter CACHE_BLOCKS = 32'd2;
+    parameter CACHE_BLOCKS = 32'd4;
 
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
@@ -99,6 +99,11 @@ module ysyx_25020037 (
     wire         exu_valid;
     wire         exu_ready;
     wire         lsu_ready;
+    wire         lsu_valid;
+    wire         diff;
+    wire [31:0]  diff_pc_o_exu;
+    wire [31:0]  diff_pc_o_lsu;
+    wire [31:0]  diff_pc;
 
     wire         ifu_arready;
     wire         ifu_arvalid;
@@ -231,6 +236,9 @@ module ysyx_25020037 (
         .exu_valid      (exu_valid      ),
         .rs_data        (rs_data        ),
         .rdata_processed(rdata_processed),
+`ifdef VERILATOR
+        .diff_pc_o      (diff_pc_o_exu  ),
+`endif
         .wu_to_eu_bus   (wu_to_eu_bus   ),
         .du_to_eu_bus   (du_to_eu_bus   ),
         .eu_to_lu_bus   (eu_to_lu_bus   ),
@@ -245,8 +253,13 @@ module ysyx_25020037 (
         .rst            (reset           ),
         .exu_valid      (exu_valid       ),
         .lsu_ready      (lsu_ready       ),
+        .lsu_valid      (lsu_valid       ),
         .exu_dnpc_valid (exu_dnpc_valid  ),
         .rdata_processed(rdata_processed ),
+`ifdef VERILATOR
+        .diff_pc_i      (diff_pc_o_exu   ),
+        .diff_pc_o      (diff_pc_o_lsu   ),
+`endif
         .eu_to_lu_bus   (eu_to_lu_bus    ),
         .lu_to_wu_bus   (lu_to_wu_bus    ),
         .awready        (lsu_awready     ),
@@ -390,6 +403,12 @@ ysyx_25020037_clint u_clint (
     ysyx_25020037_wbu wbu_cpu(
         .clk          (clock        ),
         .rst          (reset        ),
+        .lsu_valid    (lsu_valid    ),
+`ifdef VERILATOR
+        .diff         (diff         ),
+        .diff_pc_i    (diff_pc_o_lsu),
+        .diff_pc      (diff_pc      ),
+`endif
         .rs_data      (rs_data      ),
         .lu_to_wu_bus (lu_to_wu_bus ),
         .wu_to_eu_bus (wu_to_eu_bus )

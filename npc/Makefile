@@ -19,6 +19,8 @@ YOSYSTOP = ysyx_25020037
 VERILATOR = verilator
 NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
+diff ?= 0
+wave ?= 0
 
 BUILD_DIR = $(NPC_HOME)/build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
@@ -100,7 +102,12 @@ endif
 INC_PATH += $(abspath ./csrc/include)
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
-
+ifeq ($(diff), 1)
+CXXFLAGS += -DCONFIG_DIFFTEST
+endif
+ifeq ($(wave), 1)
+CXXFLAGS += -DCONFIG_WAVE
+endif
 ifeq ($(nvboard), 1)
 CXXFLAGS += -DCONFIG_NVBOARD
 endif

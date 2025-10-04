@@ -7,6 +7,7 @@
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#define diff_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__diff_pc
 #define gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #define mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mtvec
 #define mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__mepc
@@ -18,6 +19,7 @@ extern VysyxSoCFull *top;
 #include "Vysyx_25020037_npc.h"
 extern Vysyx_25020037_npc *top;
 #define pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__pc
+#define diff_pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__diff_pc
 #define gpr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #define mtvec top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__mtvec
 #define mepc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__gpr_cpu__DOT__mepc
@@ -25,7 +27,11 @@ extern Vysyx_25020037_npc *top;
 #endif
 
 void isa_reg_display(){
+#ifdef CONFIG_DIFFTEST
+    printf("pc\t\t0x%08x\n", diff_pc);
+#else
     printf("pc\t\t0x%08x\n", pc);
+#endif
     for(int reg = 0; reg < 16; reg++){
         printf("%s\t\t0x%08x\n", tempregs[reg], gpr[reg]);
     }

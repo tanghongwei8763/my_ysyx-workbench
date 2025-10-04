@@ -5,7 +5,7 @@
 #include "VysyxSoCFull___024root.h"
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
-#define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
+#define dut_pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__diff_pc
 #define dut_gpr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #define dut_mtvec top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__mtvec
 #define dut_mepc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__wbu_cpu__DOT__mepc
@@ -27,8 +27,8 @@ bool isa_difftest_checkregs(diff_context_t *ref_r, vaddr_t pc) {
       return false;
     }
   }
-  // if (ref_r->pc-4 != dut_pc) {
-  //   printf("dut->pc: 0x%08x != ref->pc: 0x%08x\n", dut_pc, ref_r->pc-4);
+  // if (ref_r->pc != dut_pc+4) {
+  //   printf("dut->pc: 0x%08x != ref->pc: 0x%08x\n", dut_pc+4, ref_r->pc);
   //   return false;
   // }
   // if (ref_r->mstatus != dut_mstatus) {

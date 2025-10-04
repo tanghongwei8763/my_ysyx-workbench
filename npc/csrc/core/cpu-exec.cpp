@@ -14,20 +14,25 @@
 #include "VysyxSoCFull.h"
 extern VysyxSoCFull *top;
 #define pc top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__pc
-#define inst 32//(uint32_t)(top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__fu_to_du_bus & 0xFFFFFFFF)
+#define inst top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__inst
 #define exu_dnpc_valid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__exu_dnpc_valid
-#define lsu_valid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_valid
+#define diff top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__diff
 #define araddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_araddr
 #define arvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_arvalid
 #define awaddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awaddr
-#define wdata top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_wdata
 #define awvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awvalid
 #else
 #include "Vysyx_25020037_npc___024root.h"
 #include "Vysyx_25020037_npc.h"
 extern Vysyx_25020037_npc *top;
 #define pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__pc
-#define inst 32
+#define exu_dnpc_valid top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__cpu__DOT__exu_dnpc_valid
+#define diff top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__diff
+#define araddr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_araddr
+#define arvalid top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_arvalid
+#define awaddr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_awaddr
+#define awvalid top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_awvalid
+#define inst top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__inst
 #endif
 
 static int ifu_access_fault = 0;
@@ -69,7 +74,7 @@ static void inst_infomation() {
 static void trace_and_difftest() {
 
 #ifdef CONFIG_DIFFTEST
-    difftest_step(pc, pc);
+    if(diff) difftest_step(pc);
 #endif
 
 #ifdef CONFIG_WATCHPOINT			//监视点
@@ -170,14 +175,17 @@ static void exec_once() {
     uint64_t clk_sum_reg = 0;
     int prev_valid_reg = 0x10;
     do{
-#ifdef CONFIG_YSYXSOC
 #ifdef CONFIG_DIFFTEST
+#ifdef CONFIG_YSYXSOC
         if((((araddr < 0x30000000) | (araddr > 0x3fffffff)) & arvalid) & 
            (((araddr < 0x0f000000) | (araddr > 0x0f002000)) & arvalid) & 
            (((araddr < 0xa0000000) | (araddr > 0xbfffffff)) & arvalid)) {difftest_skip_ref();}
         if((((awaddr < 0x30000000) | (awaddr > 0x3fffffff)) & awvalid) & 
            (((awaddr < 0x0f000000) | (awaddr > 0x0f002000)) & awvalid) & 
            (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
+#else
+        if(((araddr < 0x80000000) | (araddr > 0x90000000)) & arvalid) {difftest_skip_ref();}
+        if(((awaddr < 0x80000000) | (awaddr > 0x90000000)) & awvalid) {difftest_skip_ref();}
 #endif
 #endif
         timer_start = get_time();
@@ -185,17 +193,13 @@ static void exec_once() {
         nvboard_update();
 #endif
         single_cycle();
+
+        trace_and_difftest();
         timer_end = get_time();
         time_spent += timer_end - timer_start;
         clk_sum_reg++;
-    } while (pc == last_pc);
+    } while ((pc == last_pc) && (NPC_STATE == NPC_RUNING));
     
     stats.clk_sum += clk_sum_reg;
     stats.g_timer += time_spent;
-
-#ifdef CONFIG_YSYXSOC
-#ifdef CONFIG_DIFFTEST
-    if(!exu_dnpc_valid & lsu_valid) trace_and_difftest();
-#endif
-#endif
 }

@@ -4,8 +4,13 @@ module ysyx_25020037_lsu (
     input  wire         rst,
     input  wire         exu_valid,
     output wire         lsu_ready,
+    output reg          lsu_valid,
     input  wire         exu_dnpc_valid,
     output reg  [31: 0] rdata_processed,
+`ifdef VERILATOR
+    input  wire [31: 0] diff_pc_i,
+    output reg  [31: 0] diff_pc_o,
+`endif
     input  wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
 
@@ -118,7 +123,11 @@ module ysyx_25020037_lsu (
             exu_dnpc_valid_r <= exu_dnpc_valid;
             case (state)
                 IDLE: begin
+`ifdef VERILATOR
+                    diff_pc_o <= diff_pc_i;
+`endif
                     lu_to_wu_bus <= 'b0;
+                    lsu_valid <= 1'b0;
                     if (exu_valid) begin
                         if (is_read) begin
                             araddr  <= addr;
@@ -144,6 +153,7 @@ module ysyx_25020037_lsu (
                                 default: wstrb <= 4'b0000;
                             endcase
                         end else begin
+                            lsu_valid <= 1'b1;
                             lu_to_wu_bus <= {
                                 rd,
                                 eu_to_wu_bus,
@@ -156,12 +166,14 @@ module ysyx_25020037_lsu (
                 end
                 BUSY: begin
                     lu_to_wu_bus <= 'b0;
+                    lsu_valid <= 1'b0;
                     if (is_read) begin
                         if (arvalid && arready) begin
                             arvalid <= 1'b0;
                             rready <= 1'b1;
                         end
                         if (rvalid && rready) begin
+                            lsu_valid <= 1'b1;
                             lu_to_wu_bus <= {
                                 rd,
                                 eu_to_wu_bus,
@@ -178,6 +190,7 @@ module ysyx_25020037_lsu (
                             bready <= 1'b1;
                         end
                         if (bvalid && bready) begin
+                            lsu_valid <= 1'b1;
                             bready <= 1'b0;
                         end
                     end

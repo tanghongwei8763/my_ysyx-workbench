@@ -10,6 +10,9 @@ module ysyx_25020037_exu (
     output wire         exu_ready,
     output wire [`RS_DATA-1: 0] rs_data,
     input  wire [31: 0] rdata_processed,
+`ifdef VERILATOR
+    output reg  [31: 0] diff_pc_o,
+`endif
     input  wire [`WU_TO_EU_BUS_WD -1:0] wu_to_eu_bus,
     input  wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
@@ -101,39 +104,31 @@ module ysyx_25020037_exu (
         csrs_mtvec_wen,
         csrs_mepc_wen   
     };
-    reg src1_wait;
-    reg src2_wait;
     reg [31:0] bypass_src1;
     reg [31:0] bypass_src2;
     always @(*) begin
         bypass_src1 = src1_r;
-        src1_wait = 1'b0;
         if ((bypass_rd[0] == rs1) && (rs1 != 4'd0)) begin
-            bypass_src1 = bypass_data[0];
-            src1_wait = bypass_is_load[0];
+            bypass_src1 = bypass_is_load[0] ? rdata_processed : bypass_data[0];
         end
         else if ((bypass_rd[1] == rs1) && (rs1 != 4'd0)) begin
-            bypass_src1 = bypass_data[1];
-            src1_wait = bypass_is_load[1];
-            end
+            bypass_src1 = bypass_is_load[1] ? rdata_processed : bypass_data[1];
         end
+     end
 
     always @(*) begin
         bypass_src2 = src2_r;
-        src2_wait = 1'b0;
         if ((bypass_rd[0] == rs2) && (rs2 != 4'd0)) begin
-            bypass_src2 = bypass_data[0];
-            src2_wait = bypass_is_load[0];
+            bypass_src2 = bypass_is_load[0] ? rdata_processed : bypass_data[0];
         end
         else if ((bypass_rd[1] == rs2) && (rs2 != 4'd0)) begin
-            bypass_src2 = bypass_data[1];
-            src2_wait = bypass_is_load[1];
+            bypass_src2 = bypass_is_load[1] ? rdata_processed : bypass_data[1];
         end
     end
 
     assign src1 = bypass_src1;
     assign src2 = bypass_src2;
-    assign exu_ready = lsu_ready & !src1_wait & !src2_wait;
+    assign exu_ready = lsu_ready;
 
     wire [31: 0] snpc;
     wire [31: 0] dnpc_r;
@@ -202,6 +197,9 @@ module ysyx_25020037_exu (
             exu_dnpc_valid <=1'b0;
             eu_to_lu_bus <= 'b0;
         end else begin
+`ifdef VERILATOR
+            diff_pc_o <= idu_valid ? pc : diff_pc_o;
+`endif
             if(exu_ready) begin
                 if(dnpc_r != 32'b0 && ~exu_dnpc_valid) begin
                     exu_dnpc_valid <= idu_valid;

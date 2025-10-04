@@ -3,6 +3,12 @@
 module ysyx_25020037_wbu (
     input  wire         clk,
     input  wire         rst,
+    input  wire         lsu_valid,
+`ifdef VERILATOR
+    output reg          diff,
+    input  wire [31: 0] diff_pc_i,
+    output reg  [31: 0] diff_pc,
+`endif
     input  wire [`RS_DATA-1: 0] rs_data,
     output wire [`WU_TO_EU_BUS_WD -1:0] wu_to_eu_bus,
     input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus
@@ -64,6 +70,14 @@ module ysyx_25020037_wbu (
         if (csrs_mepc_wen) begin
           mepc <= csr_wcsr_data;
         end
+`ifdef VERILATOR
+        diff_pc <= diff_pc_i;
+        if (lsu_valid) begin
+          diff <= 1'b1;
+        end else begin
+          diff <= 1'b0;
+        end
+`endif
       end
     end
     

@@ -16,7 +16,7 @@ LDFLAGS   += --defsym=_stack_size=2k --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _start
 NPCFLAGS += -l $(shell dirname $(IMAGE).elf)/ysyxsoc-log.txt -b
 NPCFLAGS += -e $(IMAGE).elf
-NPCFLAGS += -d /home/tanghongwei/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
+NPCFLAGS += -d $(NPC_HOME)/csrc/diff/riscv32-nemu-interpreter-so-ysyxsoc
 
 MAINARGS_MAX_LEN = 64
 MAINARGS_PLACEHOLDER = The insert-arg rule in Makefile will insert mainargs here.
