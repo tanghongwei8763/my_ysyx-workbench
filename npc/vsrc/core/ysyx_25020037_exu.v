@@ -86,23 +86,31 @@ module ysyx_25020037_exu (
 
     wire   c_mtvec     = (imm[11:0] == `MTVEC || ecall_en);
     wire   c_mepc      = (imm[11:0] == `MEPC  || mret_en );
-    // wire   c_mstatus    = (imm[11:0] == `MSTATUS          );
+    wire   c_mstatus   = (imm[11:0] == `MSTATUS          );
     wire   c_mcause    = (imm[11:0] == `MCAUSE           );
     wire   c_mvendorid = (imm[11:0] == `MVENDORID        );
     wire   c_marchid   = (imm[11:0] == `MARCHID          );
-    assign rs_data     = {c_mtvec, c_mepc, c_mcause, c_mvendorid, c_marchid, rs1, rs2};
+    assign rs_data     = {c_mtvec, c_mepc, c_mstatus, c_mcause, c_mvendorid, c_marchid, rs1, rs2};
 
     wire   csr_w_gpr_we;
     wire   csrs_mtvec_wen;
     wire   csrs_mepc_wen;
-    assign csr_w_gpr_we   = csrrs_op | csrrw_op;
-    assign csrs_mtvec_wen = (imm[11:0] == `MTVEC) & csr_w_gpr_we;
-    assign csrs_mepc_wen  = ((imm[11:0] == `MEPC) & csr_w_gpr_we) | ecall_en;
+    wire   csrs_mcause_wen;
+    wire   csrs_mstatus_wen;
+    assign csr_w_gpr_we     = csrrs_op | csrrw_op;
+    assign csrs_mtvec_wen   = ( imm[11:0] == `MTVEC  ) & csr_w_gpr_we;
+    assign csrs_mepc_wen    = ((imm[11:0] == `MEPC   ) & csr_w_gpr_we) | ecall_en;
+    assign csrs_mcause_wen  = ((imm[11:0] == `MCAUSE ) & csr_w_gpr_we) | ecall_en;
+    assign csrs_mstatus_wen = ((imm[11:0] == `MSTATUS) & csr_w_gpr_we) | mret_en;
 
     wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     assign eu_to_wu_bus = {
+        ecall_en,
+        mret_en,
         csrs_mtvec_wen,
-        csrs_mepc_wen   
+        csrs_mepc_wen,
+        csrs_mcause_wen,
+        csrs_mstatus_wen
     };
     reg [31:0] bypass_src1;
     reg [31:0] bypass_src2;
