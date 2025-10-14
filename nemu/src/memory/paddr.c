@@ -18,7 +18,7 @@
 #include <device/mmio.h>
 #include <isa.h>
 
-#ifdef CONFIG_TARGET_SHARE
+#ifndef CONFIG_TARGET_SHARE
 #if   defined(CONFIG_PMEM_MALLOC)
 static uint8_t *pmem = NULL;
 #else // CONFIG_PMEM_GARRAY
@@ -79,6 +79,7 @@ void paddr_write(paddr_t addr, int len, word_t data) {
 
 static uint8_t mrom[4*1024] PG_ALIGN = {};
 static uint8_t sram[8*1024] PG_ALIGN = {};
+static uint8_t psram[4*1024*1024] PG_ALIGN = {};
 static uint8_t flash[16*1024*1024] PG_ALIGN = {};
 static uint8_t sdram[64*1024*1024] PG_ALIGN = {};
 
@@ -94,6 +95,8 @@ uint8_t* guest_to_host(paddr_t paddr) {
     return mrom + paddr - 0x20000000;
   } else if(paddr >= 0x30000000 && paddr <= 0x3fffffff) {
     return flash + paddr - 0x30000000;
+  } else if(paddr >= 0x80000000 && paddr <= 0x9fffffff) {
+    return psram + paddr - 0x80000000;
   } else if(paddr >= 0xa0000000 && paddr <= 0xbfffffff) {
     return sdram + paddr - 0xa0000000;
   } else {

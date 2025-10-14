@@ -179,9 +179,11 @@ static void exec_once() {
 #ifdef CONFIG_YSYXSOC
         if((((araddr < 0x30000000) | (araddr > 0x3fffffff)) & arvalid) & 
            (((araddr < 0x0f000000) | (araddr > 0x0f002000)) & arvalid) & 
+           (((araddr < 0x80000000) | (araddr > 0x9fffffff)) & arvalid) & 
            (((araddr < 0xa0000000) | (araddr > 0xbfffffff)) & arvalid)) {difftest_skip_ref();}
         if((((awaddr < 0x30000000) | (awaddr > 0x3fffffff)) & awvalid) & 
            (((awaddr < 0x0f000000) | (awaddr > 0x0f002000)) & awvalid) & 
+           (((awaddr < 0x80000000) | (awaddr > 0x9fffffff)) & awvalid) & 
            (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
 #else
         if(((araddr < 0x80000000) | (araddr > 0x90000000)) & arvalid) {difftest_skip_ref();}
