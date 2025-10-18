@@ -102,6 +102,7 @@ endif
 INC_PATH += $(abspath ./csrc/include)
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
+CXXFLAGS += -g
 ifeq ($(diff), 1)
 CXXFLAGS += -DCONFIG_DIFFTEST
 endif
@@ -171,6 +172,9 @@ verilog: $(VERILOG_MERGED)
 run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@$^ $(ARGS) $(IMG)
+
+gdb: $(BIN)
+	gdb $(BIN) --args $(BIN) $(ARGS) $(IMG)
 
 yosys: $(VERILOG_MERGED)
 	cd $(NPC_HOME)/../../yosys-sta && make sta DESIGN=$(YOSYSTOP) \
