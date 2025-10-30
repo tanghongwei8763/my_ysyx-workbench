@@ -14,54 +14,15 @@ module ysyx_25020037_lsu (
     input  wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg  [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus,
 
-    input  wire         awready,
-    output reg          awvalid,
-    output reg  [31: 0] awaddr,
-    output reg  [ 3: 0] awid,
-    output reg  [ 7: 0] awlen,
-    output reg  [ 2: 0] awsize,
-    output reg  [ 1: 0] awburst,
-    input  wire         wready,
-    output reg          wvalid,
-    output reg  [31: 0] wdata,
-    output reg  [ 3: 0] wstrb,
-    output reg          wlast,
-    output reg          bready,
-    input  wire         bvalid,
-    input  wire [ 1: 0] bresp,
-    input  wire [ 3: 0] bid,
-    input  wire         arready,
-    output reg          arvalid,
-    output reg  [31: 0] araddr,
-    output reg  [ 3: 0] arid,
-    output reg  [ 7: 0] arlen,
-    output reg  [ 2: 0] arsize,
-    output reg  [ 1: 0] arburst,
-    output reg          rready,
-    input  wire         rvalid,
-    input  wire [ 1: 0] rresp,
-    input  wire [31: 0] rdata,
-    input  wire         rlast,
-    input  wire [ 3: 0] rid
+    output wire [31: 0] dcache_addr,
+    output wire         dcache_addr_valid,
+    output wire         dcache_we,
+    output wire [31: 0] dcache_wdata,
+    output wire [ 3: 0] dcache_wstrb,
+    input  wire [31: 0] dcache_rdata,
+    input  wire         dcache_ready
+
 );
-`ifdef VERILATOR
-    import "DPI-C" function void access_fault(input int ifu, input int lsu);
-    always @(posedge clk) begin
-        if ((rresp != 2'b00) || (bresp != 2'b00)) begin
-            access_fault(32'b0, {31'b0, 1'b1});
-        end
-    end
-`endif
-
-    localparam IDLE    = 1'b0;
-    localparam BUSY    = 1'b1;
-    reg        state, next_state;
-
-    localparam SDRAM_BASE = 4'hA; // A000_0000-BFFF_FFFF
-    localparam SDRAM_END  = 4'hB; 
-
-    localparam AXI_LEN_SINGLE = 8'h0;
-    reg         exu_dnpc_valid_r;
     wire [ 3:0] rd;
     wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     wire [ 1:0] data_rop;
@@ -92,18 +53,18 @@ module ysyx_25020037_lsu (
             half_sext
            } = du_to_lu_bus;
 
-    wire is_sdram = (addr[31:28] == SDRAM_BASE) | (addr[31:28] == SDRAM_END);
+    wire [31: 0] lsu_data;
 
-    always @(*) begin
-        case (state)
-            IDLE: begin next_state = (exu_valid & (is_write | is_read)) ? BUSY : IDLE; end
-            BUSY: begin next_state = ((bvalid & wlast) | (rvalid & rlast)) ? IDLE : BUSY; end
-            default: next_state = IDLE;
-        endcase
-    end
+    assign dcache_addr       = addr;
+    assign dcache_addr_valid = exu_valid & (is_read | is_write);
+    assign dcache_we         = is_write;
+    assign dcache_wstrb      = ({4{data_wop == 2'b00}} & (4'b0001 << addr_off))
+                             | ({4{data_wop == 2'b01}} & (4'b0011 << addr_off))
+                             | ({4{data_wop == 2'b10}} & (4'b1111 << addr_off));
+    assign dcache_wdata      = {{8{dcache_wstrb[3]}},{8{dcache_wstrb[2]}},{8{dcache_wstrb[1]}},{8{dcache_wstrb[0]}}} & aligned_wdata;
 
     wire [31: 0] lsu_rdata;
-    assign lsu_rdata = rdata >> (addr_off << 3);
+    assign lsu_rdata = dcache_rdata >> (addr_off << 3);
     always @(*) begin
         case (data_rop)
             2'b00: begin rdata_processed = bit_sext  ? {{24{lsu_rdata[ 7]}}, lsu_rdata[ 7:0]} : {24'b0, lsu_rdata[ 7:0]}; end
@@ -112,90 +73,24 @@ module ysyx_25020037_lsu (
         endcase
     end
 
-    assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
+    assign lsu_ready = (dcache_ready | exu_dnpc_valid) ? 1'b1 : ~(is_write | is_read);
+    assign lsu_data  = is_read ? rdata_processed : addr;
     always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            state <= IDLE;
-            awvalid <= 1'b0;
-            arvalid <= 1'b0;
-        end else begin
-            state <= next_state;
-            exu_dnpc_valid_r <= exu_dnpc_valid;
-            case (state)
-                IDLE: begin
 `ifdef VERILATOR
-                    diff_pc_o <= diff_pc_i;
+        diff_pc_o <= diff_pc_i;
 `endif
-                    lu_to_wu_bus <= 'b0;
-                    lsu_valid <= 1'b0;
-                    if (exu_valid) begin
-                        if (is_read) begin
-                            araddr  <= addr;
-                            arvalid <= 1'b1;
-                            arid <= 4'h0;
-                            arlen <= AXI_LEN_SINGLE;
-                            arsize <= {1'b0, data_rop};
-                            arburst <= {1'b0, is_sdram};
-                        end else if (is_write) begin
-                            awvalid <= 1'b1;
-                            wvalid <= 1'b1;
-                            awaddr  <= addr;
-                            wdata   <= aligned_wdata;
-                            awid <= 4'h0;
-                            awlen <= AXI_LEN_SINGLE;
-                            awsize <= {1'b0, data_wop};
-                            awburst <= {1'b0, is_sdram};
-                            wlast <= 1'b1;
-                            case (data_wop)
-                                2'b00: wstrb <= (4'b0001 << addr_off);
-                                2'b01: wstrb <= (4'b0011 << addr_off);
-                                2'b10: wstrb <= (4'b1111 << addr_off);
-                                default: wstrb <= 4'b0000;
-                            endcase
-                        end else begin
-                            lsu_valid <= 1'b1;
-                            lu_to_wu_bus <= {
-                                rd,
-                                eu_to_wu_bus,
-                                gpr_we,
-                                data_channel,
-                                addr
-                            };
-                        end
-                    end
-                end
-                BUSY: begin
-                    lu_to_wu_bus <= 'b0;
-                    lsu_valid <= 1'b0;
-                    if (is_read) begin
-                        if (arvalid && arready) begin
-                            arvalid <= 1'b0;
-                            rready <= 1'b1;
-                        end
-                        if (rvalid && rready) begin
-                            lsu_valid <= 1'b1;
-                            lu_to_wu_bus <= {
-                                rd,
-                                eu_to_wu_bus,
-                                gpr_we,
-                                data_channel,
-                                rdata_processed
-                                };
-                            rready <= 1'b0;
-                        end
-                    end else if (is_write) begin 
-                        if (awvalid && awready && wvalid && wready) begin
-                            awvalid <= 1'b0;
-                            wvalid <= 1'b0;
-                            bready <= 1'b1;
-                        end
-                        if (bvalid && bready) begin
-                            lsu_valid <= 1'b1;
-                            bready <= 1'b0;
-                        end
-                    end
-                end
-            endcase
+        if(exu_valid) begin
+            lsu_valid <= 1'b1;
+            lu_to_wu_bus <= {
+                rd,
+                eu_to_wu_bus,
+                gpr_we,
+                data_channel,
+                lsu_data
+            };
+        end else begin
+            lsu_valid <= 1'b0;
+            lu_to_wu_bus <= 'b0;
         end
     end
 

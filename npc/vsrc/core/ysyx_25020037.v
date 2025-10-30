@@ -78,8 +78,10 @@ module ysyx_25020037 (
     assign io_slave_rlast   = 1'b0;
     assign io_slave_rid     = 4'b0;
 
-    parameter BLOCK_SIZE   = 32'd16;
-    parameter CACHE_BLOCKS = 32'd2;
+    parameter I_BLOCK_SIZE   = 32'd16;
+    parameter I_CACHE_BLOCKS = 32'd4;
+    parameter D_BLOCK_SIZE   = 32'd16;
+    parameter D_CACHE_BLOCKS = 32'd4;
 
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
@@ -170,7 +172,7 @@ module ysyx_25020037 (
     wire         icache_hit;
       
     ysyx_25020037_ifu #(
-        .BLOCK_SIZE    (BLOCK_SIZE)
+        .BLOCK_SIZE    (I_BLOCK_SIZE     )
     ) ifu_cpu(
         .clk           (clock            ),
         .rst           (reset            ),
@@ -188,8 +190,8 @@ module ysyx_25020037 (
     ysyx_25020037_icache #(
         .ADDR_WIDTH    (32),
         .DATA_WIDTH    (32),
-        .CACHE_BLOCKS  (CACHE_BLOCKS),
-        .BLOCK_SIZE    (BLOCK_SIZE)
+        .CACHE_BLOCKS  (I_CACHE_BLOCKS),
+        .BLOCK_SIZE    (I_BLOCK_SIZE)
     ) u_icache (
         .clk           (clock            ),
         .rst           (reset            ),
@@ -210,7 +212,7 @@ module ysyx_25020037 (
         .cpu_addr      (icache_addr      ),
         .cpu_valid     (icache_valid     ),
         .inst          (inst             ),
-        .cpu_hit       (icache_hit       )
+        .icache_hit    (icache_hit       )
     );
 
     ysyx_25020037_idu idu_cpu(
@@ -248,49 +250,81 @@ module ysyx_25020037 (
         .exu_dnpc       (exu_dnpc       )
     );
 
+    wire [31: 0] dcache_addr;
+    wire         dcache_addr_valid;
+    wire         dcache_we;
+    wire [31: 0] dcache_wdata;
+    wire [ 3: 0] dcache_wstrb;
+    wire [31: 0] dcache_rdata;
+    wire         dcache_ready;
+
     ysyx_25020037_lsu lsu_cpu(
-        .clk            (clock           ),
-        .rst            (reset           ),
-        .exu_valid      (exu_valid       ),
-        .lsu_ready      (lsu_ready       ),
-        .lsu_valid      (lsu_valid       ),
-        .exu_dnpc_valid (exu_dnpc_valid  ),
-        .rdata_processed(rdata_processed ),
-`ifdef VERILATOR
-        .diff_pc_i      (diff_pc_o_exu   ),
-        .diff_pc_o      (diff_pc_o_lsu   ),
+        .clk              (clock            ),
+        .rst              (reset            ),
+        .exu_valid        (exu_valid        ),
+        .lsu_ready        (lsu_ready        ),
+        .lsu_valid        (lsu_valid        ),
+        .exu_dnpc_valid   (exu_dnpc_valid   ),
+        .rdata_processed  (rdata_processed  ),
+`ifdef VERILATOR 
+        .diff_pc_i        (diff_pc_o_exu    ),
+        .diff_pc_o        (diff_pc_o_lsu    ),
 `endif
-        .eu_to_lu_bus   (eu_to_lu_bus    ),
-        .lu_to_wu_bus   (lu_to_wu_bus    ),
-        .awready        (lsu_awready     ),
-        .awvalid        (lsu_awvalid     ),
-        .awaddr         (lsu_awaddr      ),
-        .awid           (lsu_awid        ),
-        .awlen          (lsu_awlen       ),
-        .awsize         (lsu_awsize      ),
-        .awburst        (lsu_awburst     ),
-        .wready         (lsu_wready      ),
-        .wvalid         (lsu_wvalid      ),
-        .wdata          (lsu_wdata       ),
-        .wstrb          (lsu_wstrb       ),
-        .wlast          (lsu_wlast       ),
-        .bready         (lsu_bready      ),
-        .bvalid         (lsu_bvalid      ),
-        .bresp          (lsu_bresp       ),
-        .bid            (lsu_bid         ),
-        .arready        (lsu_arready     ),
-        .arvalid        (lsu_arvalid     ),
-        .araddr         (lsu_araddr      ),
-        .arid           (lsu_arid        ),
-        .arlen          (lsu_arlen       ),
-        .arsize         (lsu_arsize      ),
-        .arburst        (lsu_arburst     ),
-        .rready         (lsu_rready      ),
-        .rvalid         (lsu_rvalid      ),
-        .rresp          (lsu_rresp       ),
-        .rdata          (lsu_rdata       ),
-        .rlast          (lsu_rlast       ),
-        .rid            (lsu_rid         )
+        .eu_to_lu_bus     (eu_to_lu_bus     ),
+        .lu_to_wu_bus     (lu_to_wu_bus     ),
+        .dcache_addr      (dcache_addr      ),
+        .dcache_addr_valid(dcache_addr_valid),
+        .dcache_we        (dcache_we        ),
+        .dcache_wdata     (dcache_wdata     ),
+        .dcache_wstrb     (dcache_wstrb     ),
+        .dcache_rdata     (dcache_rdata     ),
+        .dcache_ready     (dcache_ready     )
+    );
+
+    ysyx_25020037_dcache #(
+        .ADDR_WIDTH    (32),
+        .DATA_WIDTH    (32),
+        .CACHE_BLOCKS  (D_CACHE_BLOCKS),
+        .BLOCK_SIZE    (D_BLOCK_SIZE)
+    ) u_dcache (
+        .clk           (clock            ),
+        .rst           (reset            ),
+        .awready       (lsu_awready      ),
+        .awvalid       (lsu_awvalid      ),
+        .awaddr        (lsu_awaddr       ),
+        .awid          (lsu_awid         ),
+        .awlen         (lsu_awlen        ),
+        .awsize        (lsu_awsize       ),
+        .awburst       (lsu_awburst      ),
+        .wready        (lsu_wready       ),
+        .wvalid        (lsu_wvalid       ),
+        .wdata         (lsu_wdata        ),
+        .wstrb         (lsu_wstrb        ),
+        .wlast         (lsu_wlast        ),
+        .bready        (lsu_bready       ),
+        .bvalid        (lsu_bvalid       ),
+        .bresp         (lsu_bresp        ),
+        .bid           (lsu_bid          ),
+        .arready       (lsu_arready      ),
+        .arvalid       (lsu_arvalid      ),
+        .araddr        (lsu_araddr       ),
+        .arid          (lsu_arid         ),
+        .arlen         (lsu_arlen        ),
+        .arsize        (lsu_arsize       ),
+        .arburst       (lsu_arburst      ),
+        .rready        (lsu_rready       ),
+        .rvalid        (lsu_rvalid       ),
+        .rresp         (lsu_rresp        ),
+        .rdata         (lsu_rdata        ),
+        .rlast         (lsu_rlast        ),
+        .rid           (lsu_rid          ),
+        .cpu_addr      (dcache_addr      ),
+        .cpu_valid     (dcache_addr_valid),
+        .cpu_we        (dcache_we        ),
+        .cpu_wdata     (dcache_wdata     ),
+        .cpu_wstrb     (dcache_wstrb     ),
+        .cpu_rdata     (dcache_rdata     ),
+        .cpu_ready     (dcache_ready     )
     );
 
 ysyx_25020037_arbiter u_arbiter(

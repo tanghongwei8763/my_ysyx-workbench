@@ -31,7 +31,7 @@ module ysyx_25020037_icache #(
     input  wire [ADDR_WIDTH-1:0] cpu_addr,
     input  wire                  cpu_valid,
     output wire [DATA_WIDTH-1:0] inst,
-    output wire                  cpu_hit
+    output wire                  icache_hit
 );
 `ifdef VERILATOR
     import "DPI-C" function void access_fault(input int ifu, input int lsu);
@@ -67,12 +67,12 @@ reg [   TAG_WIDTH-1:0]  tag_array  [CACHE_BLOCKS-1:0];
 reg [BLOCK_SIZE*8-1:0]  data_array [CACHE_BLOCKS-1:0];
 reg [CACHE_BLOCKS-1:0]  valid_array;
 
-assign cpu_hit = valid_array[index] && (tag_array[index] == tag);
-assign inst    = data_array[index][offset*8 +: DATA_WIDTH];
+assign icache_hit = valid_array[index] && (tag_array[index] == tag);
+assign inst       = data_array[index][offset*8 +: DATA_WIDTH];
 always @(*) begin
     case (state)
-        IDLE:  begin next_state = cpu_valid ? (cpu_hit) ? IDLE : BUSY : IDLE; end
-        BUSY:  begin next_state = (cpu_hit) ? IDLE : BUSY; end
+        IDLE:  begin next_state = cpu_valid ? (icache_hit) ? IDLE : BUSY : IDLE; end
+        BUSY:  begin next_state = (icache_hit) ? IDLE : BUSY; end
         default: next_state = IDLE;
     endcase
 end
@@ -87,7 +87,7 @@ always @(posedge clk or posedge rst) begin
         valid_array <= is_fence_i ? 'b0 : valid_array;
         case (state)
             IDLE: begin
-                if (~cpu_hit & cpu_valid) begin
+                if (~icache_hit & cpu_valid) begin
                     araddr <= mem_addr;
                     arvalid <= 1'b1;
                     arid <= 4'h0;
