@@ -26,7 +26,7 @@ module ysyx_25020037_icache #(
     input  wire         rlast,
     input  wire [ 3: 0] rid,
 
-    input  wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
+    input  wire         fence_en,
 
     input  wire [ADDR_WIDTH-1:0] cpu_addr,
     input  wire                  cpu_valid,
@@ -41,8 +41,6 @@ module ysyx_25020037_icache #(
         end
     end
 `endif
-
-wire is_fence_i = eu_to_ic_bus;
 
 localparam SDRAM_BASE = 4'hA; // A000_0000-BFFF_FFFF
 localparam SDRAM_END  = 4'hB;
@@ -84,7 +82,7 @@ always @(posedge clk or posedge rst) begin
         burst_cnt <= 2'd0;
     end else begin
         state <= next_state;
-        valid_array <= is_fence_i ? 'b0 : valid_array;
+        valid_array <= fence_en ? 'b0 : valid_array;
         case (state)
             IDLE: begin
                 if (~icache_hit & cpu_valid) begin

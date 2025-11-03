@@ -12,7 +12,6 @@
 
 `define DU_TO_LU_BUS_WD 2
 `define EU_TO_WU_BUS_WD 6
-`define EU_TO_IC_BUS_WD 1
 
 `define RS_DATA 14
 `define NPC_RESET_VAL     32'h80000000

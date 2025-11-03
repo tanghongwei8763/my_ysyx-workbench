@@ -16,7 +16,7 @@ module ysyx_25020037_exu (
     input  wire [`WU_TO_EU_BUS_WD -1:0] wu_to_eu_bus,
     input  wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus,
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
-    output reg  [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus,
+    output reg          fence_en,
     input  wire         pc_updata,
     output reg          exu_dnpc_valid,
     output reg  [31: 0] exu_dnpc
@@ -229,10 +229,10 @@ module ysyx_25020037_exu (
                         data_channel,
                         result
                     };
-                    eu_to_ic_bus <= is_fence_i;
+                    fence_en <= is_fence_i;
                 end else begin
                     exu_valid <= 1'b0;
-                    eu_to_ic_bus <= 'b0;
+                    fence_en <= 1'b0;
                     eu_to_lu_bus <= 'b0;
                 end
             end

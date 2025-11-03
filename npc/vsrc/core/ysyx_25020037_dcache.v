@@ -42,6 +42,7 @@ module ysyx_25020037_dcache #(
     input  wire         rlast,
     input  wire [ 3: 0] rid,
 
+    input  wire                  fence_en,
     input  wire [ADDR_WIDTH-1:0] cpu_addr,
     input  wire                  cpu_valid,
     input  wire                  cpu_we,
@@ -98,13 +99,14 @@ reg [1:0]  burst_cnt;
 
 always @(*) begin
     case (state)
-        IDLE    : begin next_state = ~cpu_valid          ? IDLE     :
-                                     ~dcache_en          ? DEV_BUSY :
-                                      dcache_hit         ? IDLE     : 
-                                      dirty_array[index] ? WB       : MEM_BUSY;end
+        IDLE    : begin next_state = fence_en & |dirty_array[index] ? WB       :
+                                     ~cpu_valid                     ? IDLE     :
+                                     ~dcache_en                     ? DEV_BUSY :
+                                      dcache_hit                    ? IDLE     : 
+                                      dirty_array[index]            ? WB       : MEM_BUSY;end
         MEM_BUSY: begin next_state = dcache_hit ? IDLE : MEM_BUSY; end
-        DEV_BUSY: begin next_state = (bvalid && bready) ? IDLE : DEV_BUSY; end
-        WB      : begin next_state = (bvalid && bready) ? cpu_we ? DEV_BUSY : MEM_BUSY : WB; end
+        DEV_BUSY: begin next_state = (bvalid && bready && wlast) ? IDLE : DEV_BUSY; end
+        WB      : begin next_state = (bvalid && bready && wlast && (burst_cnt == 2'b11)) ? cpu_we ? DEV_BUSY : MEM_BUSY : WB; end
         default: next_state = IDLE;
     endcase
 end
@@ -126,7 +128,7 @@ always @(posedge clk or posedge rst) begin
         rready <= 1'b0;
     end else begin
         state <= next_state;
-
+        valid_array <= fence_en ? 'b0 : valid_array;
         case (state)
             IDLE: begin
                 cpu_ready <= dcache_hit;
@@ -148,7 +150,7 @@ always @(posedge clk or posedge rst) begin
                         wdata <= dcache_en ? data_array[index][burst_cnt*32 +: 32] : cpu_wdata;
                         wstrb <= dcache_en ? 4'hf : cpu_wstrb;
                         wvalid <= 1'b1;
-                        wlast <= ~dcache_en;
+                        wlast <= ~is_sdram;
                         awid <= 4'h0;
                         awsize <= 3'h2;
                         awlen <= is_sdram ? 8'h3 : 8'h0;
@@ -161,6 +163,8 @@ always @(posedge clk or posedge rst) begin
                         arlen <= is_sdram ? 8'h3 : 8'h0;
                         arburst <= is_sdram ? 2'h1 : 2'h0;
                     end
+                end else if (fence_en) begin
+
                 end
             end
 
@@ -242,38 +246,50 @@ always @(posedge clk or posedge rst) begin
             end
 
             WB: begin
-                if (awvalid && awready) begin
+                if (awvalid && awready && wvalid && wready) begin
                     awvalid <= 1'b0;
-                    wvalid <= 1'b1;
-                end
-                if (wvalid && wready) begin
-                    wdata <= data_array[index][burst_cnt*32 +: 32];
-                    wstrb <= 4'hf;
-                    burst_cnt <= burst_cnt + 2'd1;
-                    
-                    if (!is_sdram && burst_cnt < 2'd3) begin
-                        awaddr <= awaddr + 32'h4;
-                        awvalid <= 1'b1;
-                        wvalid <= 1'b0;
-                    end
-
-                    if ((is_sdram && burst_cnt == 2'd3) || 
-                        (!is_sdram && burst_cnt == 2'd0)) begin
-                        wlast <= 1'b1;
-                        wvalid <= 1'b0;
-                    end
+                    wvalid <= 1'b0;
+                    bready <= 1'b1;
                 end
                 if (bvalid && bready) begin
-                    bready <= 1'b0;
-                    valid_array[index] <= 1'b0;
-                    dirty_array[index] <= 1'b0;
+                    burst_cnt <= burst_cnt + 2'b1;
+                    wdata <= data_array[index][((burst_cnt)*32+32) +: 32];
+                    wlast <= 1'b0;
+                    if(is_sdram) begin
+                        wlast <= (burst_cnt == 2'b11);
+                        if(wlast) begin
+                            bready <= 1'b0;
+                            valid_array[index] <= 1'b0;
+                            dirty_array[index] <= 1'b0;
+                            wlast <= 1'b0;
 
-                    araddr <= block_addr;
-                    arvalid <= 1'b1;
-                    arid <= 4'h0;
-                    arsize <= 3'h2;
-                    arlen <= is_sdram ? 8'h3 : 8'h0;
-                    arburst <= is_sdram ? 2'h1 : 2'h0;
+                            araddr <= block_addr;
+                            arvalid <= 1'b1;
+                            arid <= 4'h0;
+                            arsize <= 3'h2;
+                            arlen <= is_sdram ? 8'h3 : 8'h0;
+                            arburst <= is_sdram ? 2'h1 : 2'h0;
+                        end
+                    end else begin
+                        if(burst_cnt == 2'b11) begin
+                            bready <= 1'b0;
+                            valid_array[index] <= 1'b0;
+                            dirty_array[index] <= 1'b0;
+                            wlast <= 1'b0;
+
+                            araddr <= block_addr;
+                            arvalid <= 1'b1;
+                            arid <= 4'h0;
+                            arsize <= 3'h2;
+                            arlen <= is_sdram ? 8'h3 : 8'h0;
+                            arburst <= is_sdram ? 2'h1 : 2'h0;
+                        end else begin
+                            awaddr <= awaddr + 32'h4;
+                            awvalid <= 1'b1;
+                            wvalid <= 1'b1;
+                            wlast <= 1'b1;
+                        end
+                    end
                 end
             end
         endcase

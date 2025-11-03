@@ -87,13 +87,13 @@ module ysyx_25020037 (
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
     wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus;
     wire [`WU_TO_EU_BUS_WD -1:0] wu_to_eu_bus;
-    wire [`EU_TO_IC_BUS_WD -1:0] eu_to_ic_bus;
 
     wire [`RS_DATA-1: 0] rs_data;
     wire [31: 0] exu_dnpc;
     wire         exu_dnpc_valid;
     wire         pc_updata;
     wire [31:0]  rdata_processed;
+    wire         fence_en;
 
     wire         ifu_valid;
     wire         idu_valid;
@@ -208,7 +208,7 @@ module ysyx_25020037 (
         .rdata         (ifu_rdata        ),
         .rlast         (ifu_rlast        ),
         .rid           (ifu_rid          ),
-        .eu_to_ic_bus  (eu_to_ic_bus     ),
+        .fence_en      (fence_en         ),
         .cpu_addr      (icache_addr      ),
         .cpu_valid     (icache_valid     ),
         .inst          (inst             ),
@@ -244,7 +244,7 @@ module ysyx_25020037 (
         .wu_to_eu_bus   (wu_to_eu_bus   ),
         .du_to_eu_bus   (du_to_eu_bus   ),
         .eu_to_lu_bus   (eu_to_lu_bus   ),
-        .eu_to_ic_bus   (eu_to_ic_bus   ),
+        .fence_en       (fence_en       ),
         .pc_updata      (pc_updata      ),
         .exu_dnpc_valid (exu_dnpc_valid ),
         .exu_dnpc       (exu_dnpc       )
@@ -318,6 +318,7 @@ module ysyx_25020037 (
         .rdata         (lsu_rdata        ),
         .rlast         (lsu_rlast        ),
         .rid           (lsu_rid          ),
+        .fence_en      (fence_en         ),
         .cpu_addr      (dcache_addr      ),
         .cpu_valid     (dcache_addr_valid),
         .cpu_we        (dcache_we        ),
