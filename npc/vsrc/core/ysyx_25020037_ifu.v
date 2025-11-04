@@ -23,7 +23,7 @@ module ysyx_25020037_ifu #(
     assign icache_addr  = pc;
     assign icache_valid = idu_ready;
     assign ifu_valid    = icache_hit & ~exu_dnpc_valid;
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
 `ifdef NPC
             pc <= `NPC_RESET_VAL;

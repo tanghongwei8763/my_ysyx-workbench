@@ -44,15 +44,6 @@ module ysyx_25020037_lsu (
     input  wire         rlast,
     input  wire [ 3: 0] rid
 );
-`ifdef VERILATOR
-    import "DPI-C" function void access_fault(input int ifu, input int lsu);
-    always @(posedge clk) begin
-        if ((rresp != 2'b00) || (bresp != 2'b00)) begin
-            access_fault(32'b0, {31'b0, 1'b1});
-        end
-    end
-`endif
-
     localparam IDLE    = 1'b0;
     localparam BUSY    = 1'b1;
     reg        state, next_state;
@@ -113,7 +104,7 @@ module ysyx_25020037_lsu (
     end
 
     assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             state <= IDLE;
             awvalid <= 1'b0;

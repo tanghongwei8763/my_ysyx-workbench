@@ -206,7 +206,8 @@ module ysyx_25020037_idu (
     assign is_pc_jump   = inst_jal | inst_jarl;
 
     assign idu_ready = exu_ready;
-    always @(posedge clk or posedge rst) begin
+
+    always @(posedge clk) begin
         if (rst) begin
             du_to_eu_bus <= 'b0;
         end else begin

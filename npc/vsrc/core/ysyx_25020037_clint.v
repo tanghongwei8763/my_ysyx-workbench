@@ -16,11 +16,6 @@ module ysyx_25020037_clint(
     output reg          rlast,
     output reg  [ 3: 0] rid
 );
-
-`ifdef VERILATOR
-    import "DPI-C" function void difftest_skip_ref();
-`endif
-
     reg  [31: 0] mtimel, mtimeh;
     wire [ 3: 0] clint_offset;
     assign  clint_offset = araddr[3:0];
@@ -29,7 +24,7 @@ module ysyx_25020037_clint(
     localparam BUSY         = 1'b1;
     reg          state, next_state;
 
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             state <= IDLE;   
             arready <= 1'b1;
@@ -57,9 +52,6 @@ module ysyx_25020037_clint(
                 
                 BUSY: begin
                     arready <= 1'b1;
-`ifdef VERILATOR
-                    difftest_skip_ref();
-`endif
                     rdata <= (clint_offset == 4'h0) ? mtimel : mtimeh;
                     rvalid <= 1'b1;
                     rlast <= 1'b1;

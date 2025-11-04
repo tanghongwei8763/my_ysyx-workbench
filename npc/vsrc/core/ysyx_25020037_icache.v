@@ -33,15 +33,6 @@ module ysyx_25020037_icache #(
     output wire [DATA_WIDTH-1:0] inst,
     output wire                  cpu_hit
 );
-`ifdef VERILATOR
-    import "DPI-C" function void access_fault(input int ifu, input int lsu);
-    always @(posedge clk) begin
-        if (rresp != 2'b00) begin
-            access_fault({31'b0, 1'b1}, 32'b0);
-        end
-    end
-`endif
-
 wire is_fence_i = eu_to_ic_bus;
 
 localparam SDRAM_BASE = 4'hA; // A000_0000-BFFF_FFFF
@@ -76,7 +67,7 @@ always @(*) begin
         default: next_state = IDLE;
     endcase
 end
-always @(posedge clk or posedge rst) begin
+always @(posedge clk) begin
     if (rst) begin
         state <= IDLE;
         arvalid <= 1'b0;
