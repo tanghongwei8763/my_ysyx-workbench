@@ -207,7 +207,7 @@ module ysyx_25020037_idu (
     assign is_pc_jump   = inst_jal | inst_jarl;
 
     assign idu_ready = exu_ready;
-    assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U);
+    assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U | inst_mret | inst_ecall);
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
