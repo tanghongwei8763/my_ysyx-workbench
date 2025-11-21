@@ -237,7 +237,6 @@ module ysyx_25020037_idu (
                         inst_mret,
                         inst_csrrs,
                         inst_csrrw,
-                        inst_not_realize,
                         inst_ebreak
                     };
                 end else begin

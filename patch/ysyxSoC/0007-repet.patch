@@ -1,7 +1,7 @@
 From 96bb1e2dec09922985b6cd4813600d13f72d475a Mon Sep 17 00:00:00 2001
 From: Tanghongwei <tanghongwei2024@outlook.com>
 Date: Sat, 20 Sep 2025 14:29:51 +0800
-Subject: [PATCH 7/7] repet
+Subject: [PATCH 7/8] repet
 
 ---
  perip/uart16550/rtl/uart_tfifo.v | 8 ++++----

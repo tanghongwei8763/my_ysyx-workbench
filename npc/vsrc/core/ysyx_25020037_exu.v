@@ -60,7 +60,6 @@ module ysyx_25020037_exu (
     wire         mret_en;
     wire         csrrs_op;
     wire         csrrw_op;
-    wire         inst_not_realize;
     wire         ebreak;
     assign {du_to_lu_bus,
             pc,
@@ -82,7 +81,6 @@ module ysyx_25020037_exu (
             mret_en,
             csrrs_op,
             csrrw_op,
-            inst_not_realize,
             ebreak
            } = du_to_eu_bus;
 
@@ -244,7 +242,7 @@ module ysyx_25020037_exu (
     assign sim_end = ~exu_dnpc_valid & idu_valid & ebreak;
 `ifdef VERILATOR
     always @(*) begin
-       if(~exu_dnpc_valid & idu_valid & (ebreak | inst_not_realize)) begin hit({31'b0,inst_not_realize}); end
+       if(~exu_dnpc_valid & idu_valid & ebreak) begin hit(32'b0); end
     end
 `endif
 endmodule

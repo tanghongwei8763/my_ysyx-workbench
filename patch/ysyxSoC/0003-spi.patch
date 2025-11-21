@@ -1,7 +1,7 @@
 From 47dd102bede72cd31a852ee6de8e26d21b58558f Mon Sep 17 00:00:00 2001
 From: Tanghongwei <tanghongwei2024@outlook.com>
 Date: Sat, 13 Sep 2025 22:01:11 +0800
-Subject: [PATCH 3/7] spi
+Subject: [PATCH 3/8] spi
 
 ---
  perip/spi/rtl/spi_top_apb.v | 1 -
