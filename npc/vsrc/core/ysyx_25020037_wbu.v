@@ -74,7 +74,7 @@ module ysyx_25020037_wbu (
                         | (32'h1 << 7))
                         & ~((32'h1 << 11) | (32'h1 << 12)) :
                         csr_wcsr_data;
-    always @(posedge clk) begin
+    always @(posedge clk or posedge rst) begin
       if(rst) begin
         regs[0] <= 32'b0;
         mstatus <= 32'h1800;

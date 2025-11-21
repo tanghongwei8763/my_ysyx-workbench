@@ -27,6 +27,7 @@ module ysyx_25020037_idu (
     wire         src1_is_pc;
     wire         src2_is_imm;
     wire         is_pc_jump;
+    wire         inst_not_realize;
 
     wire [ 6:0] opcode_31_25;
     wire [ 5:0] opcode_31_26;
@@ -206,8 +207,9 @@ module ysyx_25020037_idu (
     assign is_pc_jump   = inst_jal | inst_jarl;
 
     assign idu_ready = exu_ready;
+    assign inst_not_realize = ~(TYPE_B | TYPE_I | TYPE_J | TYPE_N | TYPE_R | TYPE_S | TYPE_U);
 
-    always @(posedge clk) begin
+    always @(posedge clk or posedge rst) begin
         if (rst) begin
             du_to_eu_bus <= 'b0;
         end else begin
@@ -235,6 +237,7 @@ module ysyx_25020037_idu (
                         inst_mret,
                         inst_csrrs,
                         inst_csrrw,
+                        inst_not_realize,
                         inst_ebreak
                     };
                 end else begin

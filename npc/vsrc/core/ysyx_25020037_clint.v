@@ -24,7 +24,7 @@ module ysyx_25020037_clint(
     localparam BUSY         = 1'b1;
     reg          state, next_state;
 
-    always @(posedge clk) begin
+    always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;   
             arready <= 1'b1;

@@ -68,7 +68,7 @@ const char *tempregs[] = {
 extern "C" {
     void hit(int inst_not_realize) {
         if(NPC_STATE == NPC_RUNING){
-            if(inst_not_realize) NPC_STATE = NPC_ABORT;
+            if(inst_not_realize) {printf("inst not realize\n"); NPC_STATE = NPC_ABORT;}
             else NPC_STATE = NPC_END;
         }
     }

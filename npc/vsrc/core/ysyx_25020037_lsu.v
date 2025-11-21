@@ -104,7 +104,7 @@ module ysyx_25020037_lsu (
     end
 
     assign lsu_ready = ((bvalid & wlast) | (rvalid & rlast) | exu_dnpc_valid_r) ? 1'b1 : ~(is_write | is_read);
-    always @(posedge clk) begin
+    always @(posedge clk or posedge rst) begin
         if (rst) begin
             state <= IDLE;
             awvalid <= 1'b0;

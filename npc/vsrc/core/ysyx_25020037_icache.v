@@ -67,7 +67,7 @@ always @(*) begin
         default: next_state = IDLE;
     endcase
 end
-always @(posedge clk) begin
+always @(posedge clk or posedge rst) begin
     if (rst) begin
         state <= IDLE;
         arvalid <= 1'b0;

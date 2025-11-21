@@ -14,7 +14,7 @@
 ***************************************************************************************/
 
 #include <common.h>
-#include "/home/tanghongwei/ysyx-workbench/nemu/src/utils/iringbuf.h"
+#include "utils/iringbuf.h"
 
 void init_monitor(int, char *[]);
 void am_init_monitor();

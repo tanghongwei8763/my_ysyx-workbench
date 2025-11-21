@@ -68,7 +68,12 @@ static int cmd_w(char *args) {			//添加监视点
 }
 
 static int cmd_ext(char *args) {
-  FILE *file = fopen("/home/tanghongwei/ysyx-workbench/nemu/tools/gen-expr/build/input", "r");
+  const char *nemu_home = getenv("NEMU_HOME");
+
+  char full_path[2048];
+  snprintf(full_path, sizeof(full_path), "%s/tools/gen-expr/build/input", nemu_home);
+
+  FILE *file = fopen(full_path, "r");
   if(file == NULL) {
     perror("Error opening file");
     return -1;

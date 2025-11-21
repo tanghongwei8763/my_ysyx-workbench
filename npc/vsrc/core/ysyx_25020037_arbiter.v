@@ -100,7 +100,7 @@ localparam LSU_ACCESS  = 2'b10;
 reg       is_clint_addr;
 reg [1:0] current_master, next_master;
 
-always @(posedge clk) begin
+always @(posedge clk or posedge rst) begin
     if (rst) begin
         current_master <= IDLE;
     end else begin
