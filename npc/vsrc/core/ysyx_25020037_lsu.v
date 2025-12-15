@@ -73,14 +73,14 @@ module ysyx_25020037_lsu (
         endcase
     end
 
-    assign lsu_ready = (dcache_ready | exu_dnpc_valid) ? 1'b1 : ~(is_write | is_read);
+    assign lsu_ready = dcache_ready;
     assign lsu_data  = is_read ? rdata_processed : addr;
     always @(posedge clk or posedge rst) begin
 `ifdef VERILATOR
         diff_pc_o <= diff_pc_i;
 `endif
         if(exu_valid) begin
-            lsu_valid <= 1'b1;
+            lsu_valid <= dcache_ready;
             lu_to_wu_bus <= {
                 rd,
                 eu_to_wu_bus,

@@ -79,20 +79,22 @@ module ysyx_25020037_wbu (
         regs[0] <= 32'b0;
         mstatus <= 32'h1800;
       end else begin
-        if ((rd != 4'b0) && gpr_we) begin
-          regs[rd] <= gpr_wdata;
-        end
-        if (csrs_mtvec_wen) begin
-          mtvec <= csr_wcsr_data;
-        end
-        if (csrs_mepc_wen) begin
-          mepc <= csr_wcsr_data;
-        end
-        if (csrs_mcause_wen) begin
-          mcause <= mcause_data;
-        end
-        if (csrs_mstatus_wen) begin
-          mstatus <= mstatus_data;
+        if(lsu_valid) begin
+          if ((rd != 4'b0) && gpr_we) begin
+            regs[rd] <= gpr_wdata;
+          end
+          if (csrs_mtvec_wen) begin
+            mtvec <= csr_wcsr_data;
+          end
+          if (csrs_mepc_wen) begin
+            mepc <= csr_wcsr_data;
+          end
+          if (csrs_mcause_wen) begin
+            mcause <= mcause_data;
+          end
+          if (csrs_mstatus_wen) begin
+            mstatus <= mstatus_data;
+          end
         end
 `ifdef VERILATOR
         diff_pc <= diff_pc_i;

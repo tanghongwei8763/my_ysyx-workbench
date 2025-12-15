@@ -175,19 +175,19 @@ static void exec_once() {
     uint64_t clk_sum_reg = 0;
     int prev_valid_reg = 0x10;
     do{
-#ifdef CONFIG_DIFFTEST
-#ifdef CONFIG_YSYXSOC
-        if((((araddr < 0x30000000) | (araddr > 0x3fffffff)) & arvalid) & 
-           (((araddr < 0x0f000000) | (araddr > 0x0f002000)) & arvalid) & 
-           (((araddr < 0xa0000000) | (araddr > 0xbfffffff)) & arvalid)) {difftest_skip_ref();}
-        if((((awaddr < 0x30000000) | (awaddr > 0x3fffffff)) & awvalid) & 
-           (((awaddr < 0x0f000000) | (awaddr > 0x0f002000)) & awvalid) & 
-           (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
-#else
-        if(((araddr < 0x80000000) | (araddr > 0x90000000)) & arvalid) {difftest_skip_ref();}
-        if(((awaddr < 0x80000000) | (awaddr > 0x90000000)) & awvalid) {difftest_skip_ref();}
-#endif
-#endif
+// #ifdef CONFIG_DIFFTEST
+// #ifdef CONFIG_YSYXSOC
+//         if((((araddr < 0x30000000) | (araddr > 0x3fffffff)) & arvalid) & 
+//            (((araddr < 0x0f000000) | (araddr > 0x0f002000)) & arvalid) & 
+//            (((araddr < 0xa0000000) | (araddr > 0xbfffffff)) & arvalid)) {difftest_skip_ref();}
+//         if((((awaddr < 0x30000000) | (awaddr > 0x3fffffff)) & awvalid) & 
+//            (((awaddr < 0x0f000000) | (awaddr > 0x0f002000)) & awvalid) & 
+//            (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
+// #else
+//         if(((araddr < 0x80000000) | (araddr > 0x90000000)) & arvalid) {difftest_skip_ref();}
+//         if(((awaddr < 0x80000000) | (awaddr > 0x90000000)) & awvalid) {difftest_skip_ref();}
+// #endif
+// #endif
         timer_start = get_time();
 #ifdef CONFIG_NVBOARD
         nvboard_update();
