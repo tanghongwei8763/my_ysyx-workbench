@@ -82,7 +82,10 @@ wire        is_flash   = (cpu_addr[31:28] == FLASH_BASE);
 wire        is_sram    = (cpu_addr[27:24] == SRAM_BASE);
 wire        is_psram   = (cpu_addr[31:28] == PSRAM_BASE) | (cpu_addr[31:28] == PSRAM_END);
 wire        is_sdram   = (cpu_addr[31:28] == SDRAM_BASE) | (cpu_addr[31:28] == SDRAM_END);
-wire        dcache_en  = is_flash | is_sram | is_psram | is_sdram;
+wire        is_mem     = is_flash | is_sram | is_psram | is_sdram;
+
+wire is_sdram_wb    = (tag_array[index][TAG_WIDTH-1 -: 4] == SDRAM_BASE) | (tag_array[index][TAG_WIDTH-1 -: 4] == SDRAM_END);
+wire is_sdram_fence = (tag_array[fence_index][TAG_WIDTH-1 -: 4] == SDRAM_BASE) | (tag_array[fence_index][TAG_WIDTH-1 -: 4] == SDRAM_END);
 
 assign offset = {cpu_addr[OFFSET_WIDTH-1 : 2], 2'b0};
 assign index  = cpu_addr[OFFSET_WIDTH + INDEX_WIDTH - 1 : OFFSET_WIDTH];
@@ -109,7 +112,7 @@ always @(*) begin
     case (state)
         IDLE    : begin next_state = fence_en            ? FENCE    :
                                      ~cpu_valid          ? IDLE     :
-                                     ~dcache_en          ? MEM_BUSY :
+                                     ~is_mem             ? MEM_BUSY :
                                       dcache_hit         ? IDLE     : 
                                       dirty_array[index] ? WB       : MEM_BUSY;end
         MEM_BUSY: begin next_state = (dcache_hit | device_done) ? IDLE : MEM_BUSY; end
@@ -124,7 +127,7 @@ wire [31: 0] dcache_wdata;
 
 assign wdata_mask   = {{8{cpu_wstrb[3]}},{8{cpu_wstrb[2]}},{8{cpu_wstrb[1]}},{8{cpu_wstrb[0]}}};
 assign dcache_wdata = cpu_wdata | (data_array[index][32*offset/4 +: 32] & ~wdata_mask);
-assign cpu_rdata    = dcache_en ? data_array[index][offset*8 +: DATA_WIDTH] : device_rdata;
+assign cpu_rdata    = is_mem    ? data_array[index][offset*8 +: DATA_WIDTH] : device_rdata;
 assign cpu_ready    = cpu_valid ? (dcache_hit | device_done) : ~fence_ing;
 
 always @(posedge clk or posedge rst) begin
@@ -163,20 +166,20 @@ always @(posedge clk or posedge rst) begin
                         dirty_array[index] <= 1'b1;
                     end
                 end else if (cpu_valid && !dcache_hit) begin
-                    if ((dirty_array[index] && dcache_en) | (~dcache_en && cpu_we)) begin
-                        awaddr <= dcache_en ? {tag_array[index], index, {OFFSET_WIDTH{1'b0}}} : cpu_addr;
+                    if ((dirty_array[index] && is_mem) | (~is_mem && cpu_we)) begin
+                        awaddr <= is_mem ? {tag_array[index], index, {OFFSET_WIDTH{1'b0}}} : cpu_addr;
                         awvalid <= 1'b1;
-                        wdata <= dcache_en ? data_array[index][burst_cnt*32 +: 32] : cpu_wdata;
-                        wstrb <= dcache_en ? 4'hf : cpu_wstrb;
+                        wdata <= is_mem ? data_array[index][burst_cnt*32 +: 32] : cpu_wdata;
+                        wstrb <= is_mem ? 4'hf : cpu_wstrb;
                         wvalid <= 1'b1;
-                        wlast <= ~is_sdram;
+                        wlast <= ~is_sdram_wb;
                         awid <= 4'h0;
                         awsize <= 3'h2;
-                        awlen <= is_sdram ? 8'h3 : 8'h0;
-                        awburst <= is_sdram ? 2'h1 : 2'h0;
+                        awlen <= is_sdram_wb ? 8'h3 : 8'h0;
+                        awburst <= is_sdram_wb ? 2'h1 : 2'h0;
                     end else begin
                         valid_array[index] <= 1'b0;
-                        araddr <= dcache_en ? block_addr : cpu_addr;
+                        araddr <= is_mem ? block_addr : cpu_addr;
                         arvalid <= 1'b1;
                         arid <= 4'h0;
                         arsize <= 3'h2;
@@ -189,14 +192,14 @@ always @(posedge clk or posedge rst) begin
             MEM_BUSY: begin
                 if(cpu_we) begin
                     if (awvalid && awready && wvalid && wready) begin
+`ifdef VERILATOR
+                        difftest_skip_ref();
+`endif
                         awvalid <= 1'b0;
                         wvalid <= 1'b0;
                         bready <= 1'b1;
                     end
                     if (bvalid && bready) begin
-`ifdef VERILATOR
-                        difftest_skip_ref();
-`endif
                         device_done <= 1'b1;
                         bready <= 1'b0;
                         wlast <= 1'b0;
@@ -207,7 +210,7 @@ always @(posedge clk or posedge rst) begin
                     rready <= 1'b1;
                 end
                 if (rvalid && rready) begin
-                    if(dcache_en) begin
+                    if(is_mem) begin
                         case(burst_cnt)
                             2'd0: data_array[index][ 31: 0] <= rdata;
                             2'd1: data_array[index][ 63:32] <= rdata;
@@ -232,14 +235,12 @@ always @(posedge clk or posedge rst) begin
                             end
                         end
                     end else begin
-                        if (rvalid && rready) begin
 `ifdef VERILATOR
-                            difftest_skip_ref();
+                        difftest_skip_ref();
 `endif
-                            device_rdata <= rdata;
-                            device_done <= 1'b1;
-                            rready <= 1'b0;
-                        end
+                        device_rdata <= rdata;
+                        device_done <= 1'b1;
+                        rready <= 1'b0;
                     end
                 end
                 if(valid_array[index]) begin
@@ -267,11 +268,11 @@ always @(posedge clk or posedge rst) begin
                     wdata <= data_array[fence_index][burst_cnt*32 +: 32];
                     wstrb <= 4'hf;
                     wvalid <= 1'b1;
-                    wlast <= ~is_sdram;
+                    wlast <= ~is_sdram_fence;
                     awid <= 4'h0;
                     awsize <= 3'h2;
-                    awlen <= is_sdram ? 8'h3 : 8'h0;
-                    awburst <= is_sdram ? 2'h1 : 2'h0;
+                    awlen <= is_sdram_fence ? 8'h3 : 8'h0;
+                    awburst <= is_sdram_fence ? 2'h1 : 2'h0;
                 end
                 if(&fence_index) begin
                     dirty_array <= 'b0;
@@ -285,41 +286,41 @@ always @(posedge clk or posedge rst) begin
                     wvalid <= 1'b0;
                     bready <= 1'b1;
                 end
-                if (bvalid && bready) begin
+                if (is_sdram_wb | is_sdram_fence) begin
                     burst_cnt <= burst_cnt + 2'b1;
                     wdata <= fence_ing ? data_array[fence_index-1][((burst_cnt)*32+32) +: 32] : data_array[index][((burst_cnt)*32+32) +: 32];
-                    wlast <= 1'b0;
-                    if(is_sdram) begin
-                        wlast <= (burst_cnt == 2'b11);
-                        if(wlast) begin
-                            bready <= 1'b0;
-                            valid_array[index] <= 1'b0;
-                            dirty_array[index] <= 1'b0;
-                            wlast <= 1'b0;
+                    wlast <= (burst_cnt == 2'b11);
+                    if(bvalid && bready) begin
+                        bready <= 1'b0;
+                        valid_array[index] <= 1'b0;
+                        dirty_array[index] <= 1'b0;
+                        wlast <= 1'b0;
 
-                            if(~fence_ing) begin
-                                araddr <= block_addr;
-                                arvalid <= 1'b1;
-                                arid <= 4'h0;
-                                arsize <= 3'h2;
-                                arlen <= is_sdram ? 8'h3 : 8'h0;
-                                arburst <= is_sdram ? 2'h1 : 2'h0;
-                            end
+                        if(~fence_ing) begin
+                            araddr <= block_addr;
+                            arvalid <= 1'b1;
+                            arid <= 4'h0;
+                            arsize <= 3'h2;
+                            arlen <= is_sdram_fence ? 8'h3 : 8'h0;
+                            arburst <= is_sdram_fence ? 2'h1 : 2'h0;
                         end
-                    end else begin
+                    end 
+                end else begin
+                    if(bvalid && bready) begin
+                        burst_cnt <= burst_cnt + 2'b1;
+                        wdata <= fence_ing ? data_array[fence_index-1][((burst_cnt)*32+32) +: 32] : data_array[index][((burst_cnt)*32+32) +: 32];
                         if(burst_cnt == 2'b11) begin
                             bready <= 1'b0;
                             valid_array[index] <= 1'b0;
                             dirty_array[index] <= 1'b0;
                             wlast <= 1'b0;
-
                             if(~fence_ing) begin
                                 araddr <= block_addr;
                                 arvalid <= 1'b1;
                                 arid <= 4'h0;
                                 arsize <= 3'h2;
-                                arlen <= is_sdram ? 8'h3 : 8'h0;
-                                arburst <= is_sdram ? 2'h1 : 2'h0;
+                                arlen <= is_sdram_fence ? 8'h3 : 8'h0;
+                                arburst <= is_sdram_fence ? 2'h1 : 2'h0;
                             end
                         end else begin
                             awaddr <= awaddr + 32'h4;
