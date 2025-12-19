@@ -104,6 +104,7 @@ reg [1:0]  burst_cnt;
 reg [INDEX_WIDTH-1:0] fence_index;
 reg        fence_ing;
 reg        fence_done;
+reg        write_done;
 
 reg [31:0] device_rdata;
 reg        device_done;
@@ -117,7 +118,7 @@ always @(*) begin
                                       dirty_array[index] ? WB       : MEM_BUSY;end
         MEM_BUSY: begin next_state = (dcache_hit | device_done) ? IDLE : MEM_BUSY; end
         FENCE   : begin next_state = fence_done ? IDLE : dirty_array[fence_index] ? WB : FENCE; end
-        WB      : begin next_state = (bvalid && bready && wlast && (burst_cnt == 2'b11)) ? fence_ing ? FENCE : MEM_BUSY : WB; end
+        WB      : begin next_state = (write_done) ? fence_ing ? FENCE : MEM_BUSY : WB; end
         default: next_state = IDLE;
     endcase
 end
@@ -136,6 +137,7 @@ always @(posedge clk or posedge rst) begin
         valid_array <= 'b0;
         dirty_array <= 'b0;
         burst_cnt <= 2'd0;
+        write_done <= 1'b0;
         fence_index <= 'b0;
         fence_done <= 1'b1;
         fence_ing <= 1'b0;
@@ -150,6 +152,7 @@ always @(posedge clk or posedge rst) begin
         state <= next_state;
         valid_array <= fence_en ? 'b0 : valid_array;
         device_done <= 1'b0;
+        write_done <= 1'b0;
         case (state)
             IDLE: begin
                 fence_done <= ~fence_en;
@@ -281,31 +284,38 @@ always @(posedge clk or posedge rst) begin
             end
 
             WB: begin
-                if (awvalid && awready && wvalid && wready) begin
-                    awvalid <= 1'b0;
-                    wvalid <= 1'b0;
-                    bready <= 1'b1;
-                end
                 if (is_sdram_wb | is_sdram_fence) begin
-                    burst_cnt <= burst_cnt + 2'b1;
-                    wdata <= fence_ing ? data_array[fence_index-1][((burst_cnt)*32+32) +: 32] : data_array[index][((burst_cnt)*32+32) +: 32];
-                    wlast <= (burst_cnt == 2'b11);
+                    if (awvalid && awready) begin
+                        awvalid <= 1'b0;
+                        bready <= 1'b1;
+                    end
+                    if (wvalid && wready) begin
+                        wvalid <= ~wlast;
+                        burst_cnt <= burst_cnt + 2'b1;
+                        wdata <= fence_ing ? data_array[fence_index-1][((burst_cnt)*32+32) +: 32] : data_array[index][((burst_cnt)*32+32) +: 32];
+                        wlast <= (burst_cnt == 2'b10);
+                    end
                     if(bvalid && bready) begin
                         bready <= 1'b0;
                         valid_array[index] <= 1'b0;
                         dirty_array[index] <= 1'b0;
-                        wlast <= 1'b0;
+                        write_done <= 1'b1;
 
                         if(~fence_ing) begin
                             araddr <= block_addr;
                             arvalid <= 1'b1;
                             arid <= 4'h0;
                             arsize <= 3'h2;
-                            arlen <= is_sdram_fence ? 8'h3 : 8'h0;
-                            arburst <= is_sdram_fence ? 2'h1 : 2'h0;
+                            arlen <= is_sdram ? 8'h3 : 8'h0;
+                            arburst <= is_sdram ? 2'h1 : 2'h0;
                         end
                     end 
                 end else begin
+                    if (awvalid && awready && wvalid && wready) begin
+                        awvalid <= 1'b0;
+                        wvalid <= 1'b0;
+                        bready <= 1'b1;
+                    end
                     if(bvalid && bready) begin
                         burst_cnt <= burst_cnt + 2'b1;
                         wdata <= fence_ing ? data_array[fence_index-1][((burst_cnt)*32+32) +: 32] : data_array[index][((burst_cnt)*32+32) +: 32];
@@ -313,6 +323,7 @@ always @(posedge clk or posedge rst) begin
                             bready <= 1'b0;
                             valid_array[index] <= 1'b0;
                             dirty_array[index] <= 1'b0;
+                            write_done <= 1'b1;
                             wlast <= 1'b0;
                             if(~fence_ing) begin
                                 araddr <= block_addr;
