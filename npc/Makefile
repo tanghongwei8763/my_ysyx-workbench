@@ -51,8 +51,8 @@ VERILATOR_FLAGS += --trace -cc --exe \
 					-O3 --x-assign fast --x-initial fast --noassert
 INCLUDES = -I./csrc/include \
 		   -I./vsrc/core \
-           -I../ysyxSoC/perip/uart16550/rtl \
-           -I../ysyxSoC/perip/spi/rtl 
+           -I../rtt-soc/ysyxSoC/perip/uart16550/rtl \
+           -I../rtt-soc/ysyxSoC/perip/spi/rtl 
 VERILATOR_FLAGS += $(INCLUDES) $(VERILOG_DEFINES)
 
 IVERILOG_FLAGS += -Wall -g2012 -s sim_top -o $(IVERILOG_BIN) \
@@ -93,8 +93,8 @@ ifeq ($(ARCH), riscv32e-npc)
 VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc/*.v)
 else
 ifeq ($(ARCH), riscv32e-ysyxsoc)
-VSRCS += $(shell find $(CURDIR)/../ysyxSoC/perip -type f -name "*.v")
-VSRCS += $(shell find $(CURDIR)/../ysyxSoC/build -type f -name "*.v")
+VSRCS += $(shell find $(CURDIR)/../rtt-soc/ysyxSoC/perip -type f -name "*.v")
+VSRCS += $(shell find $(CURDIR)/../rtt-soc/ysyxSoC/build -type f -name "*.v")
 endif
 endif
 

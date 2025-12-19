@@ -58,7 +58,6 @@ assign in_prdata  = data[31:0];
   localparam READ_DATA   = 3'h7;
 
   wire         spi_master_psel;
-  wire         flash_xip_psel;
   wire [31: 0] apb_paddr;
   wire         apb_psel;
   wire         apb_penable;
