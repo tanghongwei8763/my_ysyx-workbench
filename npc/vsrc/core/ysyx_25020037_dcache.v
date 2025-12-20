@@ -86,6 +86,7 @@ wire        is_mem     = is_flash | is_sram | is_psram | is_sdram;
 
 wire is_sdram_wb    = (tag_array[index][TAG_WIDTH-1 -: 4] == SDRAM_BASE) | (tag_array[index][TAG_WIDTH-1 -: 4] == SDRAM_END);
 wire is_sdram_fence = (tag_array[fence_index][TAG_WIDTH-1 -: 4] == SDRAM_BASE) | (tag_array[fence_index][TAG_WIDTH-1 -: 4] == SDRAM_END);
+reg  is_sdram_fence_reg;
 
 assign offset = {cpu_addr[OFFSET_WIDTH-1 : 2], 2'b0};
 assign index  = cpu_addr[OFFSET_WIDTH + INDEX_WIDTH - 1 : OFFSET_WIDTH];
@@ -141,6 +142,7 @@ always @(posedge clk or posedge rst) begin
         fence_index <= 'b0;
         fence_done <= 1'b1;
         fence_ing <= 1'b0;
+        is_sdram_fence_reg <= 1'b0;
         device_done <= 1'b0;
 
         arvalid <= 1'b0;
@@ -175,17 +177,17 @@ always @(posedge clk or posedge rst) begin
                         wdata <= is_mem ? data_array[index][burst_cnt*32 +: 32] : cpu_wdata;
                         wstrb <= is_mem ? 4'hf : cpu_wstrb;
                         wvalid <= 1'b1;
-                        wlast <= ~is_sdram_wb;
+                        wlast <= is_mem ? ~is_sdram_wb : 1'b1;
                         awid <= 4'h0;
-                        awsize <= 3'h2;
-                        awlen <= is_sdram_wb ? 8'h3 : 8'h0;
-                        awburst <= is_sdram_wb ? 2'h1 : 2'h0;
+                        awsize <= is_mem ? 3'h2 : 3'b0;
+                        awlen <= is_mem ? is_sdram_wb ? 8'h3 : 8'h0 : 8'b0;
+                        awburst <= is_mem ? is_sdram_wb ? 2'h1 : 2'h0 : 2'b0;
                     end else begin
                         valid_array[index] <= 1'b0;
                         araddr <= is_mem ? block_addr : cpu_addr;
                         arvalid <= 1'b1;
                         arid <= 4'h0;
-                        arsize <= 3'h2;
+                        arsize <= is_mem ? 3'h2 : 3'b0;
                         arlen <= is_sdram ? 8'h3 : 8'h0;
                         arburst <= is_sdram ? 2'h1 : 2'h0;
                     end
@@ -266,6 +268,7 @@ always @(posedge clk or posedge rst) begin
                     fence_index <= fence_index + 1;
                 end
                 if (dirty_array[fence_index]) begin
+                    is_sdram_fence_reg <= is_sdram_fence;
                     awaddr <= {tag_array[fence_index], fence_index, {OFFSET_WIDTH{1'b0}}};
                     awvalid <= 1'b1;
                     wdata <= data_array[fence_index][burst_cnt*32 +: 32];
@@ -284,7 +287,7 @@ always @(posedge clk or posedge rst) begin
             end
 
             WB: begin
-                if (is_sdram_wb | is_sdram_fence) begin
+                if (is_sdram_wb | is_sdram_fence_reg) begin
                     if (awvalid && awready) begin
                         awvalid <= 1'b0;
                         bready <= 1'b1;
@@ -300,6 +303,7 @@ always @(posedge clk or posedge rst) begin
                         valid_array[index] <= 1'b0;
                         dirty_array[index] <= 1'b0;
                         write_done <= 1'b1;
+                        is_sdram_fence_reg <= 1'b0;
 
                         if(~fence_ing) begin
                             araddr <= block_addr;
@@ -325,13 +329,14 @@ always @(posedge clk or posedge rst) begin
                             dirty_array[index] <= 1'b0;
                             write_done <= 1'b1;
                             wlast <= 1'b0;
+
                             if(~fence_ing) begin
                                 araddr <= block_addr;
                                 arvalid <= 1'b1;
                                 arid <= 4'h0;
                                 arsize <= 3'h2;
-                                arlen <= is_sdram_fence ? 8'h3 : 8'h0;
-                                arburst <= is_sdram_fence ? 2'h1 : 2'h0;
+                                arlen <= is_sdram ? 8'h3 : 8'h0;
+                                arburst <= is_sdram ? 2'h1 : 2'h0;
                             end
                         end else begin
                             awaddr <= awaddr + 32'h4;
