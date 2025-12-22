@@ -76,11 +76,11 @@ module ysyx_25020037_lsu (
     assign lsu_ready = dcache_ready;
     assign lsu_data  = is_read ? rdata_processed : addr;
     always @(posedge clk or posedge rst) begin
+        if(exu_valid && dcache_ready) begin
 `ifdef VERILATOR
-        diff_pc_o <= diff_pc_i;
+            diff_pc_o <= diff_pc_i;
 `endif
-        if(exu_valid) begin
-            lsu_valid <= dcache_ready;
+            lsu_valid <= 1'b1;
             lu_to_wu_bus <= {
                 rd,
                 eu_to_wu_bus,

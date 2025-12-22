@@ -19,8 +19,14 @@ extern VysyxSoCFull *top;
 #define diff top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__diff
 #define araddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_araddr
 #define arvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_arvalid
+#define rdata top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_rdata
+#define rready top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_rready
+#define rvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_rvalid
 #define awaddr top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awaddr
 #define awvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_awvalid
+#define wdata top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_wdata
+#define wready top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_wready
+#define wvalid top->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__lsu_wvalid
 #else
 #include "Vysyx_25020037_npc___024root.h"
 #include "Vysyx_25020037_npc.h"
@@ -30,8 +36,14 @@ extern Vysyx_25020037_npc *top;
 #define diff top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__diff
 #define araddr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_araddr
 #define arvalid top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_arvalid
+#define rdata top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_rdata
+#define rready top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_rready
+#define rvalid top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_rvalid
 #define awaddr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_awaddr
 #define awvalid top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_awvalid
+#define wdata top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_wdata
+#define wready top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_wready
+#define wvalid top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__lsu_wvalid
 #define inst top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__inst
 #endif
 
@@ -175,19 +187,20 @@ static void exec_once() {
     uint64_t clk_sum_reg = 0;
     int prev_valid_reg = 0x10;
     do{
-// #ifdef CONFIG_DIFFTEST
-// #ifdef CONFIG_YSYXSOC
-//         if((((araddr < 0x30000000) | (araddr > 0x3fffffff)) & arvalid) & 
-//            (((araddr < 0x0f000000) | (araddr > 0x0f002000)) & arvalid) & 
-//            (((araddr < 0xa0000000) | (araddr > 0xbfffffff)) & arvalid)) {difftest_skip_ref();}
-//         if((((awaddr < 0x30000000) | (awaddr > 0x3fffffff)) & awvalid) & 
-//            (((awaddr < 0x0f000000) | (awaddr > 0x0f002000)) & awvalid) & 
-//            (((awaddr < 0xa0000000) | (awaddr > 0xbfffffff)) & awvalid)) {difftest_skip_ref();}
-// #else
-//         if(((araddr < 0x80000000) | (araddr > 0x90000000)) & arvalid) {difftest_skip_ref();}
-//         if(((awaddr < 0x80000000) | (awaddr > 0x90000000)) & awvalid) {difftest_skip_ref();}
-// #endif
-// #endif
+#ifdef CONFIG_MTRACE
+        if((((araddr >= 0x30000000) && (araddr <= 0x3fffffff)) && (rready & rvalid)) || 
+           (((araddr >= 0x0f000000) && (araddr <= 0x0f002000)) && (rready & rvalid)) || 
+           (((araddr >= 0xa0000000) && (araddr <= 0xbfffffff)) && (rready & rvalid))) 
+            {printf("\033[32mread 0x%08x: 0x%08x at pc: 0x%08x\033[0m\n", araddr, rdata, pc);}
+        if((((awaddr >= 0x30000000) && (awaddr <= 0x3fffffff)) && (wready & wvalid)) || 
+           (((awaddr >= 0x0f000000) && (awaddr <= 0x0f002000)) && (wready & wvalid)) || 
+           (((awaddr >= 0xa0000000) && (awaddr <= 0xbfffffff)) && (wready & wvalid))) 
+            {printf("\033[38;5;208mwrite 0x%08x: 0x%08x at pc: 0x%08x\033[0m\n", awaddr, wdata, pc);}
+        if (((araddr >= 0x80000000) && (araddr <= 0x90000000)) && (rready & rvalid))  
+            {printf("\033[32mread 0x%08x: 0x%08x at pc: 0x%08x\033[0m\n", araddr, rdata, pc);}
+        if (((awaddr >= 0x80000000) && (awaddr <= 0x90000000)) && (wready & wvalid))  
+            {printf("\033[38;5;208mwrite 0x%08x: 0x%08x at pc: 0x%08x\033[0m\n", awaddr, wdata, pc);}
+#endif
         timer_start = get_time();
 #ifdef CONFIG_NVBOARD
         nvboard_update();

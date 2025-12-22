@@ -205,9 +205,6 @@ module ysyx_25020037_exu (
             exu_dnpc_valid <=1'b0;
             eu_to_lu_bus <= 'b0;
         end else begin
-`ifdef VERILATOR
-            diff_pc_o <= idu_valid ? pc : diff_pc_o;
-`endif
             if(lsu_ready) begin
                 if(dnpc_r != 32'b0 && ~exu_dnpc_valid) begin
                     exu_dnpc_valid <= idu_valid;
@@ -216,6 +213,9 @@ module ysyx_25020037_exu (
                     exu_dnpc_valid <=1'b0;
                 end
                 if (idu_valid) begin
+`ifdef VERILATOR
+                    diff_pc_o <= idu_valid ? pc : diff_pc_o;
+`endif
                     exu_valid <= ~exu_dnpc_valid;
                     eu_to_lu_bus <= {
                         rd,

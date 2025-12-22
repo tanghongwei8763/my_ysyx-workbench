@@ -73,7 +73,7 @@ void _trm_init() {
 
   init_uart(115200);
   //ysyx_show();
-  //printf("0x%08x  0x%08x\n", &_data_end, &_data_start);
+  // printf("0x%08x  0x%08x\n", &_heap_start, &_psram_end);
   int ret = main(mainargs);
   halt(ret);
 }

@@ -21,6 +21,7 @@ NXDC_FILES = constr/$(TOPNAME).nxdc
 INC_PATH ?=
 diff ?= 0
 wave ?= 0
+mtrace ?= 0
 
 BUILD_DIR = $(NPC_HOME)/build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
@@ -108,6 +109,9 @@ CXXFLAGS += -DCONFIG_DIFFTEST
 endif
 ifeq ($(wave), 1)
 CXXFLAGS += -DCONFIG_WAVE
+endif
+ifeq ($(mtrace), 1)
+CXXFLAGS += -DCONFIG_MTRACE
 endif
 ifeq ($(nvboard), 1)
 CXXFLAGS += -DCONFIG_NVBOARD

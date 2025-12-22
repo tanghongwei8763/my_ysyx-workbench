@@ -97,10 +97,11 @@ module ysyx_25020037_wbu (
           end
         end
 `ifdef VERILATOR
-        diff_pc <= diff_pc_i;
         if (lsu_valid) begin
+          diff_pc <= diff_pc_i;
           diff <= 1'b1;
         end else begin
+          diff_pc <= diff_pc;
           diff <= 1'b0;
         end
 `endif

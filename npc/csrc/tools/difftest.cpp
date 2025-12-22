@@ -19,7 +19,7 @@ extern VysyxSoCFull *top;
 #include "Vysyx_25020037_npc___024root.h"
 #include "Vysyx_25020037_npc.h"
 extern Vysyx_25020037_npc *top;
-#define dut_pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__pc
+#define dut_pc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__diff_pc
 #define dut_gpr top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__regs
 #define dut_mtvec top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__mtvec
 #define dut_mepc top->rootp->ysyx_25020037_npc__DOT__cpu__DOT__wbu_cpu__DOT__mepc
@@ -119,13 +119,13 @@ void difftest_step(vaddr_t pc) {
     for(int i = 0; i < 16; i++){
       dut_r->gpr[i] = dut_gpr[i];
     }
-    dut_r->pc      = dut_pc;
+    dut_r->pc      = dut_pc+4;
     dut_r->mtvec   = dut_mtvec;
     dut_r->mepc    = dut_mepc;
     dut_r->mcause  = dut_mcause;
     dut_r->mstatus = dut_mstatus;
     ref_difftest_regcpy(dut_r, DIFFTEST_TO_REF);
-    printf("skip at pc: 0x%08x\n", dut_r->pc);
+    // printf("skip at pc: 0x%08x\n", dut_r->pc);
     is_skip_ref = false;
     return;
   }

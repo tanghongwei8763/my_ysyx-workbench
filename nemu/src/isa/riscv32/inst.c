@@ -126,6 +126,7 @@ static int decode_exec(Decode *s) {
                                                                 IFDEF(CONFIG_FTRACE, if(rd == 1)
                                                                 call_func(s->pc, s->dnpc);));
 
+  INSTPAT("0000000 00000 00000 001 00000 00011 11", fence_i, N, R(0) = 0); // fence_i
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();
@@ -138,6 +139,6 @@ static int decode_exec(Decode *s) {
 
 int isa_exec_once(Decode *s) {
   s->isa.inst = inst_fetch(&s->snpc, 4);
-  //printf("%d\n", s->isa.inst);
+  // printf("0x%08x 0x%08x\n", s->pc, s->isa.inst);
   return decode_exec(s);
 }

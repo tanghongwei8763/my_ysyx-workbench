@@ -248,7 +248,7 @@ always @(posedge clk or posedge rst) begin
                         rready <= 1'b0;
                     end
                 end
-                if(valid_array[index]) begin
+                if(valid_array[index] && is_mem) begin
                     dirty_array[index] <= cpu_we;
                     if (cpu_we) begin
                         case (offset)
