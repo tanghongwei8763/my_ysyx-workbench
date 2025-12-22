@@ -1,7 +1,7 @@
 From 0552cf28aa5083202e2b5061c657ad69a5b3e9e7 Mon Sep 17 00:00:00 2001
 From: Tanghongwei <tanghongwei2024@outlook.com>
 Date: Thu, 18 Sep 2025 18:30:26 +0800
-Subject: [PATCH 6/7] uart
+Subject: [PATCH 6/9] uart
 
 ---
  perip/uart16550/rtl/uart_tfifo.v | 2 ++

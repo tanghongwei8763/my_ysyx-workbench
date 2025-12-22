@@ -1,7 +1,7 @@
 From 9cdab6c7d00285cb042d407f57c0a44c18529011 Mon Sep 17 00:00:00 2001
 From: Tanghongwei <tanghongwei2024@outlook.com>
 Date: Sun, 14 Sep 2025 09:17:08 +0800
-Subject: [PATCH 5/7] spi-wire
+Subject: [PATCH 5/9] spi-wire
 
 ---
  .gitignore                  | 1 +
