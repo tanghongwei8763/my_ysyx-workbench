@@ -300,8 +300,8 @@ always @(posedge clk or posedge rst) begin
                     end
                     if(bvalid && bready) begin
                         bready <= 1'b0;
-                        valid_array[index] <= 1'b0;
-                        dirty_array[index] <= 1'b0;
+                        valid_array[index] <= fence_ing ? valid_array[index] : 1'b0;
+                        dirty_array[index] <= fence_ing ? dirty_array[index] : 1'b0;
                         write_done <= 1'b1;
                         is_sdram_fence_reg <= 1'b0;
 
@@ -325,8 +325,8 @@ always @(posedge clk or posedge rst) begin
                         wdata <= fence_ing ? data_array[fence_index-1][((burst_cnt)*32+32) +: 32] : data_array[index][((burst_cnt)*32+32) +: 32];
                         if(burst_cnt == 2'b11) begin
                             bready <= 1'b0;
-                            valid_array[index] <= 1'b0;
-                            dirty_array[index] <= 1'b0;
+                            valid_array[index] <= fence_ing ? valid_array[index] : 1'b0;
+                            dirty_array[index] <= fence_ing ? dirty_array[index] : 1'b0;
                             write_done <= 1'b1;
                             wlast <= 1'b0;
 

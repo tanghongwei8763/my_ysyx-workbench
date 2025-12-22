@@ -81,7 +81,7 @@ module ysyx_25020037 (
     parameter I_BLOCK_SIZE   = 32'd16;
     parameter I_CACHE_BLOCKS = 32'd4;
     parameter D_BLOCK_SIZE   = 32'd16;
-    parameter D_CACHE_BLOCKS = 32'd4;
+    parameter D_CACHE_BLOCKS = 32'd16;
 
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
