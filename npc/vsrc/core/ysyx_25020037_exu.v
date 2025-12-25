@@ -18,8 +18,12 @@ module ysyx_25020037_exu (
     output reg  [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus,
     output reg          fence_en,
     input  wire         pc_updata,
+    output reg          exu_wash_dnpc_en,
+    output reg  [31: 0] exu_wash_dnpc,
+    output reg  [31: 0] exu_pc,
+    output reg  [31: 0] exu_dnpc,
     output reg          exu_dnpc_valid,
-    output reg  [31: 0] exu_dnpc
+    output reg          exu_taken
 );
 `ifdef VERILATOR
     import "DPI-C" function void hit(input int inst_not_realize);
@@ -42,6 +46,7 @@ module ysyx_25020037_exu (
     wire [31: 0] src2;
     wire [`DU_TO_LU_BUS_WD -1:0] du_to_lu_bus;
     wire [31: 0] pc;
+    wire [31: 0] bpu_dnpc;
     wire [ 1: 0] lw_lh_lb;
     wire [ 1: 0] sw_sh_sb;
     wire         is_fence_i;
@@ -55,7 +60,7 @@ module ysyx_25020037_exu (
     wire [16: 0] alu_op;
     wire         src1_is_pc;
     wire         src2_is_imm;
-    wire         is_pc_jump;
+    wire         jal_or_jarl;
     wire         ecall_en;
     wire         mret_en;
     wire         csrrs_op;
@@ -63,6 +68,7 @@ module ysyx_25020037_exu (
     wire         ebreak;
     assign {du_to_lu_bus,
             pc,
+            bpu_dnpc,
             lw_lh_lb,
             sw_sh_sb,
             is_fence_i,
@@ -76,7 +82,7 @@ module ysyx_25020037_exu (
             alu_op,
             src1_is_pc,
             src2_is_imm,
-            is_pc_jump,
+            jal_or_jarl,
             ecall_en,
             mret_en,
             csrrs_op,
@@ -139,7 +145,8 @@ module ysyx_25020037_exu (
     assign exu_ready = lsu_ready;
 
     wire [31: 0] snpc;
-    wire [31: 0] dnpc_r;
+    wire [31: 0] target_dnpc;
+    wire         pc_will_jump;
     wire [31: 0] result;
     wire [31: 0] alu_src1;
     wire [31: 0] alu_src2;
@@ -169,13 +176,9 @@ module ysyx_25020037_exu (
     assign csr_wcsr_data  = ({32{csrrw_op}} & src1)
                           | ({32{csrrs_op}} & (src1 | csr_data))
                           | ({32{ecall_en}} & pc);
-    assign dnpc_r         = ({32{ecall_en   | mret_en    }} & csr_data) 
-                          | ({32{is_pc_jump | alu_result2}} & alu_result1) 
-                          | ({32{is_fence_i              }} & snpc);
-
-    assign result    = is_pc_jump   ? snpc     :
-                       csr_w_gpr_we ? csr_data :
-                       alu_result1;
+    assign result         = jal_or_jarl  ? snpc     :
+                            csr_w_gpr_we ? csr_data :
+                            alu_result1;
 
     assign data_channel = is_write ? src2 : csr_wcsr_data;
 
@@ -189,7 +192,7 @@ module ysyx_25020037_exu (
                 bypass_is_load[0] = 1'b0;
             end
         end
-        if (exu_ready && idu_valid && !exu_dnpc_valid) begin
+        if (exu_ready && idu_valid && !exu_wash_dnpc_en) begin
             bypass_rd[1]       = bypass_rd[0];
             bypass_data[1]     = bypass_data[0];
             bypass_is_load[1]  = bypass_is_load[0];
@@ -200,23 +203,46 @@ module ysyx_25020037_exu (
         end
     end
 
+    assign pc_will_jump = |alu_op[16:11] | jal_or_jarl | ecall_en | mret_en;
+    assign target_dnpc    = (ecall_en   | mret_en    ) ? csr_data    :
+                            (jal_or_jarl| alu_result2) ? alu_result1 :
+                            snpc;
+
+
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            exu_dnpc_valid <=1'b0;
+            exu_wash_dnpc_en <=1'b0;
+            exu_dnpc_valid <= 1'b0;
             eu_to_lu_bus <= 'b0;
         end else begin
             if(lsu_ready) begin
-                if(dnpc_r != 32'b0 && ~exu_dnpc_valid) begin
-                    exu_dnpc_valid <= idu_valid;
-                    exu_dnpc <= dnpc_r;
+                if(target_dnpc != bpu_dnpc && ~exu_wash_dnpc_en) begin
+                    exu_wash_dnpc_en <= idu_valid;
+                    exu_wash_dnpc <= target_dnpc;
                 end else if (pc_updata) begin
-                    exu_dnpc_valid <=1'b0;
+                    exu_wash_dnpc_en <=1'b0;
+                end
+                if(pc_will_jump) begin
+                    if(target_dnpc == snpc) begin
+                        exu_pc <= pc;
+                        exu_dnpc <= target_dnpc;
+                        exu_dnpc_valid <= 1'b1;
+                        exu_taken <= 1'b0;
+                    end else begin
+                        exu_pc <= pc;
+                        exu_dnpc <= target_dnpc;
+                        exu_dnpc_valid <= 1'b1;
+                        exu_taken <= 1'b1;
+                    end
+                end else begin
+                    exu_dnpc_valid <= 1'b0;
+                    exu_taken <= 1'b0;
                 end
                 if (idu_valid) begin
 `ifdef VERILATOR
                     diff_pc_o <= idu_valid ? pc : diff_pc_o;
 `endif
-                    exu_valid <= ~exu_dnpc_valid;
+                    exu_valid <= ~exu_wash_dnpc_en;
                     eu_to_lu_bus <= {
                         rd,
                         eu_to_wu_bus,
@@ -239,10 +265,10 @@ module ysyx_25020037_exu (
         end
     end
 
-    assign sim_end = ~exu_dnpc_valid & idu_valid & ebreak;
+    assign sim_end = ~exu_wash_dnpc_en & idu_valid & ebreak;
 `ifdef VERILATOR
     always @(*) begin
-       if(~exu_dnpc_valid & idu_valid & ebreak) begin hit(32'b0); end
+       if(~exu_wash_dnpc_en & idu_valid & ebreak) begin hit(32'b0); end
     end
 `endif
 endmodule

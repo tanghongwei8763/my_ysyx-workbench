@@ -7,8 +7,9 @@ module ysyx_25020037_idu (
     input  wire         exu_ready,
     output reg          idu_valid,
     output wire         idu_ready,
-    input  wire         exu_dnpc_valid,
+    input  wire         exu_wash_dnpc_en,
     input  wire [31: 0] pc,
+    input  wire [31: 0] bpu_dnpc,
     input  wire [31: 0] inst,
     output reg  [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus
 );
@@ -26,7 +27,7 @@ module ysyx_25020037_idu (
     wire [ 1: 0] sw_sh_sb;
     wire         src1_is_pc;
     wire         src2_is_imm;
-    wire         is_pc_jump;
+    wire         jal_or_jarl;
 
     wire [ 6:0] opcode_31_25;
     wire [ 5:0] opcode_31_26;
@@ -203,7 +204,7 @@ module ysyx_25020037_idu (
     assign src1_is_pc    = inst_jal | TYPE_B | inst_auipc;
     assign src2_is_imm   = TYPE_I   | TYPE_S | TYPE_J | TYPE_B | inst_lui | inst_auipc | inst_jarl;
 
-    assign is_pc_jump   = inst_jal | inst_jarl;
+    assign jal_or_jarl   = inst_jal | inst_jarl;
 
     assign idu_ready = exu_ready;
     always @(posedge clk or posedge rst) begin
@@ -212,10 +213,11 @@ module ysyx_25020037_idu (
         end else begin
             if (exu_ready) begin
                 if (ifu_valid) begin
-                    idu_valid <= ~exu_dnpc_valid;
+                    idu_valid <= ~exu_wash_dnpc_en;
                     du_to_eu_bus <= {
                         du_to_lu_bus,
                         pc,
+                        bpu_dnpc,
                         lw_lh_lb,
                         sw_sh_sb,
                         inst_fence_i,         
@@ -229,7 +231,7 @@ module ysyx_25020037_idu (
                         alu_op,             
                         src1_is_pc,      
                         src2_is_imm,     
-                        is_pc_jump,   
+                        jal_or_jarl,   
                         inst_ecall,
                         inst_mret,
                         inst_csrrs,

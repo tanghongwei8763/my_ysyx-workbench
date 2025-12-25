@@ -81,7 +81,8 @@ module ysyx_25020037 (
     parameter I_BLOCK_SIZE   = 32'd16;
     parameter I_CACHE_BLOCKS = 32'd4;
     parameter D_BLOCK_SIZE   = 32'd16;
-    parameter D_CACHE_BLOCKS = 32'd16;
+    parameter D_CACHE_BLOCKS = 32'd4;
+    parameter BTB_BLOCKS     = 32'd16;
 
     wire [`DU_TO_EU_BUS_WD -1:0] du_to_eu_bus;
     wire [`EU_TO_LU_BUS_WD -1:0] eu_to_lu_bus;
@@ -89,8 +90,8 @@ module ysyx_25020037 (
     wire [`WU_TO_EU_BUS_WD -1:0] wu_to_eu_bus;
 
     wire [`RS_DATA-1: 0] rs_data;
-    wire [31: 0] exu_dnpc;
-    wire         exu_dnpc_valid;
+    wire [31: 0] exu_wash_dnpc;
+    wire         exu_wash_dnpc_en;
     wire         pc_updata;
     wire [31:0]  rdata_processed;
     wire         fence_en;
@@ -170,28 +171,52 @@ module ysyx_25020037 (
     wire [31: 0] pc;
     wire [31: 0] inst;
     wire         icache_hit;
-      
+
+    wire [31: 0] bpu_dnpc;
+    wire [31: 0] exu_pc;
+    wire [31: 0] exu_dnpc;
+    wire         exu_dnpc_valid;
+    wire         exu_taken;
+
+    ysyx_25020037_bpu #(
+        .DATA_WIDTH       (32               ),
+        .BTB_BLOCKS       (BTB_BLOCKS       ),
+        .TAG_WIDTH        (10               ),
+        .BHR_WIDE         (2                ),
+        .PHT_WIDE         (2                )
+    ) bpu_cpu(
+        .clk              (clock            ),
+        .rst              (reset            ),
+        .pc               (pc               ),
+        .dnpc             (bpu_dnpc         ),
+        .exu_pc           (exu_pc           ),
+        .exu_dnpc         (exu_dnpc         ),
+        .exu_dnpc_valid   (exu_dnpc_valid   ),
+        .exu_taken        (exu_taken        )
+    );
+
     ysyx_25020037_ifu #(
-        .BLOCK_SIZE    (I_BLOCK_SIZE     )
+        .BLOCK_SIZE       (I_BLOCK_SIZE     )
     ) ifu_cpu(
-        .clk           (clock            ),
-        .rst           (reset            ),
-        .exu_dnpc_valid(exu_dnpc_valid   ),
-        .exu_dnpc      (exu_dnpc         ),
-        .pc_updata     (pc_updata        ),
-        .idu_ready     (idu_ready        ),
-        .ifu_valid     (ifu_valid        ),
-        .pc            (pc               ),
-        .icache_addr   (icache_addr      ),
-        .icache_valid  (icache_valid     ),
-        .icache_hit    (icache_hit       )
+        .clk              (clock            ),
+        .rst              (reset            ),
+        .exu_wash_dnpc_en (exu_wash_dnpc_en ),
+        .exu_wash_dnpc    (exu_wash_dnpc    ),
+        .pc_updata        (pc_updata        ),
+        .idu_ready        (idu_ready        ),
+        .ifu_valid        (ifu_valid        ),
+        .pc               (pc               ),
+        .icache_addr      (icache_addr      ),
+        .icache_valid     (icache_valid     ),
+        .icache_hit       (icache_hit       ),
+        .bpu_dnpc         (bpu_dnpc         )
         );
 
     ysyx_25020037_icache #(
-        .ADDR_WIDTH    (32),
-        .DATA_WIDTH    (32),
-        .CACHE_BLOCKS  (I_CACHE_BLOCKS),
-        .BLOCK_SIZE    (I_BLOCK_SIZE)
+        .ADDR_WIDTH    (32               ),
+        .DATA_WIDTH    (32               ),
+        .CACHE_BLOCKS  (I_CACHE_BLOCKS   ),
+        .BLOCK_SIZE    (I_BLOCK_SIZE     )
     ) u_icache (
         .clk           (clock            ),
         .rst           (reset            ),
@@ -216,38 +241,43 @@ module ysyx_25020037 (
     );
 
     ysyx_25020037_idu idu_cpu(
-        .clk            (clock          ),
-        .rst            (reset          ),
-        .ifu_valid      (ifu_valid      ),
-        .exu_ready      (exu_ready      ),
-        .idu_valid      (idu_valid      ),
-        .idu_ready      (idu_ready      ),
-        .exu_dnpc_valid (exu_dnpc_valid ),
-        .pc             (pc             ),
-        .inst           (inst           ),
-        .du_to_eu_bus   (du_to_eu_bus   )
+        .clk              (clock           ),
+        .rst              (reset           ),
+        .ifu_valid        (ifu_valid       ),
+        .exu_ready        (exu_ready       ),
+        .idu_valid        (idu_valid       ),
+        .idu_ready        (idu_ready       ),
+        .exu_wash_dnpc_en (exu_wash_dnpc_en),
+        .pc               (pc              ),
+        .bpu_dnpc         (bpu_dnpc        ),
+        .inst             (inst            ),
+        .du_to_eu_bus     (du_to_eu_bus    )
         );
     wire    sim_end;
     ysyx_25020037_exu exu_cpu(
-        .sim_end        (sim_end        ),
-        .clk            (clock          ),
-        .rst            (reset          ),
-        .idu_valid      (idu_valid      ),
-        .lsu_ready      (lsu_ready      ),
-        .exu_ready      (exu_ready      ),
-        .exu_valid      (exu_valid      ),
-        .rs_data        (rs_data        ),
-        .rdata_processed(rdata_processed),
+        .sim_end          (sim_end         ),
+        .clk              (clock           ),
+        .rst              (reset           ),
+        .idu_valid        (idu_valid       ),
+        .lsu_ready        (lsu_ready       ),
+        .exu_ready        (exu_ready       ),
+        .exu_valid        (exu_valid       ),
+        .rs_data          (rs_data         ),
+        .rdata_processed  (rdata_processed ),
 `ifdef VERILATOR
-        .diff_pc_o      (diff_pc_o_exu  ),
+        .diff_pc_o        (diff_pc_o_exu   ),
 `endif
-        .wu_to_eu_bus   (wu_to_eu_bus   ),
-        .du_to_eu_bus   (du_to_eu_bus   ),
-        .eu_to_lu_bus   (eu_to_lu_bus   ),
-        .fence_en       (fence_en       ),
-        .pc_updata      (pc_updata      ),
-        .exu_dnpc_valid (exu_dnpc_valid ),
-        .exu_dnpc       (exu_dnpc       )
+        .wu_to_eu_bus     (wu_to_eu_bus    ),
+        .du_to_eu_bus     (du_to_eu_bus    ),
+        .eu_to_lu_bus     (eu_to_lu_bus    ),
+        .fence_en         (fence_en        ),
+        .pc_updata        (pc_updata       ),
+        .exu_wash_dnpc_en (exu_wash_dnpc_en),
+        .exu_wash_dnpc    (exu_wash_dnpc   ),
+        .exu_pc           (exu_pc          ),
+        .exu_dnpc         (exu_dnpc        ),
+        .exu_dnpc_valid   (exu_dnpc_valid  ),
+        .exu_taken        (exu_taken       )
     );
 
     wire [31: 0] dcache_addr;
@@ -264,7 +294,6 @@ module ysyx_25020037 (
         .exu_valid        (exu_valid        ),
         .lsu_ready        (lsu_ready        ),
         .lsu_valid        (lsu_valid        ),
-        .exu_dnpc_valid   (exu_dnpc_valid   ),
         .rdata_processed  (rdata_processed  ),
 `ifdef VERILATOR 
         .diff_pc_i        (diff_pc_o_exu    ),

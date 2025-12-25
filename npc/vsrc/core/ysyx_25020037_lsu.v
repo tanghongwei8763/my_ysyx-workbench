@@ -5,7 +5,6 @@ module ysyx_25020037_lsu (
     input  wire         exu_valid,
     output wire         lsu_ready,
     output reg          lsu_valid,
-    input  wire         exu_dnpc_valid,
     output reg  [31: 0] rdata_processed,
 `ifdef VERILATOR
     input  wire [31: 0] diff_pc_i,
