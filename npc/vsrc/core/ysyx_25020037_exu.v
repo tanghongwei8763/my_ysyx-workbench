@@ -30,7 +30,7 @@ module ysyx_25020037_exu (
 `endif
 
     localparam BYPASS_DEPTH = 2;
-    reg [ 3:0] bypass_rd[     BYPASS_DEPTH-1:0];
+    reg [ 4:0] bypass_rd[     BYPASS_DEPTH-1:0];
     reg [31:0] bypass_data[   BYPASS_DEPTH-1:0];
     reg        bypass_is_load[BYPASS_DEPTH-1:0];
 
@@ -51,9 +51,9 @@ module ysyx_25020037_exu (
     wire [ 1: 0] sw_sh_sb;
     wire         is_fence_i;
     wire [31: 0] imm;
-    wire [ 3: 0] rd;
-    wire [ 3: 0] rs1;
-    wire [ 3: 0] rs2;
+    wire [ 4: 0] rd;
+    wire [ 4: 0] rs1;
+    wire [ 4: 0] rs2;
     wire         is_write;
     wire         is_read;
     wire         gpr_we;
@@ -122,20 +122,20 @@ module ysyx_25020037_exu (
     reg [31:0] bypass_src2;
     always @(*) begin
         bypass_src1 = src1_r;
-        if ((bypass_rd[0] == rs1) && (rs1 != 4'd0)) begin
+        if ((bypass_rd[0] == rs1) && (rs1 != 5'd0)) begin
             bypass_src1 = bypass_is_load[0] ? rdata_processed : bypass_data[0];
         end
-        else if ((bypass_rd[1] == rs1) && (rs1 != 4'd0)) begin
+        else if ((bypass_rd[1] == rs1) && (rs1 != 5'd0)) begin
             bypass_src1 = bypass_is_load[1] ? rdata_processed : bypass_data[1];
         end
      end
 
     always @(*) begin
         bypass_src2 = src2_r;
-        if ((bypass_rd[0] == rs2) && (rs2 != 4'd0)) begin
+        if ((bypass_rd[0] == rs2) && (rs2 != 5'd0)) begin
             bypass_src2 = bypass_is_load[0] ? rdata_processed : bypass_data[0];
         end
-        else if ((bypass_rd[1] == rs2) && (rs2 != 4'd0)) begin
+        else if ((bypass_rd[1] == rs2) && (rs2 != 5'd0)) begin
             bypass_src2 = bypass_is_load[1] ? rdata_processed : bypass_data[1];
         end
     end

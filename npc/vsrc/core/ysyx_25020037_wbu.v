@@ -13,7 +13,7 @@ module ysyx_25020037_wbu (
     output wire [`WU_TO_EU_BUS_WD -1:0] wu_to_eu_bus,
     input  wire [`LU_TO_WU_BUS_WD -1:0] lu_to_wu_bus
 );
-    wire [ 3: 0] rd;
+    wire [ 4: 0] rd;
     wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     wire         gpr_we;
     wire [31: 0] csr_wcsr_data;  
@@ -24,7 +24,7 @@ module ysyx_25020037_wbu (
             csr_wcsr_data,
             gpr_wdata
            } = lu_to_wu_bus;
-    reg  [31: 0] regs [15:0];
+    reg  [31: 0] regs [31:0];
     reg  [31: 0] mtvec;
     reg  [31: 0] mepc;
     reg  [31: 0] mstatus;
@@ -38,8 +38,8 @@ module ysyx_25020037_wbu (
     wire   c_mcause;
     wire   c_mvendorid;
     wire   c_marchid;
-    wire [ 3: 0] rs1;
-    wire [ 3: 0] rs2;
+    wire [ 4: 0] rs1;
+    wire [ 4: 0] rs2;
     assign {c_mtvec, c_mepc, c_mstatus, c_mcause, c_mvendorid, c_marchid, rs1, rs2} = rs_data;
 
     wire         ecall_en;
@@ -80,7 +80,7 @@ module ysyx_25020037_wbu (
         mstatus <= 32'h1800;
       end else begin
         if(lsu_valid) begin
-          if ((rd != 4'b0) && gpr_we) begin
+          if ((rd != 5'b0) && gpr_we) begin
             regs[rd] <= gpr_wdata;
           end
           if (csrs_mtvec_wen) begin

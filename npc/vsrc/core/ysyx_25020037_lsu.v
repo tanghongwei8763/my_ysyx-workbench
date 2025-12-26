@@ -22,7 +22,7 @@ module ysyx_25020037_lsu (
     input  wire         dcache_ready
 
 );
-    wire [ 3:0] rd;
+    wire [ 4:0] rd;
     wire [`EU_TO_WU_BUS_WD -1:0] eu_to_wu_bus;
     wire [ 1:0] data_rop;
     wire [ 1:0] data_wop;

@@ -1,14 +1,14 @@
-ARCH ?= riscv32e-ysyxsoc
+ARCH ?= riscv32-ysyxsoc
 VVP = vvp
 IVERILOG = iverilog
 NETLIST ?= /home/tanghongwei/yosys-sta/result/ysyx_25020037-500MHz/ysyx_25020037.netlist.fixed.v
 CELLS ?= /home/tanghongwei/yosys-sta/nangate45/sim/cells.v
 VERILOG_MERGED = $(BUILD_DIR)/ysyx_25020037.v
-ifeq ($(ARCH), riscv32e-npc)
+ifeq ($(ARCH), riscv32-npc)
 TOPNAME = ysyx_25020037_npc
 VERILOG_DEFINES = -DNPC
 else
-ifeq ($(ARCH), riscv32e-ysyxsoc)
+ifeq ($(ARCH), riscv32-ysyxsoc)
 TOPNAME = ysyxSoCFull
 VERILOG_DEFINES = -DYSYXSOC
 CXXFLAGS += -DCONFIG_YSYXSOC
@@ -42,7 +42,7 @@ endif
 
 ISA ?= 
 ARGS ?= 
-IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/benchmarks/microbench/build/microbench-riscv32e-npc.bin
+IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/benchmarks/microbench/build/microbench-riscv32-npc.bin
 
 SIMULATOR = $(BIN)
 
@@ -90,10 +90,10 @@ CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
 VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
-ifeq ($(ARCH), riscv32e-npc)
+ifeq ($(ARCH), riscv32-npc)
 VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc/*.v)
 else
-ifeq ($(ARCH), riscv32e-ysyxsoc)
+ifeq ($(ARCH), riscv32-ysyxsoc)
 VSRCS += $(shell find $(CURDIR)/../ysyxSoC/perip -type f -name "*.v")
 VSRCS += $(shell find $(CURDIR)/../ysyxSoC/build -type f -name "*.v")
 endif
@@ -141,7 +141,7 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE) $(SRC_AUTO_BIND)
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
-$(IVERILOG_BIN): ARCH=riscv32e-npc
+$(IVERILOG_BIN): ARCH=riscv32-npc
 $(IVERILOG_BIN): TOPNAME=ysyx_25020037_npc
 $(IVERILOG_BIN): $(VERILOG_MERGED) \
                  $(wildcard $(CURDIR)/vsrc/simple-soc/*.v) \
@@ -157,7 +157,7 @@ sim-iverilog: $(MEM_INIT) $(IVERILOG_BIN)
 	@echo "Running iverilog simulation (WAVE=$(WAVE))..."
 	$(VVP) -n $(IVERILOG_BIN) $(IVERILOG_VVP_FLAGS)
 
-$(IVERILOG_BIN_NETLIST): ARCH=riscv32e-npc
+$(IVERILOG_BIN_NETLIST): ARCH=riscv32-npc
 $(IVERILOG_BIN_NETLIST): TOPNAME=ysyx_25020037_npc
 $(IVERILOG_BIN_NETLIST): $(NETLIST) \
                          $(CELLS) \
