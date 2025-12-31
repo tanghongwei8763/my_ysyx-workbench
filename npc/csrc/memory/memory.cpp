@@ -19,11 +19,14 @@ extern Vysyx_25020037_npc *top;
 #endif
 
 static const uint32_t img [] = {
-0x020006b7,          	//lui	a3,0x2000
-0x020006b7,          	//lui	a3,0x2000
-0x020006b7,          	//lui	a3,0x2000
-0x020006b7,          	//lui	a3,0x2000
-0x020006b7,          	//lui	a3,0x2000
+0x000a0637,          	//lui	a2,0xa
+0x000a06b7,          	//lui	a3,0xa
+0x000a0737,          	//lui	a4,0xa
+0x000a07b7,          	//lui	a5,0xa
+0x02d706b3,          	//mul	a3,a4,a3
+0x02c787b3,          	//mul	a5,a5,a2
+0x02c705b3,          	//mul	a1,a4,a2
+0x00d787b3,          	//add	a5,a5,a3
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0
 0x00000513,           //li  a0 0

@@ -25,7 +25,7 @@ extern Vysyx_25020037_npc *top;
 
 bool isa_difftest_checkregs(diff_context_t *ref_r, vaddr_t pc) {
 
-  for (int i = 1; i < 16; i++) {
+  for (int i = 1; i < 32; i++) {
     if (ref_r->gpr[i] != dut_gpr[i]) {
       printf("dut->reg[%d]: 0x%08x != ref->gpr[%d]: 0x%08x\n", i, dut_gpr[i], i, ref_r->gpr[i]);
       return false;

@@ -32,7 +32,7 @@ void isa_reg_display(){
 #else
     printf("pc\t\t0x%08x\n", pc);
 #endif
-    for(int reg = 0; reg < 16; reg++){
+    for(int reg = 0; reg < 32; reg++){
         printf("%s\t\t0x%08x\n", tempregs[reg], gpr[reg]);
     }
 #ifdef CONFIG_PCSRS

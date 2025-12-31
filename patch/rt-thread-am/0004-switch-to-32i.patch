@@ -1,0 +1,25 @@
+From e4055c7d01d5e740552bc090e87a55dfcd314b1d Mon Sep 17 00:00:00 2001
+From: Tanghongwei <tanghongwei2024@outlook.com>
+Date: Wed, 31 Dec 2025 16:22:23 +0800
+Subject: [PATCH 4/4] switch to 32i
+
+---
+ bsp/abstract-machine/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bsp/abstract-machine/Makefile b/bsp/abstract-machine/Makefile
+index d9a094e35..c5745773a 100644
+--- a/bsp/abstract-machine/Makefile
++++ b/bsp/abstract-machine/Makefile
+@@ -8,7 +8,7 @@ NAME = rtthread
+ SRCS = $(shell find src -name "*.c")
+ CFLAGS += -DHAVE_CCONFIG_H -D__RTTHREAD__
+ CFLAGS += -Wno-nonnull-compare
+-ifneq ($(ARCH),riscv32e-ysyxsoc)
++ifneq ($(ARCH),riscv32-ysyxsoc)
+ LDFLAGS += -T extra.ld
+ endif
+ -include $(FILE_MK)
+-- 
+2.34.1
+

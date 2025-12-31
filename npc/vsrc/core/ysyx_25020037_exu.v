@@ -58,6 +58,8 @@ module ysyx_25020037_exu (
     wire         is_read;
     wire         gpr_we;
     wire [16: 0] alu_op;
+    wire         mdu_en;
+    wire [ 7: 0] mdu_op;
     wire         src1_is_pc;
     wire         src2_is_imm;
     wire         jal_or_jarl;
@@ -80,6 +82,8 @@ module ysyx_25020037_exu (
             is_read,
             gpr_we,
             alu_op,
+            mdu_en,
+            mdu_op,
             src1_is_pc,
             src2_is_imm,
             jal_or_jarl,
@@ -142,7 +146,7 @@ module ysyx_25020037_exu (
 
     assign src1 = bypass_src1;
     assign src2 = bypass_src2;
-    assign exu_ready = lsu_ready;
+    assign exu_ready = lsu_ready & mdu_ready;
 
     wire [31: 0] snpc;
     wire [31: 0] target_dnpc;
@@ -154,6 +158,10 @@ module ysyx_25020037_exu (
     wire [31: 0] alu_src4;
     wire [31: 0] alu_result1;
     wire         alu_result2;
+    wire [31: 0] mdu_src1;
+    wire [31: 0] mdu_src2;
+    wire         mdu_ready;
+    wire [31: 0] mdu_result;
     wire [31: 0] csr_wcsr_data;
     wire [31: 0] data_channel;
 
@@ -162,6 +170,8 @@ module ysyx_25020037_exu (
     assign alu_src2 = src2_is_imm ? imm : src2;
     assign alu_src3 = src1;
     assign alu_src4 = src2;
+    assign mdu_src1 = src1;
+    assign mdu_src2 = src2;
 
     ysyx_25020037_alu alu_cpu(
         .alu_op         (alu_op     ),
@@ -172,12 +182,24 @@ module ysyx_25020037_exu (
         .alu_result1    (alu_result1),
         .alu_result2    (alu_result2)
         );
+    ysyx_25020037_mdu mdu_cpu(
+        .clk            (clk        ),
+        .rst            (rst        ),
+        .lsu_ready      (lsu_ready  ),
+        .mdu_en         (mdu_en     ),
+        .mdu_op         (mdu_op     ),
+        .mdu_src1       (mdu_src1   ),
+        .mdu_src2       (mdu_src2   ),
+        .mdu_ready      (mdu_ready  ),
+        .mdu_result     (mdu_result )
+        );
 
     assign csr_wcsr_data  = ({32{csrrw_op}} & src1)
                           | ({32{csrrs_op}} & (src1 | csr_data))
                           | ({32{ecall_en}} & pc);
-    assign result         = jal_or_jarl  ? snpc     :
-                            csr_w_gpr_we ? csr_data :
+    assign result         = jal_or_jarl  ? snpc       :
+                            csr_w_gpr_we ? csr_data   :
+                            mdu_en       ? mdu_result :
                             alu_result1;
 
     assign data_channel = is_write ? src2 : csr_wcsr_data;
@@ -216,13 +238,13 @@ module ysyx_25020037_exu (
             eu_to_lu_bus <= 'b0;
         end else begin
             if(lsu_ready) begin
-                if(target_dnpc != bpu_dnpc && ~exu_wash_dnpc_en) begin
+                if(target_dnpc != bpu_dnpc && ~exu_wash_dnpc_en && mdu_ready) begin
                     exu_wash_dnpc_en <= idu_valid;
                     exu_wash_dnpc <= target_dnpc;
                 end else if (pc_updata) begin
                     exu_wash_dnpc_en <=1'b0;
                 end
-                if(pc_will_jump) begin
+                if(pc_will_jump & mdu_ready) begin
                     if(target_dnpc == snpc) begin
                         exu_pc <= pc;
                         exu_dnpc <= target_dnpc;
@@ -238,7 +260,7 @@ module ysyx_25020037_exu (
                     exu_dnpc_valid <= 1'b0;
                     exu_taken <= 1'b0;
                 end
-                if (idu_valid) begin
+                if (idu_valid & mdu_ready) begin
 `ifdef VERILATOR
                     diff_pc_o <= idu_valid ? pc : diff_pc_o;
 `endif

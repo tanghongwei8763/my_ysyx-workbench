@@ -1,7 +1,7 @@
 From f496684edce6b02b85bbc501822e1ac63d118492 Mon Sep 17 00:00:00 2001
 From: Tanghongwei <tanghongwei2024@outlook.com>
 Date: Fri, 19 Sep 2025 17:55:17 +0800
-Subject: [PATCH 3/3] extra.ld
+Subject: [PATCH 3/4] extra.ld
 
 ---
  bsp/abstract-machine/Makefile   | 2 ++

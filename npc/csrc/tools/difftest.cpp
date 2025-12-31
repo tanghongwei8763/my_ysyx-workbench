@@ -81,7 +81,7 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 #ifdef CONFIG_YSYXSOC
   ref_difftest_memcpy(FLASH_RESET_VECTOR, SoC_to_host(FLASH_RESET_VECTOR), img_size, DIFFTEST_TO_REF);
   diff_context_t* dut_r = (diff_context_t*)malloc(sizeof(diff_context_t));
-  for(int i = 0; i < 16; i++){
+  for(int i = 0; i < 32; i++){
     dut_r->gpr[i] = dut_gpr[i];
   }
   dut_r->pc      = FLASH_RESET_VECTOR;
@@ -93,7 +93,7 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 #else
   ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
   diff_context_t* dut_r = (diff_context_t*)malloc(sizeof(diff_context_t));
-  for(int i = 0; i < 16; i++){
+  for(int i = 0; i < 32; i++){
     dut_r->gpr[i] = dut_gpr[i];
   }
   dut_r->pc      = RESET_VECTOR;
@@ -116,7 +116,7 @@ void difftest_step(vaddr_t pc) {
 
   if (is_skip_ref) {
     diff_context_t* dut_r = (diff_context_t*)malloc(sizeof(diff_context_t));
-    for(int i = 0; i < 16; i++){
+    for(int i = 0; i < 32; i++){
       dut_r->gpr[i] = dut_gpr[i];
     }
     dut_r->pc      = dut_pc+4;

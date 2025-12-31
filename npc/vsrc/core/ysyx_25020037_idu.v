@@ -21,6 +21,8 @@ module ysyx_25020037_idu (
     wire [ 4: 0] rd;
     wire [31: 0] imm;
     wire [16: 0] alu_op;
+    wire         mdu_en;
+    wire [ 7: 0] mdu_op;
     wire         rlsu_we;
     wire         wlsu_we;
     wire [ 1: 0] lw_lh_lb;
@@ -40,6 +42,14 @@ module ysyx_25020037_idu (
     wire [31:0] immJ;
 
     wire        inst_add;
+    wire        inst_mul;
+    wire        inst_mulh;
+    wire        inst_mulhsu;
+    wire        inst_mulhu;
+    wire        inst_div;
+    wire        inst_divu;
+    wire        inst_rem;
+    wire        inst_remu;
     wire        inst_and;
     wire        inst_or;
     wire        inst_ori;
@@ -113,6 +123,14 @@ module ysyx_25020037_idu (
     assign immJ  = {{12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
 
     assign inst_add       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h0) & (opcode_31_25 == 7'h00);
+    assign inst_mul       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h0) & (opcode_31_25 == 7'h01);
+    assign inst_mulh      = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h1) & (opcode_31_25 == 7'h01);
+    assign inst_mulhsu    = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h2) & (opcode_31_25 == 7'h01);
+    assign inst_mulhu     = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h3) & (opcode_31_25 == 7'h01);
+    assign inst_div       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h4) & (opcode_31_25 == 7'h01);
+    assign inst_divu      = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h5) & (opcode_31_25 == 7'h01);
+    assign inst_rem       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h6) & (opcode_31_25 == 7'h01);
+    assign inst_remu      = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h7) & (opcode_31_25 == 7'h01);
     assign inst_and       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h7) & (opcode_31_25 == 7'h00);
     assign inst_or        = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h6) & (opcode_31_25 == 7'h00);
     assign inst_xor       = (opcode_06_00 == 7'h33) & (opcode_14_12 == 3'h4) & (opcode_31_25 == 7'h00);
@@ -178,13 +196,23 @@ module ysyx_25020037_idu (
     assign alu_op[ 8] = inst_srli | inst_srl;
     assign alu_op[ 9] = inst_srai | inst_sra;
     assign alu_op[10] = inst_lui;
-
     assign alu_op[11] = inst_bne;
     assign alu_op[12] = inst_beq;
     assign alu_op[13] = inst_bge;
     assign alu_op[14] = inst_bgeu;
     assign alu_op[15] = inst_blt;
     assign alu_op[16] = inst_bltu;
+
+    assign mdu_en     = inst_mul | inst_mulh | inst_mulhsu | inst_mulhu | 
+                        inst_div | inst_divu | inst_rem    | inst_remu;
+    assign mdu_op[ 0] = inst_mul;
+    assign mdu_op[ 1] = inst_mulh;
+    assign mdu_op[ 2] = inst_mulhsu;
+    assign mdu_op[ 3] = inst_mulhu;
+    assign mdu_op[ 4] = inst_div;
+    assign mdu_op[ 5] = inst_divu;
+    assign mdu_op[ 6] = inst_rem;
+    assign mdu_op[ 7] = inst_remu;
 
     assign imm = ({32{TYPE_I}} & immI)
                | ({32{TYPE_S}} & immS)
@@ -229,7 +257,9 @@ module ysyx_25020037_idu (
                         wlsu_we,
                         rlsu_we,
                         gpr_we,  
-                        alu_op,             
+                        alu_op,
+                        mdu_en,
+                        mdu_op,           
                         src1_is_pc,      
                         src2_is_imm,     
                         jal_or_jarl,   

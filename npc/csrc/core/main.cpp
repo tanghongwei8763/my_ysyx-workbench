@@ -58,6 +58,23 @@ VerilatedVcdC* tfp = nullptr;
 
 int NPC_STATE;
 
+#ifdef CONFIG_WAVE
+const uint64_t WAVE_MAX_CYCLES = 1000;
+uint64_t wave_cycle_counter = 0;
+
+void reset_wave_file() {
+    if (tfp != nullptr) {
+        tfp->close();
+        delete tfp;
+        tfp = nullptr;
+    }
+    tfp = new VerilatedVcdC;
+    top->trace(tfp, 99);
+    tfp->open("ysyx_25020037.vcd");
+    wave_cycle_counter = 0;
+}
+#endif
+
 const char *tempregs[] = {
   "$0", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
   "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
@@ -75,8 +92,8 @@ extern "C" {
 }
 
 int is_exit_status_bad() {
-  int good = (NPC_STATE == NPC_END) ||
-             (NPC_STATE == NPC_QUIT);
+  int good = ((NPC_STATE == NPC_END) ||
+             (NPC_STATE == NPC_QUIT)) && (gpr[10] == 0);
   return !good;
 }
 
@@ -87,6 +104,7 @@ void finish(){
     tfp->close();
     delete tfp;
     delete contextp;
+    wave_cycle_counter = 0;
 #endif
 
     if (NPC_STATE == NPC_ABORT) {
@@ -105,6 +123,10 @@ void single_cycle() {
     top->clock=1;
     top->eval();
 #ifdef CONFIG_WAVE
+    wave_cycle_counter++;
+    if (wave_cycle_counter > WAVE_MAX_CYCLES) {
+        reset_wave_file();
+    }
     tfp->dump(contextp->time());
     contextp->timeInc(1);
 #endif
@@ -124,13 +146,6 @@ static void reset(int n) {
 
 int main (int argc, char** argv) {
 
-    // printf("===== 命令行参数信息 =====\n");
-    // printf("参数数量 (argc): %d\n", argc);
-    // for (int i = 0; i < argc; i++) {
-    //     printf("参数 %d: %s\n", i, argv[i]);
-    // }
-    // printf("==========================\n\n");
-
 #ifdef CONFIG_NVBOARD
     nvboard_bind_all_pins(top);
     nvboard_init();
@@ -144,6 +159,7 @@ int main (int argc, char** argv) {
     tfp = new VerilatedVcdC;
     top->trace(tfp, 99);
     tfp->open("ysyx_25020037.vcd");
+    wave_cycle_counter = 0;
 #endif
     reset(10);
     
@@ -154,4 +170,4 @@ int main (int argc, char** argv) {
     sdb_mainloop();
     
     return is_exit_status_bad();
-}    
+}

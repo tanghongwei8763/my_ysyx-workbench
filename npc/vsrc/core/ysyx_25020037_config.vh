@@ -5,7 +5,7 @@
 `define MVENDORID  12'hF11
 `define MARCHID    12'hF12
 
-`define DU_TO_EU_BUS_WD 146
+`define DU_TO_EU_BUS_WD 155
 `define EU_TO_LU_BUS_WD 84
 `define LU_TO_WU_BUS_WD 76
 `define WU_TO_EU_BUS_WD 32*3
