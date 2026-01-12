@@ -9,10 +9,19 @@ Context* __am_irq_handle(Context *c) {
   //  printf("r[%d] = %d\n", i, c->gpr[i]);
   //}
   //printf("mepc = %d, mcause = %d, mstatus = %d\n", c->mepc, c->mcause, c->mstatus);
+  // printf("c->gpr[17] = %d\n", c->gpr[17]);
   if (user_handler) {
     Event ev = {0};
     switch (c->mcause) {
-      case 0xb: ev.event = EVENT_YIELD; c->mepc += 4; break;
+      case 0xb: 
+        c->mepc += 4;
+        if(c->gpr[17] == 1) {
+          ev.event = EVENT_YIELD; 
+        }
+        else {
+          ev.event = EVENT_SYSCALL;
+        }
+        break;
       default: ev.event = EVENT_ERROR; break;
     }
 
@@ -45,9 +54,9 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
 
 void yield() {
 #ifdef __riscv_e
-  asm volatile("li a5, -1; ecall");
+  asm volatile("li a5, 1; ecall");
 #else
-  asm volatile("li a7, -1; ecall");
+  asm volatile("li a7, 1; ecall");
 #endif
 }
 

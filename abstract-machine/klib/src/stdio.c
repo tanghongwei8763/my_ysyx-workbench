@@ -2,6 +2,7 @@
 #include <klib.h>
 #include <klib-macros.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
@@ -10,109 +11,259 @@ int printf(const char *fmt, ...) {
   va_start(args, fmt);
   int count = 0;
 
-  for (; *fmt; fmt++) {
-    if (*fmt == '%') {
-      fmt++;
-      int width = 0;
-      char pad = ' ';
-
-      if (*fmt == '0') {
-        pad = '0';
-        fmt++;
-      }
-      while (*fmt >= '0' && *fmt <= '9') {
-        width = width * 10 + (*fmt - '0');
-        fmt++;
-      }
-
-      switch (*fmt) {
-        case 'd': {
-          int num = va_arg(args, int);
-          int len = 0;
-          char buffer[128];
-          int i = 0;
-          
-          if (num < 0) {
-            putch('-');
-            num = -num;
-            count++;
-          }
-          if (num == 0) buffer[i++] = '0';
-          else {
-            while (num > 0) {
-              buffer[i++] = num % 10 + '0';
-              num /= 10;
-            }
-          }
-          len = i;
-          while (len < width) {
-            putch(pad);
-            count++;
-            len++;
-          }
-          while (i > 0) {
-            putch(buffer[--i]);
-            count++;
-          }
-          break;
-        }
-        case 'x': {
-          unsigned int num = va_arg(args, unsigned int);
-          int len = 0;
-          char buffer[128];
-          int i = 0;
-          if (num == 0) buffer[i++] = '0';
-          else {
-            while (num > 0) {
-              int digit = num % 16;
-              buffer[i++] = (digit < 10) ? digit + '0' : digit - 10 + 'a';
-              num /= 16;
-            }
-          }
-          len = i;
-          if (width == 0) width = 8;
-          while (len < width) {
-            putch('0');
-            count++;
-            len++;
-          }
-          while (i > 0) {
-            putch(buffer[--i]);
-            count++;
-          }
-          break;
-        }
-        case 's': {
-          const char *str = va_arg(args, const char *);
-          while (*str) {
-            putch(*str++);
-            count++;
-          }
-          break;
-        }
-        case 'c': {
-          char c = (char)va_arg(args, int);
-          putch(c);
-          count++;
-          break;
-        }
-        case '%': {
-          putch('%');
-          count++;
-          break;
-        }
-        default: {
-          putch('%');
-          putch(*fmt);
-          count += 2;
-          break;
-        }
-      }
-    } else {
+  for (; *fmt != '\0'; fmt++) {
+    if (*fmt != '%') {
       putch(*fmt);
       count++;
+      continue;
+    }
+
+    fmt++;
+    if (*fmt == '\0') {
+      putch('%');
+      count++;
+      break;
+    }
+
+    char pad = ' ';
+    int width = 0;
+    bool is_left_align = false;
+
+    if (*fmt == '-') {
+      is_left_align = true;
+      fmt++;
+    }
+
+    if (*fmt == '0') {
+      pad = '0';
+      fmt++;
+    }
+
+    while (*fmt >= '0' && *fmt <= '9') {
+      width = width * 10 + (*fmt - '0');
+      fmt++;
+      if (*fmt == '\0') {
+        putch('%');
+        count++;
+        break;
+      }
+    }
+
+    switch (*fmt) {
+      case 'd': {
+        int num = va_arg(args, int);
+        char buffer[128] = {0};
+        int i = 0;
+        int len = 0;
+        bool is_negative = false;
+
+        long long num_ll = (long long)num;
+        if (num_ll < 0) {
+          is_negative = true;
+          num_ll = -num_ll;
+        }
+
+        if (num_ll == 0) {
+          buffer[i++] = '0';
+        } else {
+          while (num_ll > 0) {
+            buffer[i++] = (num_ll % 10) + '0';
+            num_ll /= 10;
+          }
+        }
+        len = i;
+
+        int pad_count = (width > len + (is_negative ? 1 : 0)) ? 
+                        (width - len - (is_negative ? 1 : 0)) : 0;
+
+        if (!is_left_align) {
+          if (is_negative) {
+            putch('-');
+            count++;
+          }
+          for (int p = 0; p < pad_count; p++) {
+            putch(pad);
+            count++;
+          }
+        } else {
+          if (is_negative) {
+            putch('-');
+            count++;
+          }
+        }
+
+        while (i > 0) {
+          putch(buffer[--i]);
+          count++;
+        }
+
+        if (is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(' ');
+            count++;
+          }
+        }
+        break;
+      }
+
+      case 'x':
+      case 'X': {
+        unsigned int num = va_arg(args, unsigned int);
+        char buffer[128] = {0};
+        int i = 0;
+        int len = 0;
+        char case_char = (*fmt == 'X') ? 'A' : 'a';
+
+        if (num == 0) {
+          buffer[i++] = '0';
+        } else {
+          while (num > 0) {
+            int digit = num % 16;
+            buffer[i++] = (digit < 10) ? (digit + '0') : (digit - 10 + case_char);
+            num /= 16;
+          }
+        }
+        len = i;
+
+        int actual_width = (width == 0) ? 8 : width;
+        int pad_count = (actual_width > len) ? (actual_width - len) : 0;
+
+        if (!is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(pad);
+            count++;
+          }
+        }
+
+        while (i > 0) {
+          putch(buffer[--i]);
+          count++;
+        }
+
+        if (is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(' ');
+            count++;
+          }
+        }
+        break;
+      }
+
+      case 's': {
+        const char *str = va_arg(args, const char *);
+        if (str == NULL) {
+          str = "(null)";
+        }
+        int str_len = 0;
+        while (str[str_len] != '\0') {
+          str_len++;
+        }
+        int pad_count = (width > str_len) ? (width - str_len) : 0;
+
+        if (!is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(pad);
+            count++;
+          }
+        }
+
+        while (*str != '\0') {
+          putch(*str++);
+          count++;
+        }
+
+        if (is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(' ');
+            count++;
+          }
+        }
+        break;
+      }
+
+      case 'c': {
+        char c = (char)va_arg(args, int);
+        int pad_count = (width > 1) ? (width - 1) : 0;
+
+        if (!is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(pad);
+            count++;
+          }
+        }
+
+        putch(c);
+        count++;
+
+        if (is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(' ');
+            count++;
+          }
+        }
+        break;
+      }
+
+      case 'p': {
+        void *ptr = va_arg(args, void *);
+        uintptr_t addr = (uintptr_t)ptr;
+        char buffer[128] = {0};
+        int i = 0;
+        int len = 2;
+
+        if (addr == 0) {
+          buffer[i++] = '0';
+        } else {
+          while (addr > 0) {
+            int digit = addr % 16;
+            buffer[i++] = (digit < 10) ? (digit + '0') : (digit - 10 + 'a');
+            addr /= 16;
+          }
+        }
+        len += i;
+
+        int pad_count = (width > len) ? (width - len) : 0;
+
+        if (!is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(pad);
+            count++;
+          }
+        }
+
+        putch('0');
+        putch('x');
+        count += 2;
+
+        while (i > 0) {
+          putch(buffer[--i]);
+          count++;
+        }
+
+        if (is_left_align) {
+          for (int p = 0; p < pad_count; p++) {
+            putch(' ');
+            count++;
+          }
+        }
+        break;
+      }
+
+      case '%': {
+        putch('%');
+        count++;
+        break;
+      }
+
+      default: {
+        putch('%');
+        putch(*fmt);
+        count += 2;
+        break;
+      }
     }
   }
+
   va_end(args);
   return count;
 }

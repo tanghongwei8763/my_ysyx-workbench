@@ -1,9 +1,12 @@
 #include <memory.h>
+#include <proc.h>
 
 static void *pf = NULL;
 
 void* new_page(size_t nr_page) {
-  return NULL;
+  void *res = pf;
+  pf += nr_page * PGSIZE;
+  return res;
 }
 
 #ifdef HAS_VME
@@ -18,6 +21,11 @@ void free_page(void *p) {
 
 /* The brk() system call handler. */
 int mm_brk(uintptr_t brk) {
+  if (current->max_brk >= brk) return 0;
+  while (current->max_brk < brk) {
+    map(&current->as, (void *)current->max_brk, new_page(1), 0x11);
+    current->max_brk += PGSIZE;
+  }
   return 0;
 }
 
