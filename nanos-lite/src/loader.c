@@ -21,12 +21,12 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   Elf_Phdr phdr;
   for (int i = 0; i < ehdr.e_phnum; i++) {
     uint32_t base = ehdr.e_phoff + i * ehdr.e_phentsize;
-    fs_lseek(fd, base, 0);
+    fs_lseek(fd, base, SEEK_SET);
     fs_read(fd, &phdr, sizeof(Elf_Phdr));
     if (phdr.p_type == PT_LOAD) {
       char * temp = (char *)malloc(phdr.p_filesz);
 
-      fs_lseek(fd, phdr.p_offset, 0);
+      fs_lseek(fd, phdr.p_offset, SEEK_SET);
       fs_read(fd, temp, phdr.p_filesz);
 
       memcpy((void*)phdr.p_vaddr, temp, phdr.p_filesz);

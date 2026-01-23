@@ -1,7 +1,10 @@
 #include <common.h>
 #include <syscall.h>
+#include <sys/time.h>
 #include <fs.h>
+#include <proc.h>
 #include <memory.h>
+extern void naive_uload(PCB *pcb, const char *filename);
 
 void do_syscall(Context *c) {
   uintptr_t a[4];
@@ -13,7 +16,8 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_exit: 
       // Log("SYSCALL: exit"); 
-      halt(a[1]); 
+      if(a[1]) halt(a[1]); 
+      naive_uload(NULL, "/bin/nterm");
       break;
     case SYS_yield: 
       // Log("SYSCALL: yield");
@@ -43,6 +47,15 @@ void do_syscall(Context *c) {
     case SYS_brk:
       // Log("SYSCALL: brk");
       c->GPRx = mm_brk(a[1]);  
+      break;
+    case SYS_execve:
+      // Log("SYSCALL: SYS_execve");
+      c->GPRx = 0;
+      naive_uload(NULL, (const char *)a[1]);
+      break;
+    case SYS_gettimeofday:
+      // Log("SYSCALL: gettimeofday"); 
+      c->GPRx = fgettimeofday((struct timeval*)a[1], (struct timezone*)a[2]);
       break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }

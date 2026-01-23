@@ -3,6 +3,7 @@
 
 #include <common.h>
 #include <memory.h>
+#include <sys/time.h>
 
 #define STACK_SIZE (8 * PGSIZE)
 
@@ -19,5 +20,6 @@ typedef union {
 extern PCB *current;
 
 Context* schedule(Context *prev);
+int fgettimeofday(struct timeval *tv, struct timezone *tz);
 
 #endif

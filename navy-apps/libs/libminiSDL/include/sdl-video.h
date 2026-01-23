@@ -21,31 +21,31 @@ typedef struct {
 
 typedef union {
   struct {
-    uint8_t r, g, b, a;
+    uint8_t r, g, b, a;   // 分量形式：rgba四通道
   };
-  uint32_t val;
+  uint32_t val;           // 整体形式：32位无符号整数
 } SDL_Color;
 
 typedef struct {
-	int ncolors;
-	SDL_Color *colors;
+	int ncolors;        // 调色板里的颜色总数
+	SDL_Color *colors;  // 颜色数组的指针
 } SDL_Palette;
 
 typedef struct {
-	SDL_Palette *palette;
-	uint8_t BitsPerPixel;
-	uint8_t BytesPerPixel;
-	uint8_t Rloss, Gloss, Bloss, Aloss;
-	uint8_t Rshift, Gshift, Bshift, Ashift;
-	uint32_t Rmask, Gmask, Bmask, Amask;
+	SDL_Palette *palette;    // 调色板指针（索引色用）
+	uint8_t BitsPerPixel;    // 每个像素占【多少位】
+	uint8_t BytesPerPixel;   // 每个像素占【多少字节】
+	uint8_t Rloss, Gloss, Bloss, Aloss; // 颜色损失位
+	uint8_t Rshift, Gshift, Bshift, Ashift; // 颜色移位值
+	uint32_t Rmask, Gmask, Bmask, Amask;    // 颜色掩码值
 } SDL_PixelFormat;
 
 typedef struct {
-	uint32_t flags;
-	SDL_PixelFormat *format;
-	int w, h;
-	uint16_t pitch;
-	uint8_t *pixels;
+	uint32_t flags;          // 表面属性标记（忽略）
+	SDL_PixelFormat *format; // 像素格式指针
+	int w, h;                // 画布的宽度、高度
+	uint16_t pitch;          // 一行像素的总字节数
+	uint8_t *pixels;         // 像素数据的首地址
 } SDL_Surface;
 
 SDL_Surface* SDL_CreateRGBSurfaceFrom(void *pixels, int width, int height, int depth,

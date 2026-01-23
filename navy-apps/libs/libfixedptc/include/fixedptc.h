@@ -125,37 +125,74 @@ typedef	__uint128_t fixedptud;
  * Putting them only in macros will effectively make them optional. */
 #define fixedpt_tofloat(T) ((float) ((T)*((float)(1)/(float)(1L << FIXEDPT_FBITS))))
 
+#define FLOAT_SIGN_MASK   (1U << 31)
+#define FLOAT_EXP_MASK    (0xFFU << 23)
+#define FLOAT_MANT_MASK   (0x7FFFFFU)
+#define FLOAT_EXP_BIAS    127
+#define FLOAT_MANT_SHIFT  23
+
+/* 拆分符号位S、指数位E、尾数位M，计算真实指数 = 存储指数 - 偏移量127;
+ * 然后构造完整尾数：1.M(二进制) = 2^23 + M ，补全隐含的最高位1
+ * float_val * 2^FBITS = (1.M)*2^exp * 2^FBITS = (1.M) << (exp + FBITS) */
+static inline fixedpt fixedpt_fromfloat(void *p)
+{
+    const uint32_t f_bits = *(const uint32_t *)p;
+    
+    const uint32_t sign_bit = (f_bits & FLOAT_SIGN_MASK) >> 31;
+    const int32_t  exp_bits  = (f_bits & FLOAT_EXP_MASK) >> FLOAT_MANT_SHIFT;
+    const uint32_t mant_bits = f_bits & FLOAT_MANT_MASK;
+    
+    const int32_t  real_exp  = exp_bits - FLOAT_EXP_BIAS;
+    
+    const fixedptd mant_full = (1LL << FLOAT_MANT_SHIFT) | mant_bits;
+
+    fixedptd fp_val = mant_full;
+    const int32_t  shift = real_exp + FIXEDPT_FBITS - FLOAT_MANT_SHIFT;
+    if (shift > 0) {
+        fp_val <<= shift;
+    } else {
+        fp_val >>= -shift;
+    }
+    if (sign_bit) {
+        fp_val = -fp_val;
+    }
+
+    return (fixedpt)fp_val;
+}
+
 /* Multiplies a fixedpt number with an integer, returns the result. */
 static inline fixedpt fixedpt_muli(fixedpt A, int B) {
-	return 0;
+	return (fixedpt)((fixedptd)A * B);
 }
 
 /* Divides a fixedpt number with an integer, returns the result. */
 static inline fixedpt fixedpt_divi(fixedpt A, int B) {
-	return 0;
+	return (fixedpt)((fixedptd)A / B);
 }
 
 /* Multiplies two fixedpt numbers, returns the result. */
 static inline fixedpt fixedpt_mul(fixedpt A, fixedpt B) {
-	return 0;
+	return (fixedpt)(((fixedptd)A * B) / FIXEDPT_ONE);
 }
 
 
 /* Divides two fixedpt numbers, returns the result. */
 static inline fixedpt fixedpt_div(fixedpt A, fixedpt B) {
-	return 0;
+	return (fixedpt)(((fixedptd)A * FIXEDPT_ONE) / B);
 }
 
 static inline fixedpt fixedpt_abs(fixedpt A) {
-	return 0;
+	return (fixedpt)(A >= 0 ? A : 0 - A);
 }
 
 static inline fixedpt fixedpt_floor(fixedpt A) {
-	return 0;
+    fixedptd frac = A % FIXEDPT_ONE;
+	return (fixedpt)( (A < 0 && frac != 0) ? ((fixedptd)A / FIXEDPT_ONE - 1) * FIXEDPT_ONE : (fixedptd)A / FIXEDPT_ONE * FIXEDPT_ONE );
 }
 
 static inline fixedpt fixedpt_ceil(fixedpt A) {
-	return 0;
+    fixedptd frac = A % FIXEDPT_ONE;
+	return (fixedpt)( (A > 0 && frac != 0) ? ((fixedptd)A / FIXEDPT_ONE + 1) * FIXEDPT_ONE : (fixedptd)A / FIXEDPT_ONE * FIXEDPT_ONE );
 }
 
 /*

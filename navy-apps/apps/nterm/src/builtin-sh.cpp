@@ -23,11 +23,31 @@ static void sh_prompt() {
 }
 
 static void sh_handle_cmd(const char *cmd) {
+  char buf[64];
+  strcpy(buf, cmd);
+  *strchr(buf, '\n') = '\0';
+
+  char *argv[10];
+  int argc = 1;
+  if (!(argv[0] = strtok(buf, " \t"))) return;
+  while ((argv[argc] = strtok(NULL, " \t"))) argc++;
+
+  if (!argc) return;
+
+  if (!strcmp(argv[0], "echo")) {
+    for (int i = 1; i < argc; ++i) sh_printf("%s ", argv[i]);
+    sh_printf("\n");
+  } else {
+    argv[argc] = NULL;
+    execvp(argv[0], argv);
+  }
 }
 
 void builtin_sh_run() {
   sh_banner();
   sh_prompt();
+
+  setenv("PATH", "/bin", 0);
 
   while (1) {
     SDL_Event ev;

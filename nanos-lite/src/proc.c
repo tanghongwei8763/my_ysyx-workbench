@@ -23,11 +23,25 @@ void init_proc() {
   switch_boot_pcb();
 
   Log("Initializing processes...");
-  naive_uload(NULL, "/bin/file-test");
   // load program here
+  naive_uload(NULL, "/bin/menu");
 
 }
 
 Context* schedule(Context *prev) {
   return NULL;
+}
+
+int fgettimeofday(struct timeval *tv, struct timezone *tz){
+  if (tv) {
+    uint64_t us = io_read(AM_TIMER_UPTIME).us;
+    tv->tv_sec = us >> 32;
+    tv->tv_usec = us;
+  }
+  if (tz != NULL)
+  {
+    tz->tz_minuteswest = 0;
+    tz->tz_dsttime     = 0;
+  }
+  return 0;
 }
