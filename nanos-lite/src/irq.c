@@ -6,6 +6,7 @@ static Context* do_event(Event e, Context* c) {
   switch (e.event) {
     case EVENT_YIELD  : 
       // Log("event: YIELD"); 
+      c = schedule(c);
       break;
     case EVENT_SYSCALL: 
       // Log("event: EVENT_SYSCALL"); 
@@ -14,6 +15,7 @@ static Context* do_event(Event e, Context* c) {
     default: panic("Unhandled event ID = %d", e.event);
   }
 
+  assert(c != NULL);
   return c;
 }
 

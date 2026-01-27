@@ -6,9 +6,11 @@ int main(int argc, char *argv[], char *envp[]);
 extern char **environ;
 extern void __libc_init_array();
 void call_main(uintptr_t *args) {
-  char *empty[] =  {NULL };
-  environ = empty;
   __libc_init_array();
-  exit(main(0, empty, empty));
+  int argc = *args;
+  char **argv = (char **)args + 1;
+  char **envp = (char **)args + 1 + argc + 1;
+  environ = envp;
+  exit(main(argc, argv, envp));
   assert(0);
 }

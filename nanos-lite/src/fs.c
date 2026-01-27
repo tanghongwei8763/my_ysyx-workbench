@@ -48,6 +48,8 @@ void init_fs() {
 }
 
 int fs_open(const char *pathname, int flags, int mode) {
+  assert(pathname);
+  // Log("read file:%s", pathname);
   for (int i = 0; i < LENGTH(file_table); ++i) {
     if (!strcmp(pathname, file_table[i].name)) {
       file_table[i].open_offset = 0;
@@ -59,7 +61,7 @@ int fs_open(const char *pathname, int flags, int mode) {
 }
 
 size_t fs_read(int fd, void *buf, size_t len){
-  // Log("read:fd=0x%d, buf=0x%08x, len=%d", fd, buf, len);
+  // Log("read:file:%s, buf=0x%08x, len=%d", file_table[fd].name, buf, len);
   assert(0 <= fd && fd < LENGTH(file_table));
   if (file_table[fd].read) {
     len = file_table[fd].read(buf, file_table[fd].open_offset, len);
@@ -71,11 +73,12 @@ size_t fs_read(int fd, void *buf, size_t len){
     ramdisk_read(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
   }
   file_table[fd].open_offset += len;
+  // Log("read:file:%s DONE", file_table[fd].name);
   return len;
 }
 
 size_t fs_write(int fd, const void *buf, size_t len){
-  // Log("write:fd=0x%d, buf=0x%08x, len=%d", fd, buf, len);
+  // Log("write:file:%s, buf=0x%08x, len=%d", file_table[fd].name, buf, len);
   assert(0 <= fd && fd < LENGTH(file_table));
 
   if (file_table[fd].write) {
@@ -91,6 +94,7 @@ size_t fs_write(int fd, const void *buf, size_t len){
     }
   }
   file_table[fd].open_offset += len;
+  // Log("write:file:%s DONE", file_table[fd].name);
   return len;
 }
 

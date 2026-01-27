@@ -4,9 +4,9 @@
 static void *pf = NULL;
 
 void* new_page(size_t nr_page) {
-  void *res = pf;
-  pf += nr_page * PGSIZE;
-  return res;
+  void *ptr = pf;
+  pf += nr_page * 4 * 1024;
+  return ptr;
 }
 
 #ifdef HAS_VME
@@ -23,7 +23,7 @@ void free_page(void *p) {
 int mm_brk(uintptr_t brk) {
   if (current->max_brk >= brk) return 0;
   while (current->max_brk < brk) {
-    map(&current->as, (void *)current->max_brk, new_page(1), 0x11);
+    // map(&current->as, (void *)current->max_brk, new_page(1), 0x11);
     current->max_brk += PGSIZE;
   }
   return 0;

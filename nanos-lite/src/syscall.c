@@ -5,6 +5,16 @@
 #include <proc.h>
 #include <memory.h>
 extern void naive_uload(PCB *pcb, const char *filename);
+extern void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]);
+
+int execve(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
+  int fd = fs_open(filename, 0, 0);
+  if(fd == -1) return -2;
+  context_uload(pcb, filename, argv, envp);
+  switch_boot_pcb();
+  yield();
+  return 0;
+}
 
 void do_syscall(Context *c) {
   uintptr_t a[4];
@@ -16,8 +26,10 @@ void do_syscall(Context *c) {
   switch (a[0]) {
     case SYS_exit: 
       // Log("SYSCALL: exit"); 
-      if(a[1]) halt(a[1]); 
-      naive_uload(NULL, "/bin/nterm");
+      if(a[1]) Log("this exe hit bad tarp"); 
+      char *const argv[] = {NULL};
+      char *const envp[] = {NULL};
+      c->GPRx = execve(current, "/bin/nterm", argv, envp);
       break;
     case SYS_yield: 
       // Log("SYSCALL: yield");
@@ -49,9 +61,8 @@ void do_syscall(Context *c) {
       c->GPRx = mm_brk(a[1]);  
       break;
     case SYS_execve:
-      // Log("SYSCALL: SYS_execve");
-      c->GPRx = 0;
-      naive_uload(NULL, (const char *)a[1]);
+      // Log("SYSCALL: SYS_execve  filename:%s", (char*)a[1]);
+      c->GPRx = execve(current, (char *)a[1], (char *const *)a[2], (char *const *)a[3]);
       break;
     case SYS_gettimeofday:
       // Log("SYSCALL: gettimeofday"); 

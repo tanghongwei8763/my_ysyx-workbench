@@ -19,6 +19,7 @@ typedef union {
 
 extern PCB *current;
 
+void switch_boot_pcb();
 Context* schedule(Context *prev);
 int fgettimeofday(struct timeval *tv, struct timezone *tz);
 

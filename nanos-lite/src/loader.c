@@ -45,3 +45,80 @@ void naive_uload(PCB *pcb, const char *filename) {
   ((void(*)())entry) ();
 }
 
+void context_kload(PCB *pcb, void (*entry)(void *), void *arg) {
+  Area kstack = { .start = pcb->stack, .end = pcb->stack + sizeof(pcb->stack) };
+  pcb->cp = kcontext(kstack, entry, arg);
+}
+
+
+void context_uload(PCB *pcb, const char *filename, char *const argv[], char *const envp[]) {
+  // Log("context_uload file: %s", filename);
+  int argc = 0, envc = 0, string_len = 0;
+  for (; argv[argc]; ++argc) string_len += strlen(argv[argc]) + 1;
+  for (; envp[envc]; ++envc) string_len += strlen(envp[envc]) + 1;
+  string_len = ROUNDUP(string_len, sizeof(uintptr_t));
+  
+  void *ustack_top = new_page(8);
+  char *strtab = (char *)(ustack_top - string_len);
+  char **sp = (char **)strtab;
+  for (int i = envc; i >= 0; i--) {
+    if (envp[i]) {
+      strcpy(strtab, envp[i]);
+      *--sp = strtab;
+      strtab += strlen(envp[i]) + 1; // 加上'\0'的长度
+    } else {
+      *--sp = NULL;
+    }
+  }
+  for (int i = argc; i >= 0; i--) {
+    if (argv[i]) {
+      strcpy(strtab, argv[i]);
+      *--sp = strtab;
+      strtab += strlen(argv[i]) + 1;
+    } else {
+      *--sp = NULL;
+    }
+  }
+  *(uintptr_t *)--sp = argc;
+
+  uintptr_t entry = loader(pcb, filename);
+  Area kstack = { .start = pcb->stack, .end = pcb->stack + sizeof(pcb->stack) };
+  Context *ctx = ucontext(NULL, kstack, (void *)entry);
+  // Log("ustack_top=0x%08x, sp=0x%08x", ustack_top, sp);
+  ctx->GPRx = (uintptr_t)sp;
+  pcb->cp = ctx;
+}
+
+// |               |
+// +---------------+ <---- ustack.end
+// |  Unspecified  |
+// +---------------+
+// |               | <----------+
+// |    string     | <--------+ |
+// |     area      | <------+ | |
+// |               | <----+ | | |
+// |               | <--+ | | | |
+// +---------------+    | | | | |
+// |  Unspecified  |    | | | | |
+// +---------------+    | | | | |
+// |     NULL      |    | | | | |
+// +---------------+    | | | | |
+// |    ......     |    | | | | |
+// +---------------+    | | | | |
+// |    envp[1]    | ---+ | | | |
+// +---------------+      | | | |
+// |    envp[0]    | -----+ | | |
+// +---------------+        | | |
+// |     NULL      |        | | |
+// +---------------+        | | |
+// | argv[argc-1]  | -------+ | |
+// +---------------+          | |
+// |    ......     |          | |
+// +---------------+          | |
+// |    argv[1]    | ---------+ |
+// +---------------+            |
+// |    argv[0]    | -----------+
+// +---------------+
+// |      argc     |
+// +---------------+ <---- cp->GPRx
+// |               |
