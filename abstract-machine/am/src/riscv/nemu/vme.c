@@ -57,7 +57,7 @@ void unprotect(AddrSpace *as) {
 }
 
 void __am_get_cur_as(Context *c) {
-  c->pdir = (vme_enable ? (void *)get_satp() : NULL);
+  c->pdir = (vme_enable && c->pdir != NULL ? (void *)get_satp() : NULL);
 }
 
 void __am_switch(Context *c) {
@@ -67,11 +67,35 @@ void __am_switch(Context *c) {
 }
 
 void map(AddrSpace *as, void *va, void *pa, int prot) {
+  //  VPN1(9位) | VPN0(9位) | 页内偏移(12位)
+  uintptr_t vpn1 = ((uintptr_t)va >> 22) & 0x3ff;
+  uintptr_t vpn0 = ((uintptr_t)va >> 12) & 0x3ff;
+  uintptr_t pt1, pt0;
+
+  pt1 = (uintptr_t)as->ptr;
+  assert((pt1 & 0xfff) == 0);
+
+  uintptr_t *pte1 = (uintptr_t *)(pt1 | (vpn1 << 2));
+  // printf("ptel=0x%08x->0x%08x, pt1=0x%08x, vpn1=0x%08x\n", pte1, *pte1, pt1, vpn1);
+
+  if ((*pte1 & 1) == 0) {
+    pt0 = (uintptr_t)pgalloc_usr(PGSIZE);
+    *pte1 = (pt0 >> 2) | 1;
+    // printf("!!!!!!ptel=0x%08x->0x%08x, pt1=0x%08x, vpn1=0x%08x\n", pte1, *pte1, pt1, vpn1);
+  } else {
+    pt0 = (*pte1 << 2) & ~0xfff;
+  }
+  assert((pt0 & 0xfff) == 0);
+
+  uintptr_t *pte0 = (uintptr_t *)(pt0 | (vpn0 << 2));
+  *pte0 = (((uintptr_t)pa >> 2) & ~0x3ff) | 0xf;
+  // printf("*pte0=0x%08x\n", *pte0);
 }
 
 Context *ucontext(AddrSpace *as, Area kstack, void *entry) {
   Context *cp = (Context *)(kstack.end - sizeof(Context));
   cp->mepc = (uintptr_t)entry;
   cp->mstatus = 0x0000;
+  cp->pdir = as->ptr;
   return cp;
 }

@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
   SDL_FillRect(screen, NULL, 0);
   SDL_UpdateRect(screen, 0, 0, 0, 0);
 
-  FILE *fp = fopen(Ripples_of_Past_Reverie, "r");
+  FILE *fp = fopen(MUSIC_PATH, "r");
   assert(fp);
   fseek(fp, 0, SEEK_END);
   size_t size = ftell(fp);
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
 
   stream_save = malloc(SAMPLES * info.channels * sizeof(*stream_save));
   assert(stream_save);
-  printf("Playing %s(freq = %d, channels = %d)...\n", Ripples_of_Past_Reverie, info.sample_rate, info.channels);
+  printf("Playing %s(freq = %d, channels = %d)...\n", MUSIC_PATH, info.sample_rate, info.channels);
   SDL_PauseAudio(0);
 
   while (!is_end) {

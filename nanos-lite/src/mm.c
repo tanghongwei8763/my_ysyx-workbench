@@ -5,13 +5,16 @@ static void *pf = NULL;
 
 void* new_page(size_t nr_page) {
   void *ptr = pf;
-  pf += nr_page * 4 * 1024;
+  pf += nr_page * PGSIZE;
   return ptr;
 }
 
 #ifdef HAS_VME
 static void* pg_alloc(int n) {
-  return NULL;
+  assert(n % PGSIZE == 0);
+  void *ptr = new_page(n / PGSIZE);
+  memset(ptr, 0, n);
+  return ptr;
 }
 #endif
 
@@ -23,7 +26,9 @@ void free_page(void *p) {
 int mm_brk(uintptr_t brk) {
   if (current->max_brk >= brk) return 0;
   while (current->max_brk < brk) {
-    // map(&current->as, (void *)current->max_brk, new_page(1), 0x11);
+    void *temp_stack = new_page(1);
+    // Log("vaddr:0x%08x -> paddr:0x%08x", (void *)current->max_brk, temp_stack);
+    map(&current->as, (void *)current->max_brk, temp_stack, 0);
     current->max_brk += PGSIZE;
   }
   return 0;

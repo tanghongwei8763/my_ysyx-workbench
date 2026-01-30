@@ -3,6 +3,8 @@
 #include <klib.h>
 
 static Context* (*user_handler)(Event, Context*) = NULL;
+void __am_get_cur_as(Context *c);
+void __am_switch(Context *c);
 
 Context* __am_irq_handle(Context *c) {
   //for (int i=0; i<32; i++){
@@ -10,6 +12,7 @@ Context* __am_irq_handle(Context *c) {
   //}
   //printf("mepc = %d, mcause = %d, mstatus = %d\n", c->mepc, c->mcause, c->mstatus);
   // printf("c->gpr[17] = %d\n", c->gpr[17]);
+  __am_get_cur_as(c);
   if (user_handler) {
     Event ev = {0};
     switch (c->mcause) {
@@ -29,6 +32,7 @@ Context* __am_irq_handle(Context *c) {
     assert(c != NULL);
   }
 
+  __am_switch(c);
   return c;
 }
 
@@ -49,6 +53,7 @@ Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   cp->mepc = (uintptr_t)entry;
   cp->mstatus = 0x1800;
   cp->gpr[10] = (uintptr_t)(arg);
+  cp->pdir = NULL;
   return cp;
 }
 

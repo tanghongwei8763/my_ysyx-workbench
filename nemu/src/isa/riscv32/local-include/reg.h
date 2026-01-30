@@ -34,6 +34,7 @@ static inline const char* reg_name(int idx) {
 #define MTVEC   0x305
 #define MEPC    0x341
 #define MCAUSE  0x342
+#define SATP    0x180
 
 word_t *check_csr_idx(word_t idx);
 
