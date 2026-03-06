@@ -25,6 +25,7 @@ Context* __am_irq_handle(Context *c) {
           ev.event = EVENT_SYSCALL;
         }
         break;
+      case 0x80000007: ev.event = EVENT_IRQ_TIMER; break;
       default: ev.event = EVENT_ERROR; break;
     }
 
@@ -51,7 +52,7 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
 Context *kcontext(Area kstack, void (*entry)(void *), void *arg) {
   Context *cp = (Context *)(kstack.end - sizeof(Context));
   cp->mepc = (uintptr_t)entry;
-  cp->mstatus = 0x1800;
+  cp->mstatus = 0x1880;
   cp->gpr[10] = (uintptr_t)(arg);
   cp->pdir = NULL;
   return cp;

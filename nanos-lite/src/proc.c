@@ -34,9 +34,23 @@ void init_proc() {
 
 }
 
+
 Context* schedule(Context *prev) {
   current->cp = prev;
-  current = (current == &pcb[0] ? &pcb[1] : &pcb[0]);
+
+  // static int prv_cnt = 0;
+  if (current == &pcb[0]) current = &pcb[1];
+  else {
+    current = &pcb[0];
+    // if (prv_cnt == 30) {
+    //   current = &pcb[0];
+    //   prv_cnt = 0;
+    // } else {
+    //   current = &pcb[1];
+    //   prv_cnt++;
+    // }
+  }
+
   return current->cp;
 }
 
