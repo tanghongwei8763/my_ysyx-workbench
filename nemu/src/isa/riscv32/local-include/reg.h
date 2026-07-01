@@ -30,11 +30,12 @@ static inline const char* reg_name(int idx) {
   return regs[check_reg_idx(idx)];
 }
 
-#define MSTATUS 0x300
-#define MTVEC   0x305
-#define MEPC    0x341
-#define MCAUSE  0x342
-#define SATP    0x180
+#define MSTATUS  0x300
+#define MTVEC    0x305
+#define MEPC     0x341
+#define MCAUSE   0x342
+#define SATP     0x180
+#define MSCRATCH 0x340 
 
 word_t *check_csr_idx(word_t idx);
 

@@ -13,7 +13,7 @@
 #endif
 
 #define REGS_LO16(f) \
-      f( 1)       f( 3) f( 4) f( 5) f( 6) f( 7) f( 8) f( 9) \
+      f( 1)       f( 3) f( 4)       f( 6) f( 7) f( 8) f( 9) \
 f(10) f(11) f(12) f(13) f(14) f(15)
 #ifndef __riscv_e
 #define REGS_HI16(f) \
@@ -31,16 +31,42 @@ f(30) f(31)
 #define PUSH(n) STORE concat(x, n), (n * XLEN)(sp);
 #define POP(n)  LOAD  concat(x, n), (n * XLEN)(sp);
 
-#define CONTEXT_SIZE  ((NR_REGS + 3) * XLEN)
+#define CONTEXT_SIZE  ((NR_REGS + 4) * XLEN)
+#define OFFSET_PRIV   (0)
 #define OFFSET_SP     ( 2 * XLEN)
 #define OFFSET_CAUSE  ((NR_REGS + 0) * XLEN)
 #define OFFSET_STATUS ((NR_REGS + 1) * XLEN)
 #define OFFSET_EPC    ((NR_REGS + 2) * XLEN)
 
+.type __am_asm_trap, @function
+
 .align 3
 .globl __am_asm_trap
 __am_asm_trap:
+
+  csrrw sp, mscratch, sp
+  beqz sp, .L1
+  
   addi sp, sp, -CONTEXT_SIZE
+  PUSH(5) # push t0/x5
+  csrr t0, mscratch
+  STORE t0, OFFSET_SP(sp)
+  li t0, 0x1
+  STORE t0, OFFSET_PRIV(sp) # PRIV_USER
+  j .L2
+
+.L1:
+
+  csrr sp, mscratch
+  addi sp, sp, -CONTEXT_SIZE
+  PUSH(5) # push t0/x5
+  addi t0, sp, CONTEXT_SIZE
+  STORE t0, OFFSET_SP(sp)
+  STORE x0, OFFSET_PRIV(sp) # PRIV_KERNAL
+
+.L2:
+
+  csrw mscratch, x0
 
   MAP(REGS, PUSH)
 
@@ -69,5 +95,16 @@ __am_asm_trap:
 
   MAP(REGS, POP)
 
-  addi sp, sp, CONTEXT_SIZE
+  LOAD t0, OFFSET_PRIV(sp)
+  beqz t0, .L3
+
+  addi t0, sp, CONTEXT_SIZE
+  csrw mscratch, t0
+
+.L3:
+  POP(5) # t0/x5
+  POP(2) # sp/x2
+
   mret
+
+.size __am_asm_trap, . - __am_asm_trap

@@ -18,13 +18,14 @@
 #include "../local-include/reg.h"
 
 word_t *check_csr_idx(word_t idx) {
-  IFDEF(CONFIG_RT_CHECK, assert(idx == MSTATUS || idx == MTVEC || idx == MEPC || idx == MCAUSE || idx == SATP));
+  IFDEF(CONFIG_RT_CHECK, assert(idx == MSTATUS || idx == MTVEC || idx == MEPC || idx == MCAUSE || idx == SATP || idx == MSCRATCH));
   switch(idx) {
-    case MTVEC   :  return &(cpu.csrs.mtvec);
-    case MEPC    :  return &(cpu.csrs.mepc);
-    case MSTATUS :  return &(cpu.csrs.mstatus);
-    case MCAUSE  :  return &(cpu.csrs.mcause);
-    case SATP    :  return &(cpu.csrs.satp);
+    case MTVEC    :  return &(cpu.csrs.mtvec);
+    case MEPC     :  return &(cpu.csrs.mepc);
+    case MSTATUS  :  return &(cpu.csrs.mstatus);
+    case MCAUSE   :  return &(cpu.csrs.mcause);
+    case SATP     :  return &(cpu.csrs.satp);
+    case MSCRATCH :  return &(cpu.csrs.mscratch);
     default : printf("csr_idx error\n"); assert(0); break;
   }
 }

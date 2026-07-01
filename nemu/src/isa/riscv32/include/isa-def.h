@@ -25,6 +25,7 @@ typedef struct {
   word_t mstatus;
   word_t mcause;
   word_t satp;
+  word_t mscratch;
 } CSRS;
 
 typedef struct {
