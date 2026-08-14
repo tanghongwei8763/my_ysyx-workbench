@@ -7,13 +7,18 @@ VERILOG_MERGED = $(BUILD_DIR)/ysyx_25020037.v
 ifeq ($(ARCH), riscv32-npc)
 TOPNAME = ysyx_25020037_npc
 VERILOG_DEFINES = -DNPC
-else
-ifeq ($(ARCH), riscv32-ysyxsoc)
+else ifeq ($(ARCH), riscv32-ysyxsoc)
 TOPNAME = ysyxSoCFull
 VERILOG_DEFINES = -DYSYXSOC
 CXXFLAGS += -DCONFIG_YSYXSOC
 nvboard ?= 1
-endif
+else ifeq ($(ARCH), riscv32-ysyxsoc-chisel)
+TOPNAME = ysyx_25020037_chisel_soc
+VERILOG_DEFINES = -DCHISEL
+CXXFLAGS += -DCONFIG_YSYXSOC
+nvboard ?= 0
+# Chisel difftest: 默认参考模型路径
+DIFF_SO ?= /home/tanghongwei/ysyx-workbench/nemu/build/riscv32-nemu-interpreter-so
 endif
 YOSYSTOP = ysyx_25020037
 VERILATOR = verilator
@@ -36,17 +41,19 @@ WAVEFORM_NETLIST = $(IVERILOG_DIR)/waveform_netlist.fst
 MEM_INIT = $(IVERILOG_DIR)/mem_init.hex
 WAVE ?= 0
 
+ifneq ($(ARCH), riscv32-ysyxsoc-chisel)
 ifndef NVBOARD_HOME
 $(error NVBOARD_HOME is not set. Please set the environment variable NVBOARD_HOME to your NVBoard installation path)
+endif
 endif
 
 ISA ?= 
 ARGS ?= 
-IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/benchmarks/microbench/build/microbench-riscv32-npc.bin
+IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/dummy-riscv32-ysyxsoc-chisel.bin
 
 SIMULATOR = $(BIN)
 
-VERILATOR_FLAGS += --trace -cc --exe \
+VERILATOR_FLAGS += --trace --trace-fst -cc --exe \
                    --timescale "1ns/1ns" --no-timing \
 				   -MMD --build -cc  \
 					-O3 --x-assign fast --x-initial fast --noassert
@@ -75,7 +82,7 @@ default: $(BIN)
 
 $(shell mkdir -p $(BUILD_DIR) $(OBJ_DIR) $(IVERILOG_DIR))
 
-# constraint file
+# constraint file (NVBoard)
 ifeq ($(nvboard), 1)
 SRC_AUTO_BIND = $(abspath $(BUILD_DIR)/auto_bind.cpp)
 $(SRC_AUTO_BIND): $(NXDC_FILES)
@@ -86,14 +93,22 @@ include $(NVBOARD_HOME)/scripts/nvboard.mk
 CSRCS += $(SRC_AUTO_BIND)
 endif
 
+ifeq ($(ARCH), riscv32-ysyxsoc-chisel)
+# Chisel CPU: 简单 SoC 封装 (AXI + DPI-C 访存)
+VSRCS += $(wildcard $(CURDIR)/chisel-npc/build/ysyx_25020037.v)
+VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc-chisel/ysyx_25020037_chisel_soc.v)
+CSRCS += $(wildcard $(CURDIR)/csrc/chisel/*.cpp)
+# difftest 需要 dlopen/dlsym
+LDFLAGS += -ldl
+else
+# 原生 Verilog CPU: 手写核 + 通用仿真框架
+VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
 CSRCS += $(wildcard $(CURDIR)/csrc/core/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/memory/*.cpp)
 CSRCS += $(wildcard $(CURDIR)/csrc/tools/*.cpp)
-VSRCS += $(wildcard $(CURDIR)/vsrc/core/*.v)
 ifeq ($(ARCH), riscv32-npc)
 VSRCS += $(wildcard $(CURDIR)/vsrc/simple-soc/*.v)
-else
-ifeq ($(ARCH), riscv32-ysyxsoc)
+else ifeq ($(ARCH), riscv32-ysyxsoc)
 VSRCS += $(shell find $(CURDIR)/../ysyxSoC/perip -type f -name "*.v")
 VSRCS += $(shell find $(CURDIR)/../ysyxSoC/build -type f -name "*.v")
 endif
@@ -106,6 +121,9 @@ CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
 CXXFLAGS += -g
 ifeq ($(diff), 1)
 CXXFLAGS += -DCONFIG_DIFFTEST
+ifdef DIFF_SO
+DIFF_ARG = --diff $(DIFF_SO)
+endif
 endif
 ifeq ($(wave), 1)
 CXXFLAGS += -DCONFIG_WAVE
@@ -175,7 +193,7 @@ verilog: $(VERILOG_MERGED)
 
 run: $(BIN)
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	@$^ $(ARGS) $(IMG)
+	@WAVE=$(wave) $^ $(ARGS) $(DIFF_ARG) $(IMG)
 
 gdb: $(BIN)
 	gdb $(BIN) --args $(BIN) $(ARGS) $(IMG)
