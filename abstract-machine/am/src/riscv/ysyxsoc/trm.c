@@ -71,7 +71,9 @@ void ysyx_show(){
 
 void _trm_init() {
 
-  init_uart(115200);
+#ifndef __ARCH_RISCV32_YSYXSOC_CHISEL__
+  init_uart(115200);   // chisel-npc 平台无 UART 外设, 跳过串口初始化
+#endif
   //ysyx_show();
   // printf("0x%08x  0x%08x\n", &_heap_start, &_psram_end);
   int ret = main(mainargs);

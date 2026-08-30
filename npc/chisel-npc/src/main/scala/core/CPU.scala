@@ -30,9 +30,9 @@ class ysyx_25020037 extends Module {
   val lsu = Module(new StageLSU)
   val wbu = Module(new StageWBU)
 
-  // 仲裁器和旁路模块
-  val bypass      = Module(new Bypass)
+  // 仲裁器和旁路暂存队列
   val axi_arbiter = Module(new AxiArbiter)
+  val bypass      = Module(new Bypass)
 
   val icache  = Module(new Icache)
   val dcache  = Module(new Dcache)
@@ -90,6 +90,9 @@ class ysyx_25020037 extends Module {
   // slave 口暂未使用
   io.slave  := DontCare
 
+  dcache.io.cbo_valid  := exu.io.cbo_valid
+  dcache.io.cbo_va     := exu.io.cbo_va
+
   dcache.io.addr       := exu.io.dcache_addr
   dcache.io.addr_valid := exu.io.dcache_addr_valid
   dcache.io.we         := exu.io.dcache_we
@@ -110,19 +113,54 @@ class ysyx_25020037 extends Module {
   icache.io.axi <> axi_arbiter.io.ifu
 
   // ================= 寄存器操作 ==================
-  bypass.io.rs1_addr  := idu.io.rs1_addr
-  bypass.io.rs2_addr  := idu.io.rs2_addr
   regfile.io.rs1_addr := idu.io.rs1_addr
   regfile.io.rs2_addr := idu.io.rs2_addr
-  // 数据旁路
-  bypass.io.src1_data := regfile.io.rs1_data
-  bypass.io.src2_data := regfile.io.rs2_data
-  idu.io.rs1_data     := bypass.io.bypass_src1_data
-  idu.io.rs2_data     := bypass.io.bypass_src2_data
 
-  bypass.io.rd_w_bypass_data := exu.io.rd_w_bypass_data
-  bypass.io.rd_w_bypass_en   := exu.io.rd_w_bypass_en
-  bypass.io.rd_w_bypass      := exu.io.rd_w_bypass
+  // ================= 旁路网络 =================
+  // 数据优先级: 直连 EX 当拍结果 > 直连 MEM 当拍数据 > 旁路队列 > 寄存器堆.
+  // 直连转发覆盖同拍依赖 (1 拍 ALU 依赖 / load 完成当拍), 旁路队列则暂存结果,
+  // 供延迟一拍读到的依赖指令从队列取数 (数据不依赖单拍转发窗口).
+  // load 在 EXU 时入队并标记 is_load, MEM 完成时回填数据到最老标记项.
+  bypass.io.rs1_addr      := idu.io.rs1_addr
+  bypass.io.rs2_addr      := idu.io.rs2_addr
+  bypass.io.src1_data     := regfile.io.rs1_data
+  bypass.io.src2_data     := regfile.io.rs2_data
+  bypass.io.push_en       := exu.io.push_en
+  bypass.io.push_addr     := exu.io.in.bits.rd_addr
+  bypass.io.push_data     := exu.io.fwd_data
+  bypass.io.push_is_load  := exu.io.in.bits.is_load
+  bypass.io.fill_en       := lsu.io.fill_en
+  bypass.io.fill_data     := lsu.io.fill_data
+
+  val ex_fwd_rs1 = exu.io.fwd_en && (idu.io.rs1_addr === exu.io.fwd_reg) && (idu.io.rs1_addr =/= 0.U)
+  val ex_fwd_rs2 = exu.io.fwd_en && (idu.io.rs2_addr === exu.io.fwd_reg) && (idu.io.rs2_addr =/= 0.U)
+  val mem_fwd_rs1 = lsu.io.fwd_en && (idu.io.rs1_addr === lsu.io.fwd_reg) && (idu.io.rs1_addr =/= 0.U)
+  val mem_fwd_rs2 = lsu.io.fwd_en && (idu.io.rs2_addr === lsu.io.fwd_reg) && (idu.io.rs2_addr =/= 0.U)
+
+  // 直连转发是否已解决该源寄存器 (EX 非 load 结果 / MEM load 数据或 alu_out)
+  val ex_resolves_rs1 = ex_fwd_rs1 && !exu.io.fwd_is_load
+  val ex_resolves_rs2 = ex_fwd_rs2 && !exu.io.fwd_is_load
+  val mem_resolves_rs1 = mem_fwd_rs1 && !lsu.io.fwd_stall
+  val mem_resolves_rs2 = mem_fwd_rs2 && !lsu.io.fwd_stall
+
+  idu.io.rs1_data := Mux(ex_resolves_rs1, exu.io.fwd_data,
+                      Mux(mem_resolves_rs1, lsu.io.fwd_data,
+                          bypass.io.bypass_src1_data))
+  idu.io.rs2_data := Mux(ex_resolves_rs2, exu.io.fwd_data,
+                      Mux(mem_resolves_rs2, lsu.io.fwd_data,
+                          bypass.io.bypass_src2_data))
+
+  // load-use 停流: 依赖的 load 数据尚未就绪
+  //  - EX 的 load (数据未产生)
+  //  - MEM 阶段 load 未完成 (dcache 未就绪)
+  //  - 旁路队列中命中未回填的 load 条目 (直连转发均未解决该源时, 兜底)
+  val rs1_unresolved = !(ex_resolves_rs1 || mem_resolves_rs1) && bypass.io.stall_rs1
+  val rs2_unresolved = !(ex_resolves_rs2 || mem_resolves_rs2) && bypass.io.stall_rs2
+
+  idu.io.fwd_stall := idu.io.in.valid &&
+                      ((ex_fwd_rs1 && exu.io.fwd_is_load) || (ex_fwd_rs2 && exu.io.fwd_is_load) ||
+                       (mem_fwd_rs1 && lsu.io.fwd_stall)  || (mem_fwd_rs2 && lsu.io.fwd_stall) ||
+                       rs1_unresolved || rs2_unresolved)
 
   // 写端口 ← WBU
   regfile.io.rd_addr := wbu.io.rd_addr

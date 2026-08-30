@@ -11,7 +11,6 @@ class StageWBU extends Module {
     val rd_data = Output(UInt(32.W))
     val rd_wen  = Output(Bool())
 
-    // Debug / Difftest
     val debug_commit_valid = Output(Bool())
     val debug_pc           = Output(UInt(32.W))
   })

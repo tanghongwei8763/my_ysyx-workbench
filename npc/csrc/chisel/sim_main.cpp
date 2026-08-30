@@ -1,14 +1,3 @@
-// =============================================================================
-// Chisel CPU — 仿真主循环
-//
-// 功能:
-//   1. 实例化 Verilator 模型
-//   2. 加载二进制映像到物理内存
-//   3. 驱动时钟复位
-//   4. 每次提交时调用 difftest 与 NEMU 比较
-//   5. 检测 ebreak 结束仿真
-// =============================================================================
-
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
@@ -18,17 +7,11 @@
 #include <verilated_fst_c.h>
 #include "Vysyx_25020037_chisel_soc.h"
 
-// ============================================================================
-// Difftest 声明 (在 difftest.cpp 中实现)
-// ============================================================================
 
 void init_difftest(const char *so_path, uint8_t *img_buf, size_t img_size);
 int  difftest_step(Vysyx_25020037_chisel_soc *top);
 void difftest_display(void);
 
-// ============================================================================
-// 物理内存 — 多区域 (与 linker_ysyxsoc.ld 匹配)
-// ============================================================================
 
 #define FLASH_BASE  0x30000000ULL
 #define FLASH_SIZE  (4 * 1024 * 1024)     // 4 MB
@@ -46,11 +29,7 @@ static uint8_t g_sdram_mem[SDRAM_SIZE] __attribute__((aligned(16)));
 static size_t  g_img_size = 0;
 
 // 仿真循环上限 (约 1670 万条指令, 可根据需要调整)
-static const uint64_t CYCLE_LIMIT = 50000;
-
-// ============================================================================
-// DPI-C 函数 — 供 Verilog SoC 调用
-// ============================================================================
+static const uint64_t CYCLE_LIMIT = 1000000;
 
 extern "C" int pmem_read(int addr) {
   uint32_t val = 0;
@@ -91,10 +70,6 @@ extern "C" void pmem_write(int addr, int data, int strb) {
   }
 }
 
-// ============================================================================
-// 从 .bin 加载到 flash (LMA = 0x30000000)
-// ============================================================================
-
 static size_t load_bin(const char* path) {
   FILE* fp = fopen(path, "rb");
   if (!fp) { fprintf(stderr, "Cannot open %s\n", path); exit(1); }
@@ -111,10 +86,6 @@ static size_t load_bin(const char* path) {
   return n;
 }
 
-// ============================================================================
-// 波形上限
-// ============================================================================
-
 static uint64_t wave_limit_from_env() {
   const char* s = getenv("WAVE_LIMIT");
   if (!s || s[0] == '\0') return 1000000;
@@ -123,10 +94,6 @@ static uint64_t wave_limit_from_env() {
   if (end == s) return 1000000;
   return v > 0 ? v : 0;
 }
-
-// ============================================================================
-// Main
-// ============================================================================
 
 int main(int argc, char** argv) {
   Verilated::commandArgs(argc, argv);

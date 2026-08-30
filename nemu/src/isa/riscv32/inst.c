@@ -127,7 +127,8 @@ static int decode_exec(Decode *s) {
                                                                 IFDEF(CONFIG_FTRACE, if(rd == 1)
                                                                 call_func(s->pc, s->dnpc);));
 
-  INSTPAT("0000000 00000 00000 001 00000 00011 11", fence_i, N, R(0) = 0); // fence_i
+  INSTPAT("0000000 00000 00000 001 00000 00011 11", fence_i,   N, printf("[NEMU] this is FENCE inst\n")); // fence_i
+  INSTPAT("0000000 ????? ????? 010 ????? 00011 11", cbo_flush, N, printf("[NEMU] this is CBO inst\n")); // fence_i
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();

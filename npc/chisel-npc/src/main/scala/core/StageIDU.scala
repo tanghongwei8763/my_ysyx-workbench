@@ -14,6 +14,8 @@ class StageIDU extends Module {
     val rs2_addr = Output(UInt(5.W))
     val rs1_data = Input(UInt(32.W))
     val rs2_data = Input(UInt(32.W))
+
+    val fwd_stall = Input(Bool())
   })
 
   val opcode = io.in.bits.inst(6, 0)
@@ -36,8 +38,9 @@ class StageIDU extends Module {
   val is_jalr     = WireDefault(false.B)
   val mem_size    = WireDefault(0.U(2.W))   // 0=byte, 1=half, 2=word
   val is_unsigned = WireDefault(false.B)
+  val is_cbo      = WireDefault(false.B)
 
-  // R-type: 寄存器-寄存器 ALU 操作 (opcode = 0x33)
+  // R-type
   when(opcode === "b0110011".U) {
     reg_wen := true.B
     alu_op := MuxLookup(funct3, ALUOp.ADD)(Seq(
@@ -52,7 +55,7 @@ class StageIDU extends Module {
     ))
   }
 
-  // I-type ALU: 立即数 ALU 操作 (opcode = 0x13)
+  // I-type
   when(opcode === "b0010011".U) {
     reg_wen  := true.B
     src2_sel := true.B  
@@ -69,7 +72,7 @@ class StageIDU extends Module {
     ))
   }
 
-  // Load 类 (opcode = 0x03)
+  // Load
   when(opcode === "b0000011".U) {
     reg_wen     := true.B
     mem_ren     := true.B
@@ -80,7 +83,7 @@ class StageIDU extends Module {
     is_unsigned := funct3(2)      
   }
 
-  // Store 类 (opcode = 0x23)
+  // Store
   when(opcode === "b0100011".U) {
     mem_wen     := true.B
     src2_sel    := true.B
@@ -88,14 +91,14 @@ class StageIDU extends Module {
     mem_size    := funct3(1, 0)
   }
 
-  // Branch 类 (opcode = 0x63)
+  // Branch
   when(opcode === "b1100011".U) {
     is_branch   := true.B
     src2_sel    := true.B      
     imm_sel     := ImmSel.B
   }
 
-  // JAL (opcode = 0x6F)
+  // JAL
   when(opcode === "b1101111".U) {
     reg_wen   := true.B
     is_jal    := true.B
@@ -104,7 +107,7 @@ class StageIDU extends Module {
     imm_sel   := ImmSel.J
   }
 
-  // JALR (opcode = 0x67)
+  // JALR
   when(opcode === "b1100111".U) {
     reg_wen   := true.B
     is_jalr   := true.B
@@ -112,7 +115,7 @@ class StageIDU extends Module {
     imm_sel   := ImmSel.I
   }
 
-  // LUI (opcode = 0x37)
+  // LUI
   when(opcode === "b0110111".U) {
     reg_wen   := true.B
     src2_sel  := true.B
@@ -120,13 +123,18 @@ class StageIDU extends Module {
     alu_op    := ALUOp.COPY_B  
   }
 
-  // AUIPC (opcode = 0x17)
+  // AUIPC
   when(opcode === "b0010111".U) {
     reg_wen   := true.B
     src1_sel  := true.B   
     src2_sel  := true.B   
     imm_sel   := ImmSel.U
     alu_op    := ALUOp.ADD_PC 
+  }
+
+  // COB
+  when(opcode === "b0001111".U) {
+    is_cbo    := true.B
   }
 
 
@@ -156,6 +164,7 @@ class StageIDU extends Module {
   decoded.is_jalr     := is_jalr
   decoded.mem_size    := mem_size
   decoded.is_unsigned := is_unsigned
+  decoded.is_cbo      := is_cbo
 
   io.rs1_addr := rs1
   io.rs2_addr := rs2
@@ -164,15 +173,17 @@ class StageIDU extends Module {
   val pipe_data  = Reg(new ID_EX_Bus)
   val pipe_valid = RegInit(false.B)
 
-  val stall = !io.out.ready
+  val stall = !io.out.ready || io.fwd_stall
 
   when(io.flush) {
-    pipe_valid := false.B 
-  } .elsewhen(!stall & io.in.valid) {
-    pipe_valid := io.in.valid
-    pipe_data  := decoded 
-  }.elsewhen(stall) {
+    pipe_valid := false.B
+  }.elsewhen(!io.out.ready) {
     pipe_valid := pipe_valid
+  }.elsewhen(io.fwd_stall) {
+    pipe_valid := false.B
+  }.elsewhen(io.in.valid) {
+    pipe_valid := io.in.valid
+    pipe_data  := decoded
   }.otherwise {
     pipe_valid := false.B
   }

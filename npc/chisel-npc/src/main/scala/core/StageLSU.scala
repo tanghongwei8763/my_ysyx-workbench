@@ -12,6 +12,16 @@ class StageLSU extends Module {
 
     val dcache_rdata      = Input (UInt(32.W))
     val dcache_ready      = Input (Bool())
+
+    // MEM 阶段转发总线 (到 ID 旁路网络)
+    val fwd_en      = Output(Bool())    // 当前输入指令写寄存器
+    val fwd_reg     = Output(UInt(5.W))
+    val fwd_data    = Output(UInt(32.W)) // load 用 load_data, 其余用 alu_out
+    val fwd_stall   = Output(Bool())    // load 数据尚未就绪
+
+    // 旁路队列回填 (load 完成, dcache 数据就绪)
+    val fill_en   = Output(Bool())
+    val fill_data = Output(UInt(32.W))
   })
 
   val addr = io.in.bits.alu_out
@@ -29,8 +39,8 @@ class StageLSU extends Module {
 
   val lsu_rdata = io.dcache_rdata >> (addr_off << 3)
   val load_data = MuxLookup(io.in.bits.mem_size, lsu_rdata)(Seq(
-    0.U -> Mux(io.in.bits.is_unsigned, Cat(0.U(24.W), lsu_rdata(7 , 0)), Cat(Fill(24, lsu_rdata(7)), lsu_rdata(7 , 0))),
-    1.U -> Mux(io.in.bits.is_unsigned, Cat(0.U(16.W), lsu_rdata(15, 0)), Cat(Fill(16, lsu_rdata(7)), lsu_rdata(15, 0))),
+    0.U -> Mux(io.in.bits.is_unsigned, Cat(0.U(24.W), lsu_rdata(7 , 0)), Cat(Fill(24, lsu_rdata(7)),  lsu_rdata(7 , 0))),
+    1.U -> Mux(io.in.bits.is_unsigned, Cat(0.U(16.W), lsu_rdata(15, 0)), Cat(Fill(16, lsu_rdata(15)), lsu_rdata(15, 0))),
   ))
 
   val mem_result = Wire(new MEM_WB_Bus)
@@ -58,4 +68,14 @@ class StageLSU extends Module {
   io.out.valid    := pipe_valid
   io.out.bits     := pipe_data
   io.rdata_processed := load_data
+
+  // MEM 转发: 当前输入指令 (load 完成时 load_data 有效, 未完成时 fwd_stall)
+  io.fwd_en    := io.in.valid & io.in.bits.reg_wen & (io.in.bits.rd_addr =/= 0.U)
+  io.fwd_reg   := io.in.bits.rd_addr
+  io.fwd_data  := Mux(io.in.bits.is_load, load_data, io.in.bits.alu_out)
+  io.fwd_stall := io.in.valid & io.in.bits.is_load & !io.dcache_ready
+
+  // load 完成回填: dcache 数据就绪时将 load_data 写入旁路队列
+  io.fill_en   := io.in.valid & io.in.bits.is_load & io.dcache_ready
+  io.fill_data := load_data
 }

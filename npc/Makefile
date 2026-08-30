@@ -49,7 +49,7 @@ endif
 
 ISA ?= 
 ARGS ?= 
-IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/dummy-riscv32-ysyxsoc-chisel.bin
+IMG ?= /home/tanghongwei/ysyx-workbench/am-kernels/tests/cpu-tests/build/hello-str-riscv32-ysyxsoc-chisel.bin
 
 SIMULATOR = $(BIN)
 

@@ -7,7 +7,7 @@ object CACHE_STATE {
     val IDLE       = 0.U(2.W)
     val LOOKUP     = 1.U(2.W)
     val REFILL     = 2.U(2.W)
-    val FENCEN     = 3.U(2.W)
+    val CBO        = 3.U(2.W)
 }
 
 class Icache extends Module {
@@ -102,9 +102,7 @@ class Icache extends Module {
     (uhit_data >> word_sel)(31, 0))
 
   // 握手
-  val ld_ing          = cache_ld_ing && !(io.axi.r.valid && rready_r && io.axi.r.bits.last)
-  val refilling       = ld_ing
-  val icache_req_done = icache_hit || (refill_done && !refilling)
+  val icache_req_done = icache_hit || refill_done
   val accept_ready    = Mux(req_active, icache_req_done, state === CACHE_STATE.IDLE)
   val request_done    = req_active && icache_req_done
   val request_accept  = io.addr_valid && accept_ready
@@ -181,11 +179,12 @@ class Icache extends Module {
           ld_burst_cnt := ld_burst_cnt + 1.U
           when(io.axi.r.bits.last) {
             cache_ld_ing := false.B
+            refill_done  := true.B
             rready_r     := false.B
             lru_array(req_index) := Mux(replace_way_r === 0.U, "b10".U, "b01".U)
           }
         }
-        when(!cache_ld_ing) { refill_done := true.B }
+        when(refill_done) { refill_done := false.B }
       }
     }
   }

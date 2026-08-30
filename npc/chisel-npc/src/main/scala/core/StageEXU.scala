@@ -9,12 +9,18 @@ class StageEXU extends Module {
     val out              = Decoupled(new EX_MEM_Bus)
 
     val pc_update        = Input(Bool())
-    val flush_en         = Output(Bool())    
+    val flush_en         = Output(Bool())
     val flush_pc         = Output(UInt(32.W))
 
-    val rd_w_bypass_data = Output(UInt(32.W))
-    val rd_w_bypass_en   = Output(Bool())
-    val rd_w_bypass      = Output(UInt(5.W))
+    val fwd_en      = Output(Bool())
+    val fwd_reg     = Output(UInt(5.W))
+    val fwd_data    = Output(UInt(32.W))
+    val fwd_is_load = Output(Bool())
+
+    val push_en = Output(Bool())
+
+    val cbo_valid         = Output(Bool())
+    val cbo_va            = Output(UInt(32.W))
 
     val dcache_addr       = Output(UInt(32.W))
     val dcache_addr_valid = Output(Bool())
@@ -47,7 +53,6 @@ class StageEXU extends Module {
   val jalr_target   = (src1 + io.in.bits.imm) & ~1.U(32.W)
   val target_pc     = Mux(io.in.bits.is_jalr, jalr_target, branch_target)
 
-  // funct3 编码: 000=BEQ, 001=BNE, 100=BLT, 101=BGE, 110=BLTU, 111=BGEU
   val funct3 = io.in.bits.inst(14, 12)
 
   val diff   = src1 - src2
@@ -100,7 +105,7 @@ class StageEXU extends Module {
     pipe_valid := false.B
   }
 
-  when (!stall & io.in.valid & ~io.flush_en) {
+  when (~stall & io.in.valid & ~io.flush_en) {
     flush_en_r := taken
     flush_pc_r := target_pc
   } .elsewhen(io.pc_update) {
@@ -110,13 +115,16 @@ class StageEXU extends Module {
   io.flush_en         := flush_en_r
   io.flush_pc         := flush_pc_r
 
-  io.in.ready         := !stall
+  io.in.ready         := ~stall
   io.out.valid        := pipe_valid
   io.out.bits         := pipe_data
 
-  io.rd_w_bypass_data := wb_data
-  io.rd_w_bypass_en   := io.in.valid & io.in.bits.reg_wen & ~io.in.bits.mem_ren & ~io.flush_en
-  io.rd_w_bypass      := io.in.bits.rd_addr
+  io.fwd_en      := io.in.valid & io.in.bits.reg_wen & (io.in.bits.rd_addr =/= 0.U) & ~io.flush_en
+  io.fwd_reg     := io.in.bits.rd_addr
+  io.fwd_data    := wb_data
+  io.fwd_is_load := io.in.bits.is_load
+
+  io.push_en := io.in.valid & ~stall & io.in.bits.reg_wen & (io.in.bits.rd_addr =/= 0.U) & ~io.flush_en
 
   val addr_off = wb_data(1, 0)
   val baseMask = MuxLookup(io.in.bits.mem_size, "b1111".U(4.W))(Seq(
@@ -125,9 +133,12 @@ class StageEXU extends Module {
     2.U -> "b1111".U(4.W),
   ))
 
+  io.cbo_valid         := io.in.valid & io.in.bits.is_cbo
+  io.cbo_va            := src1
+
   io.dcache_addr       := wb_data
-  io.dcache_addr_valid := io.in.valid & (io.in.bits.mem_ren | io.in.bits.mem_wen)
-  io.dcache_we         := io.in.bits.mem_wen
+  io.dcache_addr_valid := ~io.flush_en & io.in.valid & (io.in.bits.mem_ren | io.in.bits.mem_wen)
+  io.dcache_we         := ~io.flush_en & io.in.valid & io.in.bits.mem_wen
   io.dcache_wdata      := src2
   io.dcache_wstrb      := (baseMask << addr_off)(3,0)
 

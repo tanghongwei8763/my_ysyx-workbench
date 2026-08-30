@@ -20,6 +20,9 @@ class Dcache extends Module {
     val wstrb       = Input(UInt(4.W))
     val uncache_en  = Input(Bool())
 
+    val cbo_valid   = Input(Bool())
+    val cbo_va      = Input(UInt(32.W))
+
     val rdata       = Output(UInt(32.W))
     val ready       = Output(Bool())
     val done        = Output(Bool())
@@ -54,6 +57,15 @@ class Dcache extends Module {
 
   def req_tag = req_addr_r(31, OFFSET_WIDTH + INDEX_WIDTH)
 
+  // -- CBO --
+  val cbo_ing          = RegInit(false.B)
+  val cbo_lookup_ready = RegInit(false.B)
+  val cbo_index_r      = RegInit(0.U(INDEX_WIDTH.W))
+  val cbo_tag_r        = RegInit(0.U(TAG_WIDTH.W))
+
+  val cbo_index = io.cbo_va(OFFSET_WIDTH + INDEX_WIDTH - 1, OFFSET_WIDTH)
+  val cbo_tag   = io.cbo_va(31, OFFSET_WIDTH + INDEX_WIDTH)
+
   val wb_valid  = RegInit(false.B)
   val wb_index  = RegInit(0.U(INDEX_WIDTH.W))
   val wb_wstrb  = RegInit(0.U(4.W))
@@ -72,12 +84,12 @@ class Dcache extends Module {
   val cache_st_ing   = RegInit(false.B)
   val refill_done    = RegInit(false.B)
 
-  // -- 输出 --
+  //
   val rdata_array    = Reg(Vec(4, UInt(32.W)))
   val uncache_rdata  = RegInit(0.U(32.W))
   val rdata_r        = RegInit(0.U(32.W))
 
-  // -- AXI 控制 (内部 Reg, 避免多驱动) --
+  // 
   val arvalid_r = RegInit(false.B)
   val awvalid_r = RegInit(false.B)
   val wvalid_r  = RegInit(false.B)
@@ -85,7 +97,7 @@ class Dcache extends Module {
   val bready_r  = RegInit(false.B)
   val rready_r  = RegInit(false.B)
 
-  // AXI 地址/属性 (寄存器, 在 LOOKUP miss 时锁存)
+  //
   val araddr_r   = RegInit(0.U(32.W))
   val arlen_r    = RegInit(0.U(8.W))
   val arsize_r   = RegInit(0.U(3.W))
@@ -128,19 +140,25 @@ class Dcache extends Module {
     when(lru_array(req_index)(w) === 1.U) { replace_way_sel := w.U }
   }
 
+  // -- CBO 命中/脏判断 --
+  val cbo_way_hit = Wire(Vec(WAYS, Bool()))
+  for (w <- 0 until WAYS) { cbo_way_hit(w) := way_valid(w) && (way_tag(w) === cbo_tag_r) }
+  val cbo_hit       = cbo_way_hit.asUInt.orR
+  val cbo_hit_way   = WireDefault(0.U(log2Ceil(WAYS).W))
+  for (w <- 0 until WAYS) { when(cbo_way_hit(w)) { cbo_hit_way := w.U } }
+  val cbo_tag_dirty = cbo_hit && dirty_array(cbo_index_r)(cbo_hit_way)
+
   val cache_addr = Cat(req_tag, req_index, 0.U(OFFSET_WIDTH.W))
   val mem_addr   = Mux(req_uncache_r, req_addr_r, cache_addr)
 
   val uhit_data  = Cat(rdata_array(3), rdata_array(2), rdata_array(1), rdata_array(0))
 
-  // 输出数据 — 用移位 + 截位做动态 word 选择
   val word_sel = req_offset(3, 2) * 32.U
   val load_data_now = Mux(req_uncache_r, uncache_rdata,
                         Mux(state === CACHE_STATE.LOOKUP && dcache_hit,
                             (way_data(hit_way) >> word_sel)(31, 0),
                             (uhit_data >> word_sel)(31, 0)))
 
-  // -- 握手 (仿 dcache.v: addr_ok 接受新请求, data_ok 当前请求完成) --
   val ld_ing   = cache_ld_ing && !(io.axi.r.valid && rready_r && io.axi.r.bits.last)
   val st_ing   = cache_st_ing && !(io.axi.b.valid && bready_r)
   val refilling = ld_ing || st_ing
@@ -148,7 +166,7 @@ class Dcache extends Module {
     (io.axi.r.valid && rready_r && io.axi.r.bits.last) ||
     (io.axi.b.valid && bready_r))
 
-  // 当前请求完成 (命中, 或 refill 结束, 或 uncache 结束)
+  // 当前请求完成
   val data_ok = (state === CACHE_STATE.LOOKUP && dcache_hit) ||
                 (state === CACHE_STATE.REFILL && refill_done && !refilling) ||
                 uncache_done
@@ -160,23 +178,39 @@ class Dcache extends Module {
   val addr_ok = (state === CACHE_STATE.IDLE   && idle2lookup) ||
                 (state === CACHE_STATE.LOOKUP && lookup2lookup)
 
-  val request_accept = io.addr_valid && addr_ok
+  // CBO 接受
+  val cbo_accept_ready = (state === CACHE_STATE.IDLE) || (req_active && data_ok)
+  val cbo_accept       = io.cbo_valid && cbo_accept_ready
+
+  val request_accept = io.addr_valid && addr_ok && !cbo_accept
   val request_done   = req_active && data_ok
 
-  io.ready := (!req_active || data_ok) && (!io.addr_valid || addr_ok)
+  val cbo_busy   = cbo_ing
+  val cbo_sram   = state === CACHE_STATE.CBO 
+
+  io.ready := !cbo_busy && (!req_active || data_ok) && (!io.addr_valid || addr_ok)
   io.done  := request_done
 
   when(request_done) { rdata_r := load_data_now }
   io.rdata := Mux(request_done, load_data_now, rdata_r)
 
+  // CBO 间接写回完成
+  val cbo_wb_done = (state === CACHE_STATE.REFILL) && cbo_ing &&
+                    refill_done && !refilling
+
   nextState := state
   switch(state) {
-    is(CACHE_STATE.IDLE)   { when(request_accept) { nextState := CACHE_STATE.LOOKUP } }
-    is(CACHE_STATE.LOOKUP) { when(request_accept) { nextState := CACHE_STATE.LOOKUP }
-                              .elsewhen(data_ok)  { nextState := CACHE_STATE.IDLE }
-                              .otherwise         { nextState := CACHE_STATE.REFILL } }
-    // refill 结束后先进 IDLE, 下一拍再接受新请求, 避免与 store-merge 写、写缓冲写冲突
-    is(CACHE_STATE.REFILL) { when(request_done)   { when(request_accept) { nextState := CACHE_STATE.LOOKUP }.otherwise { nextState := CACHE_STATE.IDLE } } }
+    is(CACHE_STATE.IDLE)   { when(cbo_accept)           { nextState := CACHE_STATE.CBO }
+                              .elsewhen(request_accept) { nextState := CACHE_STATE.LOOKUP } }
+    is(CACHE_STATE.LOOKUP) { when(cbo_accept)           { nextState := CACHE_STATE.CBO }
+                              .elsewhen(request_accept) { nextState := CACHE_STATE.LOOKUP }
+                              .elsewhen(data_ok)        { nextState := CACHE_STATE.IDLE   }
+                              .otherwise                { nextState := CACHE_STATE.REFILL } }
+    is(CACHE_STATE.REFILL) { when(cbo_wb_done)          { nextState := CACHE_STATE.IDLE }
+                              .elsewhen(request_done)   { when(cbo_accept)           { nextState := CACHE_STATE.CBO }
+                                                           .elsewhen(request_accept) { nextState := CACHE_STATE.LOOKUP }
+                                                           .otherwise                { nextState := CACHE_STATE.IDLE } } }
+    is(CACHE_STATE.CBO)    { when(cbo_lookup_ready)     { nextState := Mux(cbo_tag_dirty, CACHE_STATE.REFILL, CACHE_STATE.IDLE) } }
   }
 
   when(reset.asBool) {
@@ -184,6 +218,9 @@ class Dcache extends Module {
     req_wdata_r  := 0.U;     req_wstrb_r := 0.U
     req_addr_r   := 0.U;     req_index := 0.U
     req_offset   := 0.U;     req_uncache_r := false.B
+
+    cbo_ing := false.B; cbo_lookup_ready := false.B
+    cbo_index_r := 0.U; cbo_tag_r := 0.U
 
     wb_valid := false.B; wb_index := 0.U; wb_wstrb := 0.U
     wb_wdata := 0.U;    wb_offset := 0.U; wb_way := 0.U
@@ -206,7 +243,6 @@ class Dcache extends Module {
     state          := nextState
     refill_done    := false.B
 
-    // -- 请求锁存 --
     when(request_done)  { req_active := false.B }
     when(request_accept) {
       req_active    := true.B
@@ -219,12 +255,18 @@ class Dcache extends Module {
       req_uncache_r := io.uncache_en
     }
 
-    // -- AXI 默认 (idle) --
+    when(cbo_accept) {
+      cbo_ing          := true.B
+      cbo_lookup_ready := false.B
+      cbo_index_r      := cbo_index
+      cbo_tag_r        := cbo_tag
+    }
+
+    // AXI 默认
     when(io.axi.ar.ready) { arvalid_r := false.B }
     when(io.axi.aw.ready) { awvalid_r := false.B }
     when(io.axi.b.valid  && bready_r) { bready_r := false.B; cache_st_ing := false.B; st_burst_cnt := 0.U }
 
-    // -- 状态机 --
     switch(state) {
       is(CACHE_STATE.IDLE) { }
 
@@ -243,7 +285,6 @@ class Dcache extends Module {
           ld_burst_cnt  := 0.U
           st_burst_cnt  := 0.U
 
-          // AXI 读 (refill)
           cache_ld_ing  := true.B
           arvalid_r     := true.B
           araddr_r      := mem_addr
@@ -251,7 +292,6 @@ class Dcache extends Module {
           arsize_r      := 2.U
           arburst_r     := 1.U
 
-          // AXI 写回 (如果 victim 脏)
           cache_st_ing := dirty_array(req_index)(replace_way_sel)
           when(dirty_array(req_index)(replace_way_sel)) {
             awvalid_r := true.B
@@ -259,12 +299,15 @@ class Dcache extends Module {
             awlen_r   := 3.U
             awsize_r  := 2.U
             awburst_r := 1.U
+            when(!cbo_ing) {
+              wb_line_r := way_data(replace_way_sel)
+              wdata_r   := way_data(replace_way_sel)(31, 0)   // beat 0
+            }
           }
         }
       }
 
       is(CACHE_STATE.REFILL) {
-        // ===== refill 读 =====
         when(io.axi.ar.ready && io.axi.ar.valid) {
           arvalid_r := false.B
           rready_r  := true.B
@@ -278,13 +321,10 @@ class Dcache extends Module {
             lru_array(req_index) := Mux(replace_way_r === 0.U, "b10".U, "b01".U)
           }
         }
-        // ===== 写回 (victim) =====
         when(io.axi.aw.valid && io.axi.aw.ready) {
           awvalid_r := false.B
           wvalid_r  := true.B
           wlast_r   := false.B
-          wb_line_r := way_data(replace_way_r)
-          wdata_r   := way_data(replace_way_r)(31, 0)   // beat 0
           wstrb_r   := "b1111".U
         }
         when(io.axi.w.valid && io.axi.w.ready) {
@@ -306,13 +346,40 @@ class Dcache extends Module {
         // refill 完成 (读 & 写都做完)
         when(!cache_ld_ing && !cache_st_ing) { refill_done := true.B }
         // store miss: refill 结束后把原始 store 数据写进新行
-        when(refill_done && req_we_r) {
+        when(refill_done && req_we_r && !cbo_ing) {
           dirty_array(req_index) := dirty_array(req_index) | (1.U(WAYS.W) << replace_way_r)
+        }
+        // CBO 间接写回完成
+        when(cbo_wb_done) { cbo_ing := false.B }
+      }
+
+      is(CACHE_STATE.CBO) {
+        when(!wb_valid) {
+          cbo_lookup_ready := true.B
+          when(cbo_lookup_ready) {
+            when(cbo_hit) {
+              dirty_array(cbo_index_r) := dirty_array(cbo_index_r) & ~(1.U(WAYS.W) << cbo_hit_way)
+            }
+            when(cbo_tag_dirty) {
+              replace_way_r := cbo_hit_way
+              wb_index_r    := cbo_index_r
+              wb_line_r     := way_data(cbo_hit_way)
+              wdata_r       := way_data(cbo_hit_way)(31, 0)   // beat 0
+              cache_st_ing  := true.B
+              awvalid_r     := true.B
+              awaddr_r      := Cat(way_tag(cbo_hit_way), cbo_index_r, 0.U(OFFSET_WIDTH.W))
+              awlen_r       := 3.U
+              awsize_r      := 2.U
+              awburst_r     := 1.U
+            }.otherwise {
+              cbo_ing := false.B
+            }
+          }
         }
       }
     }
 
-    // -- 写缓冲 (store 命中时捕获; 写回 data bank 在下一拍进行) --
+    // 写缓冲
     when(state === CACHE_STATE.LOOKUP && dcache_hit && req_we_r) {
       wb_valid  := true.B
       wb_index  := req_index
@@ -351,7 +418,10 @@ class Dcache extends Module {
     val sram = data_banks(w)(j)
     val wr_match = wb_valid && (wb_way === w.U) && (wb_offset(3, 2) === j.U)
 
-    sram.io.addra := Mux(wr_match, wb_index, Mux(request_accept, dcache_index, req_index))
+    // CBO 查表时以 cbo 块地址读 data bank
+    sram.io.addra := Mux(wr_match, wb_index,
+                     Mux(cbo_sram, cbo_index_r,
+                         Mux(request_accept, dcache_index, req_index)))
     sram.io.ena   := true.B
 
     val we = WireDefault(0.U(4.W))
@@ -361,7 +431,7 @@ class Dcache extends Module {
     when(state === CACHE_STATE.REFILL && !req_uncache_r &&
          io.axi.r.valid && rready_r && replace_way_r === w.U && ld_burst_cnt === j.U) { we := "b1111".U }
     // REFILL 完成后, 原始写请求 (store miss) 写该 bank
-    when(state === CACHE_STATE.REFILL && !req_uncache_r &&
+    when(state === CACHE_STATE.REFILL && !req_uncache_r && !cbo_ing &&
          refill_done && req_we_r && replace_way_r === w.U &&
          req_offset(OFFSET_WIDTH - 1, 2) === j.U) { we := req_wstrb_r }
     sram.io.wea := we
@@ -369,18 +439,19 @@ class Dcache extends Module {
     val din = WireDefault(0.U(32.W))
     when(wr_match) { din := wb_wdata }
     when(state === CACHE_STATE.REFILL && !req_uncache_r && io.axi.r.valid) { din := io.axi.r.bits.data }
-    when(state === CACHE_STATE.REFILL && !req_uncache_r && refill_done && req_we_r) { din := req_wdata_r }
+    when(state === CACHE_STATE.REFILL && !req_uncache_r && !cbo_ing && refill_done && req_we_r) { din := req_wdata_r }
     sram.io.dina := din
   }
 
-  // -- tagv bank 连接 --
   for (w <- 0 until WAYS) {
     val sram = tagv_srams(w)
-    sram.io.addra := Mux(request_accept, dcache_index, req_index)
-    sram.io.wea := (state === CACHE_STATE.REFILL && !req_uncache_r &&
+    val cbo_inv = cbo_sram && cbo_lookup_ready && cbo_hit && (cbo_hit_way === w.U)
+    sram.io.addra := Mux(cbo_sram, cbo_index_r, Mux(request_accept, dcache_index, req_index))
+    sram.io.wea := cbo_inv ||
+                   (state === CACHE_STATE.REFILL && !req_uncache_r &&
                     io.axi.r.valid && rready_r && io.axi.r.bits.last &&
                     replace_way_r === w.U)
-    sram.io.dina := Cat(req_tag, 1.U(1.W))
+    sram.io.dina := Mux(cbo_inv, 0.U((TAG_WIDTH + 1).W), Cat(req_tag, 1.U(1.W)))
     sram.io.ena  := true.B
   }
 
