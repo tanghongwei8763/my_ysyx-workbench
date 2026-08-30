@@ -5,13 +5,13 @@ import chisel3.util._
 
 class ysyx_25020037 extends Module {
   val io = IO(new Bundle {
-    val interrupt     = Input(UInt(1.W))   // → io_interrupt (与 SoC BlackBox 匹配)
+    val interrupt     = Input(UInt(1.W)) 
 
-    val master = new AXI_Flat          // master 口 (扁平 AXI, 与 ysyxSoC BlackBox 兼容)
-    val slave  = Flipped(new AXI_Flat) // slave 口：暂未使用
+    val master = new AXI_Flat
+    val slave  = Flipped(new AXI_Flat) 
 
-    val sim_end   = Output(Bool())     // ebreak → 通知仿真结束
-    val test_pass = Output(UInt(32.W)) // 结束时 a0 的值, 用于判定结果
+    val sim_end   = Output(Bool())
+    val test_pass = Output(UInt(32.W))
 
     // Difftest debug ports
     val debug_commit_valid = Output(Bool())
@@ -23,14 +23,12 @@ class ysyx_25020037 extends Module {
 
   val regfile = Module(new RegFile)
 
-  // 五级流水线
   val ifu = Module(new StageIFU)
   val idu = Module(new StageIDU)
   val exu = Module(new StageEXU)
   val lsu = Module(new StageLSU)
   val wbu = Module(new StageWBU)
 
-  // 仲裁器和旁路暂存队列
   val axi_arbiter = Module(new AxiArbiter)
   val bypass      = Module(new Bypass)
 
@@ -42,13 +40,6 @@ class ysyx_25020037 extends Module {
   lsu.io.in <> exu.io.out
   wbu.io.in <> lsu.io.out
 
-  // ═════════════════════════════════════════════════════════════════════
-  //  AXI 扁平接口 ↔ 内部 AXI_Bus 转换
-  //  顶层 IO (AXI_Flat) 与 ysyxSoC BlackBox 期望的端口名一致
-  //  (io_master_awaddr、io_master_awvalid … 无 _bits_ 层级)
-  // ═════════════════════════════════════════════════════════════════════
-
-  // ── AW 通道 ──
   io.master.awvalid               := axi_arbiter.io.master.aw.valid
   io.master.awaddr                := axi_arbiter.io.master.aw.bits.addr
   io.master.awid                  := axi_arbiter.io.master.aw.bits.id
@@ -57,20 +48,17 @@ class ysyx_25020037 extends Module {
   io.master.awburst               := axi_arbiter.io.master.aw.bits.burst
   axi_arbiter.io.master.aw.ready  := io.master.awready
 
-  // ── W 通道 ──
   io.master.wvalid                := axi_arbiter.io.master.w.valid
   io.master.wdata                 := axi_arbiter.io.master.w.bits.data
   io.master.wstrb                 := axi_arbiter.io.master.w.bits.strb
   io.master.wlast                 := axi_arbiter.io.master.w.bits.last
   axi_arbiter.io.master.w.ready   := io.master.wready
 
-  // ── B 通道 (slave → master) ──
   axi_arbiter.io.master.b.valid   := io.master.bvalid
   axi_arbiter.io.master.b.bits.resp := io.master.bresp
   axi_arbiter.io.master.b.bits.id   := io.master.bid
   io.master.bready                := axi_arbiter.io.master.b.ready
 
-  // ── AR 通道 ──
   io.master.arvalid               := axi_arbiter.io.master.ar.valid
   io.master.araddr                := axi_arbiter.io.master.ar.bits.addr
   io.master.arid                  := axi_arbiter.io.master.ar.bits.id
@@ -79,7 +67,6 @@ class ysyx_25020037 extends Module {
   io.master.arburst               := axi_arbiter.io.master.ar.bits.burst
   axi_arbiter.io.master.ar.ready  := io.master.arready
 
-  // ── R 通道 (slave → master) ──
   axi_arbiter.io.master.r.valid   := io.master.rvalid
   axi_arbiter.io.master.r.bits.resp := io.master.rresp
   axi_arbiter.io.master.r.bits.data := io.master.rdata
@@ -87,7 +74,6 @@ class ysyx_25020037 extends Module {
   axi_arbiter.io.master.r.bits.id   := io.master.rid
   io.master.rready                := axi_arbiter.io.master.r.ready
 
-  // slave 口暂未使用
   io.slave  := DontCare
 
   dcache.io.cbo_valid  := exu.io.cbo_valid
@@ -98,29 +84,22 @@ class ysyx_25020037 extends Module {
   dcache.io.we         := exu.io.dcache_we
   dcache.io.wdata      := exu.io.dcache_wdata
   dcache.io.wstrb      := exu.io.dcache_wstrb
-  dcache.io.uncache_en := false.B            // 暂不支持 uncache
+  dcache.io.uncache_en := false.B 
 
   lsu.io.dcache_rdata := dcache.io.rdata
   lsu.io.dcache_ready := dcache.io.ready
 
   dcache.io.axi <> axi_arbiter.io.lsu
 
-  // ── Icache: IFU → Icache → 仲裁器 IFU 口 ──
   icache.io.addr       := ifu.io.inst_vaddr
   icache.io.addr_valid := ifu.io.inst_valid
   ifu.io.icache_rdata  := icache.io.rdata
   ifu.io.icache_done   := icache.io.done
   icache.io.axi <> axi_arbiter.io.ifu
 
-  // ================= 寄存器操作 ==================
   regfile.io.rs1_addr := idu.io.rs1_addr
   regfile.io.rs2_addr := idu.io.rs2_addr
 
-  // ================= 旁路网络 =================
-  // 数据优先级: 直连 EX 当拍结果 > 直连 MEM 当拍数据 > 旁路队列 > 寄存器堆.
-  // 直连转发覆盖同拍依赖 (1 拍 ALU 依赖 / load 完成当拍), 旁路队列则暂存结果,
-  // 供延迟一拍读到的依赖指令从队列取数 (数据不依赖单拍转发窗口).
-  // load 在 EXU 时入队并标记 is_load, MEM 完成时回填数据到最老标记项.
   bypass.io.rs1_addr      := idu.io.rs1_addr
   bypass.io.rs2_addr      := idu.io.rs2_addr
   bypass.io.src1_data     := regfile.io.rs1_data
@@ -137,7 +116,6 @@ class ysyx_25020037 extends Module {
   val mem_fwd_rs1 = lsu.io.fwd_en && (idu.io.rs1_addr === lsu.io.fwd_reg) && (idu.io.rs1_addr =/= 0.U)
   val mem_fwd_rs2 = lsu.io.fwd_en && (idu.io.rs2_addr === lsu.io.fwd_reg) && (idu.io.rs2_addr =/= 0.U)
 
-  // 直连转发是否已解决该源寄存器 (EX 非 load 结果 / MEM load 数据或 alu_out)
   val ex_resolves_rs1 = ex_fwd_rs1 && !exu.io.fwd_is_load
   val ex_resolves_rs2 = ex_fwd_rs2 && !exu.io.fwd_is_load
   val mem_resolves_rs1 = mem_fwd_rs1 && !lsu.io.fwd_stall
@@ -150,10 +128,6 @@ class ysyx_25020037 extends Module {
                       Mux(mem_resolves_rs2, lsu.io.fwd_data,
                           bypass.io.bypass_src2_data))
 
-  // load-use 停流: 依赖的 load 数据尚未就绪
-  //  - EX 的 load (数据未产生)
-  //  - MEM 阶段 load 未完成 (dcache 未就绪)
-  //  - 旁路队列中命中未回填的 load 条目 (直连转发均未解决该源时, 兜底)
   val rs1_unresolved = !(ex_resolves_rs1 || mem_resolves_rs1) && bypass.io.stall_rs1
   val rs2_unresolved = !(ex_resolves_rs2 || mem_resolves_rs2) && bypass.io.stall_rs2
 
@@ -162,22 +136,18 @@ class ysyx_25020037 extends Module {
                        (mem_fwd_rs1 && lsu.io.fwd_stall)  || (mem_fwd_rs2 && lsu.io.fwd_stall) ||
                        rs1_unresolved || rs2_unresolved)
 
-  // 写端口 ← WBU
   regfile.io.rd_addr := wbu.io.rd_addr
   regfile.io.rd_data := wbu.io.rd_data
   regfile.io.rd_wen  := wbu.io.rd_wen
 
-  // ================= flush操作 ==================
   ifu.io.flush     := exu.io.flush_en
   ifu.io.flush_pc  := exu.io.flush_pc
   idu.io.flush     := exu.io.flush_en
   exu.io.pc_update := ifu.io.pc_update
 
-  // ================= 仿真控制 ==================
   io.sim_end   := exu.io.sim_end
   io.test_pass := regfile.io.debug_a0
 
-  // ================= Difftest ==================
   io.debug_commit_valid := wbu.io.debug_commit_valid
   io.debug_commit_pc    := wbu.io.debug_pc
   io.debug_commit_wen   := wbu.io.rd_wen
